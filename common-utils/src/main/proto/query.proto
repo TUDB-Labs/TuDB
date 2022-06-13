@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_package = "org.grapheco.tudb.network";
+
+package org.grapheco.tudb.network;
+
+service TuQueryService {
+  rpc Query (QueryRequest) returns (stream QueryResponse) {
+  }
+
+  rpc QueryStatistics(QueryRequest) returns (stream QueryResponse) {
+  }
+}
+
+message QueryRequest {
+  string statement = 1;
+}
+
+message QueryResponse {
+  bytes resultInBytes = 1;
+}
