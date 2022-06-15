@@ -192,7 +192,7 @@ class GraphFacade(
         )
         .filter(labelId => labelId >= 0)
       nodeStoreAPI
-        .getNodesByLabel(labelIds.head).filter(node=> nodeIds.contains(node.id))
+        .getNodesByLabel(labelIds.head).filter(node=> if (nodeIds.isEmpty) true else  nodeIds.contains(node.id))
         .map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))
     }
   }
