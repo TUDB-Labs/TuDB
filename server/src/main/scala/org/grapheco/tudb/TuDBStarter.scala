@@ -2,8 +2,7 @@ package org.grapheco.tudb
 
 import com.typesafe.scalalogging.LazyLogging
 
-import java.io.{File, FileReader}
-import java.util.Properties
+import com.typesafe.config.ConfigFactory
 
 /** @Author: Airzihao
   * @Description:
@@ -16,11 +15,8 @@ object TuDBStarter extends LazyLogging {
   def main(args: Array[String]): Unit = {
     /*
       started by script of tudb.sh
-      args(0): tudb.conf file path
      */
-    if (args.length != 1) sys.error("Need conf file path.")
-    val configFile: File = new File(args(0))
-    _initContext(configFile)
+    _initContext()
 
     val server: TuDBServer = new TuDBServer(
       TuInstanceContext.getPort,
@@ -30,11 +26,9 @@ object TuDBStarter extends LazyLogging {
   }
 
   // Caution: Init all the config item in this function.
-  private def _initContext(configFile: File) = {
-    val props: Properties = new Properties()
-    props.load(new FileReader(configFile))
-
-    TuInstanceContext.setDataPath(props.getProperty("datapath"))
-    TuInstanceContext.setPort(props.getProperty("port").toInt)
+  private def _initContext() = {
+    val conf = ConfigFactory.load
+    TuInstanceContext.setDataPath(conf.getString("datapath"))
+    TuInstanceContext.setPort(conf.getInt("port"))
   }
 }
