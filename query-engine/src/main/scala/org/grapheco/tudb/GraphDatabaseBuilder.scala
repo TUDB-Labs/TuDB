@@ -39,7 +39,9 @@ object GraphDatabaseBuilder extends StrictLogging {
       "default",
       s"${dataPath}/${DBNameMap.nodeLabelDB}",
       "default",
-      nodeMetaDB
+      nodeMetaDB,
+      "hashmap",
+      ""
     )
 
     val relMetaDB =

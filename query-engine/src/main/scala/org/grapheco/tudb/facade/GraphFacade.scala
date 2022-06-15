@@ -176,7 +176,15 @@ class GraphFacade(
 
   override def nodes(nodeFilter: NodeFilter): Iterator[LynxNode] = {
     //ugly impl: The getOrElse(-1) and filter(labelId > 0) is to avoid querying a unexisting label.
-    if (nodeFilter.labels.length == 0) nodes().filter(nodeFilter.matches(_))
+
+    val nodeIds=if (nodeFilter.properties.nonEmpty){
+      nodeFilter.properties.map(property=> nodeStoreAPI.getNodeIdByProperty(property._2).toSet).flatten.toSet
+    }else Set[Long]()
+    val nodeDatas=if (nodeIds.nonEmpty){
+      nodeIds.map(nodeId=> nodeStoreAPI.getNodeById(nodeId).map(mapNode)).filter(_.nonEmpty).
+        map(_.get.asInstanceOf[LynxNode]).iterator
+    }else nodes()
+    if (nodeFilter.labels.length == 0) nodeDatas.filter(tuNode => nodeFilter.matches(tuNode))
     else {
       val labelIds: Seq[Int] = nodeFilter.labels
         .map(lynxNodeLabel =>
@@ -184,9 +192,8 @@ class GraphFacade(
         )
         .filter(labelId => labelId >= 0)
       nodeStoreAPI
-        .getNodesByLabel(labelIds.head)
-        .map(mapNode)
-        .filter(tuNode => nodeFilter.matches(tuNode))
+        .getNodesByLabel(labelIds.head).filter(node=> nodeIds.contains(node.id))
+        .map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))
     }
   }
 

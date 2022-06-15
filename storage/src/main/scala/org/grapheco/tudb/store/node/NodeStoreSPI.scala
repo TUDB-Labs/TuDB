@@ -6,6 +6,9 @@ package org.grapheco.tudb.store.node
   * @Modified By:
   */
 trait NodeStoreSPI {
+  def getNodeIdByProperty(value:Any): List[Long]
+  def hasIndex():Boolean
+
   def refreshMeta(): Unit
 
   def newNodeId(): Long;

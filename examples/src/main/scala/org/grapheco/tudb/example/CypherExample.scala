@@ -2,6 +2,7 @@ package org.grapheco.tudb.example
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
+import org.grapheco.tudb.TuDBServer
 import org.grapheco.tudb.client.TuClient
 import org.grapheco.tudb.test.TestUtils
 
