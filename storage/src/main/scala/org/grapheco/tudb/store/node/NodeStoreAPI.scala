@@ -76,15 +76,12 @@ class NodeStoreAPI(
   println("load index ok")
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
-    indexUri match {
-      case "hashmap://mem" =>
-        getNodeById(nodeId).foreach { node =>
-          node.properties.foreach { property =>
-            indexImpl.removeIndex(property._2,node.id)
-          }
+    if (indexImpl.hasIndex()){
+      getNodeById(nodeId).foreach { node =>
+        node.properties.foreach { property =>
+          indexImpl.removeIndex(property._2,node.id)
         }
-      case "es" =>
-      case _ =>
+      }
     }
   }
 
