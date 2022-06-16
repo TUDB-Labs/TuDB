@@ -17,12 +17,12 @@ import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
   * @Date: Created at 15:35 2022/4/1
   * @Modified By:
   */
-class TuDBServer(bindPort: Int, dbPath: String) {
+class TuDBServer(bindPort: Int, dbPath: String,indexUri:String) {
 
   private val _port: Int = bindPort
   private val _server: Server = SNettyServerBuilder
     .forPort(_port)
-    .addService(new QueryServiceImpl(dbPath))
+    .addService(new QueryServiceImpl(dbPath,indexUri))
     .build()
 
   def start(): Unit = {
@@ -41,9 +41,9 @@ class TuDBServer(bindPort: Int, dbPath: String) {
 
 }
 
-class QueryServiceImpl(dbPath: String)
+class QueryServiceImpl(dbPath: String,indexUri:String)
     extends TuQueryServiceGrpc.TuQueryServiceImplBase {
-  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath)
+  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,indexUri)
 
   override def query(
       request: Query.QueryRequest,

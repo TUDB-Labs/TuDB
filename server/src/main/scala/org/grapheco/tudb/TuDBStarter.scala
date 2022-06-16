@@ -20,7 +20,8 @@ object TuDBStarter extends LazyLogging {
 
     val server: TuDBServer = new TuDBServer(
       TuInstanceContext.getPort,
-      TuInstanceContext.getDataPath
+      TuInstanceContext.getDataPath,
+      TuInstanceContext.getIndexUri
     )
     server.start()
   }
@@ -30,5 +31,6 @@ object TuDBStarter extends LazyLogging {
     val conf = ConfigFactory.load
     TuInstanceContext.setDataPath(conf.getString("datapath"))
     TuInstanceContext.setPort(conf.getInt("port"))
+    TuInstanceContext.setIndexUri(conf.getString("index.uri"))
   }
 }

@@ -34,7 +34,7 @@ object CypherExample {
     val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
     FileUtils.deleteDirectory(new File(dbPath))
 
-    server = new TuDBServer(port, dbPath)
+    server = new TuDBServer(port, dbPath,"hashmap://mem")
     new Thread(new Runnable {
       override def run(): Unit = server.start()
     }).start()

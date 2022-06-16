@@ -32,8 +32,7 @@ object NodeStoreAPITest {
     s"$outputRoot/${DBNameMap.nodeLabelDB}",
     "default",
     metaDB,
-    "hash",
-    ""
+    "hashmap://mem"
   )
 
   @BeforeClass

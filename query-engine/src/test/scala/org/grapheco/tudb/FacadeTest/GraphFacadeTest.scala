@@ -25,7 +25,7 @@ object GraphFacadeTest {
   if (file.exists()) FileUtils.deleteDirectory(file)
   TuInstanceContext.setDataPath(outputPath)
   val db =
-    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath)
+    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath,"hashmap://mem")
 
   @AfterClass
   def onClose(): Unit = {

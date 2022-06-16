@@ -21,7 +21,6 @@ class NodeStoreAPI(
                     nodeLabelDBPath: String,
                     nodeLabelConfigPath: String,
                     metaDB: KeyValueDB,
-                    indexMode: String,
                     indexUri: String,
                   ) extends NodeStoreSPI {
 
@@ -45,7 +44,7 @@ class NodeStoreAPI(
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
 
   // add index
-  private val propertyIndex = new mutable.HashMap[LynxValue, mutable.HashSet[Long]]()
+  private val propertyIndex = new mutable.HashMap[Any, mutable.HashSet[Long]]()
 
   val NONE_LABEL_ID: Int = 0
 
@@ -62,22 +61,22 @@ class NodeStoreAPI(
       s"${dbPath}/${DBNameMap.nodeLabelDB}",
       rocksdbCfgPath,
       metaDB,
-      indexMode,
       indexUri
     )
-    //add all index
-    indexMode match {
-      case "hashmap" =>
-        allNodes().foreach { node =>
-          node.properties.foreach { property =>
-            addPropertyIndex(property._2, node.id)
-          }
-        }
-      case "es" =>
-      case _ =>
-    }
-
   }
+  //add all index
+  println("start add index")
+  indexUri match {
+    case "hashmap://mem" =>
+      allNodes().foreach { node =>
+        node.properties.foreach { property =>
+          addPropertyIndex(property._2, node.id)
+        }
+      }
+    case "es" =>
+    case _ =>
+  }
+  println("load index ok")
 
   /**
    * add node id to index
@@ -86,13 +85,13 @@ class NodeStoreAPI(
    * @param nodeId
    */
   def addPropertyIndex(value: Any, nodeId: Long): Unit = {
-    indexMode match {
-      case "hashmap" =>
-        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue] else LynxValue(value)
+    indexUri match {
+      case "hashmap://mem" =>
+        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
         if (!propertyIndex.contains(lynxValue)) {
           propertyIndex.put(lynxValue, new mutable.HashSet[Long]())
         }
-        propertyIndex(lynxValue).add(nodeId)
+        propertyIndex(lynxValue).add(nodeId.intValue())
       case "es" =>
       case _ =>
     }
@@ -100,11 +99,11 @@ class NodeStoreAPI(
   }
 
   def removePropertyIndex(value: Any, nodeId: Long): Unit = {
-    indexMode match {
-      case "hashmap" =>
-        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue] else LynxValue(value)
+    indexUri match {
+      case "hashmap://mem" =>
+        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
         if (propertyIndex.contains(lynxValue)) {
-          propertyIndex(lynxValue).remove(nodeId)
+          propertyIndex(lynxValue).remove(nodeId.intValue())
         }
       case "es" =>
       case _ =>
@@ -112,8 +111,8 @@ class NodeStoreAPI(
   }
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
-    indexMode match {
-      case "hashmap" =>
+    indexUri match {
+      case "hashmap://mem" =>
         getNodeById(nodeId).foreach { node =>
           node.properties.foreach { property =>
             removePropertyIndex(property._2, node.id)
@@ -125,10 +124,10 @@ class NodeStoreAPI(
   }
 
   def getNodeIdByProperty(value: Any): List[Long] = {
-    indexMode match {
-      case "hashmap" =>
+    indexUri match {
+      case "hashmap://mem" =>
         val lynxValue =
-          if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue] else LynxValue(value)
+          if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
         propertyIndex.get(lynxValue).map(_.toList).getOrElse(Nil)
       case "es" =>Nil
       case _ =>Nil
@@ -136,8 +135,8 @@ class NodeStoreAPI(
   }
 
   def hasIndex():Boolean={
-    indexMode match {
-      case "hashmap" =>true
+    indexUri match {
+      case "hashmap://mem" =>true
       case "es" =>false //TODO support es
       case _ =>false
     }
