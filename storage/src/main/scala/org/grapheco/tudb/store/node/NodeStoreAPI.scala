@@ -66,27 +66,29 @@ class NodeStoreAPI(
   }
   //add all index
   println("start add index")
+  var addCount=0
   if (indexImpl.hasIndex()){
     allNodes().foreach { node =>
       node.properties.foreach { property =>
-        indexImpl.addIndex(property._2, node.id)
+        indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
+        addCount+=1
       }
     }
   }
-  println("load index ok")
+  println(f"load index ok,size:${addCount}")
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
     if (indexImpl.hasIndex()){
       getNodeById(nodeId).foreach { node =>
         node.properties.foreach { property =>
-          indexImpl.removeIndex(property._2,node.id)
+          indexImpl.removeIndex(indexImpl.encodeKey(property._1,property._2),node.id)
         }
       }
     }
   }
 
-  def getNodeIdByProperty(value: Any): Set[Long] = {
-    indexImpl.getIndexByKey(value)
+  def getNodeIdByProperty(propertyKey:Int,propertyValue: Any): Set[Long] = {
+    indexImpl.getIndexByKey(indexImpl.encodeKey(propertyKey,propertyValue))
   }
 
   def hasIndex():Boolean={
@@ -198,7 +200,7 @@ class NodeStoreAPI(
           new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
         )
         //add node id to index
-        indexImpl.addIndex(propertyValue, nodeId)
+        indexImpl.addIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId)
       }
       }
   }
@@ -216,7 +218,7 @@ class NodeStoreAPI(
           new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
         )
         //remove node id from index
-        node.properties.get(propertyKeyId).map(propertyValue => indexImpl.removeIndex(propertyValue, nodeId))
+        node.properties.get(propertyKeyId).map(propertyValue => indexImpl.removeIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId))
       }
       }
   }
@@ -231,7 +233,7 @@ class NodeStoreAPI(
     }
     //add node id to index
     node.properties.foreach { property =>
-      indexImpl.addIndex(property._2, node.id)
+      indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
     }
   }
 

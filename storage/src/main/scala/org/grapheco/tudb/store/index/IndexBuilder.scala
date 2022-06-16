@@ -14,6 +14,7 @@ object IndexBuilder extends StrictLogging {
       val List(indexType, indexValue) = indexUri.split(":").toList
       indexType match {
         case "hashmap" => new MemoryIndexAPI(indexValue)
+        case "db"=> new RocksIndexAPI(indexValue)
         case _ => new EmptyIndexAPI(indexUri)
       }
     }

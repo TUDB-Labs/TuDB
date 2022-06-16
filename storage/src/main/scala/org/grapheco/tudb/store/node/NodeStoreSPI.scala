@@ -1,13 +1,14 @@
 package org.grapheco.tudb.store.node
 
 /** @Author: Airzihao
-  * @Description:
-  * @Date: Created at 9:57 下午 2022/1/25
-  * @Modified By:
-  */
+ * @Description:
+ * @Date: Created at 9:57 下午 2022/1/25
+ * @Modified By:
+ */
 trait NodeStoreSPI {
-  def getNodeIdByProperty(value:Any): Set[Long]
-  def hasIndex():Boolean
+  def getNodeIdByProperty(propertyKey: Int, propertyValue: Any): Set[Long]
+
+  def hasIndex(): Boolean
 
   def refreshMeta(): Unit
 
@@ -30,10 +31,10 @@ trait NodeStoreSPI {
   def nodeRemoveLabel(nodeId: Long, labelId: Int): Unit;
 
   def nodeSetProperty(
-      nodeId: Long,
-      propertyKeyId: Int,
-      propertyValue: Any
-  ): Unit;
+                       nodeId: Long,
+                       propertyKeyId: Int,
+                       propertyValue: Any
+                     ): Unit;
 
   def nodeRemoveProperty(nodeId: Long, propertyKeyId: Int): Any;
 
@@ -58,14 +59,15 @@ trait NodeStoreSPI {
   def getNodeById(nodeId: Long, label: Int): Option[StoredNodeWithProperty]
 
   def getNodeById(
-      nodeId: Long,
-      label: Option[Int]
-  ): Option[StoredNodeWithProperty]
+                   nodeId: Long,
+                   label: Option[Int]
+                 ): Option[StoredNodeWithProperty]
 
   def getNodesByLabel(labelId: Int): Iterator[StoredNodeWithProperty];
+
   def getNodesByLabels(labelIds: Seq[Int]): Iterator[StoredNodeWithProperty]
 
-//  def getNodesByIds(labelId: Int, ids: Seq[Long]): Iterator[StoredNodeWithProperty];
+  //  def getNodesByIds(labelId: Int, ids: Seq[Long]): Iterator[StoredNodeWithProperty];
 
   def getNodeIdsByLabel(labelId: Int): Iterator[Long];
 

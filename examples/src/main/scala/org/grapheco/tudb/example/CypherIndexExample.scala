@@ -20,14 +20,16 @@ object CypherIndexExample {
     startServer()
 
     queryNode()
+    queryNode()
+    queryNode()
 
-//    queryRelation()
+    queryRelation()
 
     shutdownServer()
   }
 
   def startServer(): Unit ={
-    val dbPath: String = s"/Users/linhuang/git/ldbc1.db"
+    val dbPath: String = s"/Users/linhuang/git/ldbc0.003.db"
     db = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,"hashmap://mem")
   }
   def shutdownServer() = db.close()
@@ -35,31 +37,33 @@ object CypherIndexExample {
 
 
   def queryNode(): Unit ={
-    val res = db.cypher("match (n) return n limit 10")
+    val res = db.cypher("match (n:Person) where n.firstName='Ali' return n limit 10")
     println()
+    val ts=System.currentTimeMillis()
     println("Query Node result: ")
     val rs=res.records()
     while (rs.hasNext){
       val record = rs.next()("n").asInstanceOf[LynxNode]
       showNode(record)
     }
-    println()
+    println(System.currentTimeMillis()-ts)
   }
 
-//  def queryRelation(): Unit ={
-//    val res = db.query("match (n)-[r: belongTo]->(m) return n,r,m")
-//    println()
-//    println("Query Relation Result: ")
-//    while (res.hasNext){
-//      val record = res.next()
-//      val leftNode = record("n").asInstanceOf[LynxNode]
-//      val relation = record("r").asInstanceOf[LynxRelationship]
-//      val rightNode = record("m").asInstanceOf[LynxNode]
-//      showNode(leftNode)
-//      showRelationship(relation)
-//      showNode(rightNode)
-//    }
-//  }
+  def queryRelation(): Unit ={
+    val res = db.cypher("match (n: Person)-[r: KNOWS]->(m: Person) return n,r,m limit 10")
+    println()
+    println("Query Relation Result: ")
+    val rs=res.records()
+    while (rs.hasNext){
+      val record = rs.next()
+      val leftNode = record("n").asInstanceOf[LynxNode]
+      val relation = record("r").asInstanceOf[LynxRelationship]
+      val rightNode = record("m").asInstanceOf[LynxNode]
+      showNode(leftNode)
+      showRelationship(relation)
+      showNode(rightNode)
+    }
+  }
   def showNode(node: LynxNode): Unit ={
     println(s"Node<id: ${node.id.toLynxInteger.value}, labels: ${node.labels.map(l => l.value)}," +
       s" properties: ${node.keys.map(k => node.property(k).get.value)}>")

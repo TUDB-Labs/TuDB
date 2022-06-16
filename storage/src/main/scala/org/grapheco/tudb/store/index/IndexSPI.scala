@@ -1,23 +1,39 @@
 package org.grapheco.tudb.store.index
 
-/** @Author: Airzihao
- * @Description:
- * @Date: Created at 9:57 下午 2022/1/25
- * @Modified By:
+import com.typesafe.scalalogging.LazyLogging
+import org.grapheco.lynx.types.time.LynxDate
+import org.grapheco.tudb.serializer.BaseSerializer
+
+/**
  */
-abstract class IndexSPI(uri: String) {
+abstract class IndexSPI(uri: String) extends  LazyLogging {
   init(uri)
 
   def init(uri: String)
 
-  def addIndex(key: Any, value: Long): Unit
+  def addIndex(key: String, value: Long): Unit
 
-  def removeIndex(key: Any, value: Long): Unit
+  def removeIndex(key: String, value: Long): Unit
 
-  def getIndexByKey(key: Any): Set[Long]
+  def getIndexByKey(key: String): Set[Long]
 
   def hasIndex(): Boolean
 
   def close(): Unit
+
+  def encodeKey(keyType:Int,key:Any)={
+    val keyStr=getKeyString(key)
+    f"""${keyType}_${keyStr}"""
+  }
+
+  def getKeyString(value: Any)={
+    value match {
+      case (Int|Long|Float|Double|Boolean) =>value.toString
+      case data:LynxDate=>data.value.toString
+      case array: Array[_]=>array.mkString("_")
+      case _=>value.toString
+    }
+  }
+
 
 }

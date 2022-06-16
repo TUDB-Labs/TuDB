@@ -7,18 +7,18 @@ class EmptyIndexAPI(uri: String) extends IndexSPI(uri) {
 
 
   def init(uri: String) = {
-    println(f"none index:${uri}")
+    logger.info(f"none index:${uri}")
   }
 
-  def addIndex(key: Any, value: Long): Unit = {
-
-  }
-
-  def removeIndex(key: Any, value: Long): Unit = {
+  def addIndex(key: String, value: Long): Unit = {
 
   }
 
-  def getIndexByKey(key: Any): Set[Long] = {
+  def removeIndex(key: String, value: Long): Unit = {
+
+  }
+
+  def getIndexByKey(key: String): Set[Long] = {
     Set[Long]()
   }
 
