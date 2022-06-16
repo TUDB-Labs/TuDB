@@ -2,6 +2,7 @@ package org.grapheco.tudb.store.node
 
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.tudb.serializer.{BaseSerializer, NodeSerializer}
+import org.grapheco.tudb.store.index.IndexBuilder
 import org.grapheco.tudb.store.meta.TypeManager.NodeId
 import org.grapheco.tudb.store.meta.{DBNameMap, IdGenerator, NodeLabelNameStore, PropertyNameStore}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
@@ -43,8 +44,7 @@ class NodeStoreAPI(
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
 
-  // add index
-  private val propertyIndex = new mutable.HashMap[Any, mutable.HashSet[Long]]()
+  private val indexImpl=IndexBuilder.newIndex(indexUri)
 
   val NONE_LABEL_ID: Int = 0
 
@@ -66,56 +66,21 @@ class NodeStoreAPI(
   }
   //add all index
   println("start add index")
-  indexUri match {
-    case "hashmap://mem" =>
-      allNodes().foreach { node =>
-        node.properties.foreach { property =>
-          addPropertyIndex(property._2, node.id)
-        }
+  if (indexImpl.hasIndex()){
+    allNodes().foreach { node =>
+      node.properties.foreach { property =>
+        indexImpl.addIndex(property._2, node.id)
       }
-    case "es" =>
-    case _ =>
+    }
   }
   println("load index ok")
-
-  /**
-   * add node id to index
-   *
-   * @param value property value
-   * @param nodeId
-   */
-  def addPropertyIndex(value: Any, nodeId: Long): Unit = {
-    indexUri match {
-      case "hashmap://mem" =>
-        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
-        if (!propertyIndex.contains(lynxValue)) {
-          propertyIndex.put(lynxValue, new mutable.HashSet[Long]())
-        }
-        propertyIndex(lynxValue).add(nodeId.intValue())
-      case "es" =>
-      case _ =>
-    }
-
-  }
-
-  def removePropertyIndex(value: Any, nodeId: Long): Unit = {
-    indexUri match {
-      case "hashmap://mem" =>
-        val lynxValue = if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
-        if (propertyIndex.contains(lynxValue)) {
-          propertyIndex(lynxValue).remove(nodeId.intValue())
-        }
-      case "es" =>
-      case _ =>
-    }
-  }
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
     indexUri match {
       case "hashmap://mem" =>
         getNodeById(nodeId).foreach { node =>
           node.properties.foreach { property =>
-            removePropertyIndex(property._2, node.id)
+            indexImpl.removeIndex(property._2,node.id)
           }
         }
       case "es" =>
@@ -123,23 +88,12 @@ class NodeStoreAPI(
     }
   }
 
-  def getNodeIdByProperty(value: Any): List[Long] = {
-    indexUri match {
-      case "hashmap://mem" =>
-        val lynxValue =
-          if (value.isInstanceOf[LynxValue]) value.asInstanceOf[LynxValue].value else value
-        propertyIndex.get(lynxValue).map(_.toList).getOrElse(Nil)
-      case "es" =>Nil
-      case _ =>Nil
-    }
+  def getNodeIdByProperty(value: Any): Set[Long] = {
+    indexImpl.getIndexByKey(value)
   }
 
   def hasIndex():Boolean={
-    indexUri match {
-      case "hashmap://mem" =>true
-      case "es" =>false //TODO support es
-      case _ =>false
-    }
+    indexImpl.hasIndex()
   }
 
   override def allLabels(): Array[String] =
@@ -247,7 +201,7 @@ class NodeStoreAPI(
           new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
         )
         //add node id to index
-        addPropertyIndex(propertyValue, nodeId)
+        indexImpl.addIndex(propertyValue, nodeId)
       }
       }
   }
@@ -265,7 +219,7 @@ class NodeStoreAPI(
           new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
         )
         //remove node id from index
-        node.properties.get(propertyKeyId).map(propertyValue => removePropertyIndex(propertyValue, nodeId))
+        node.properties.get(propertyKeyId).map(propertyValue => indexImpl.removeIndex(propertyValue, nodeId))
       }
       }
   }
@@ -280,7 +234,7 @@ class NodeStoreAPI(
     }
     //add node id to index
     node.properties.foreach { property =>
-      addPropertyIndex(property._2, node.id)
+      indexImpl.addIndex(property._2, node.id)
     }
   }
 

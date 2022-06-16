@@ -178,7 +178,7 @@ class GraphFacade(
     //ugly impl: The getOrElse(-1) and filter(labelId > 0) is to avoid querying a unexisting label.
 
     val nodeIds=if (nodeFilter.properties.nonEmpty){
-      nodeFilter.properties.map(property=> nodeStoreAPI.getNodeIdByProperty(property._2).toSet).flatten.toSet
+      nodeFilter.properties.map(property=> nodeStoreAPI.getNodeIdByProperty(property._2)).flatten.toSet
     }else Set[Long]()
     val nodeDatas=if (nodeIds.nonEmpty){
       nodeIds.map(nodeId=> nodeStoreAPI.getNodeById(nodeId).map(mapNode)).filter(_.nonEmpty).
