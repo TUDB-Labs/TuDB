@@ -1,10 +1,10 @@
 package org.grapheco.tudb
 
 /** @Author: Airzihao
-  * @Description:
-  * @Date: Created at 17:50 2022/4/12
-  * @Modified By:
-  */
+ * @Description:
+ * @Date: Created at 17:50 2022/4/12
+ * @Modified By:
+ */
 object TuInstanceContext extends ContextMap {
 
   def setDataPath(path: String): Unit = {
@@ -20,8 +20,8 @@ object TuInstanceContext extends ContextMap {
 
   def getPort: Int = super.get[Int]("bindPort")
 
-  def setIndexUri(indexUri:String)=super.put("indexUri",indexUri)
+  def setIndexUri(indexUri: String) = super.put("indexUri", indexUri)
 
-  def getIndexUri=super.get[String]("indexUri")
+  def getIndexUri = super.get[String]("indexUri")
 
 }
