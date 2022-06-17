@@ -315,6 +315,7 @@ class NodeStoreAPI(
   }
 
   override def close(): Unit = {
+    indexImpl.close()
     nodeDB.close()
     nodeLabelDB.close()
     metaDB.close()
