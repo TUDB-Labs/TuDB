@@ -9,9 +9,9 @@ import org.grapheco.tudb.facade.GraphFacade
 import org.grapheco.tudb.network.Query.QueryResponse
 import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
 
-class TuDBQueryService(dbPath: String)
+class TuDBQueryService(dbPath: String,indexUri:String)
   extends TuQueryServiceGrpc.TuQueryServiceImplBase {
-  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath)
+  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,indexUri)
 
   override def query(
                       request: Query.QueryRequest,
