@@ -180,7 +180,7 @@ class GraphFacade(
     var indexData: Iterator[LynxNode] = null
     if (nodeStoreAPI.hasIndex()) {
       if (nodeFilter.properties.nonEmpty) { //use index
-        indexData = nodeFilter.properties.map(property => nodeStoreAPI.getNodeIdByProperty(nodeStoreAPI.getPropertyKeyId(property._1.value).get,property._2.value)).flatten.
+        indexData = nodeFilter.properties.map(property => nodeStoreAPI.getNodeIdByProperty(nodeStoreAPI.getPropertyKeyId(property._1.value).getOrElse(0),property._2.value)).flatten.
           map(nodeId => nodeStoreAPI.getNodeById(nodeId).map(mapNode)).filter(_.nonEmpty).
           map(_.get.asInstanceOf[LynxNode]).filter(tuNode => nodeFilter.matches(tuNode)).iterator
       }

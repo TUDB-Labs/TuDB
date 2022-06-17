@@ -29,8 +29,8 @@ object CypherIndexExample {
   }
 
   def startServer(): Unit ={
-    val dbPath: String = s"/Users/linhuang/git/ldbc0.003.db"
-    db = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,"hashmap://mem")
+    val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/ldbc0.003.db.none"
+    db = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,f"db://${TestUtils.getModuleRootPath}/testSpace/index")
   }
   def shutdownServer() = db.close()
 
