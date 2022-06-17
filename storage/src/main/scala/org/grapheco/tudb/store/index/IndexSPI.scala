@@ -6,7 +6,7 @@ import org.grapheco.tudb.serializer.BaseSerializer
 
 /**
  */
-abstract class IndexSPI(uri: String) extends  LazyLogging {
+abstract class IndexSPI(uri: String) extends LazyLogging {
   init(uri)
 
   def init(uri: String)
@@ -21,19 +21,17 @@ abstract class IndexSPI(uri: String) extends  LazyLogging {
 
   def close(): Unit
 
-  def encodeKey(keyType:Int,key:Any)={
-    val keyStr=getKeyString(key)
+  def encodeKey(keyType: Int, key: Any) = {
+    val keyStr = getKeyString(key)
     f"""${keyType}_${keyStr}"""
   }
 
-  def getKeyString(value: Any)={
+  def getKeyString(value: Any) = {
     value match {
-      case (Int|Long|Float|Double|Boolean) =>value.toString
-      case data:LynxDate=>data.value.toString
-      case array: Array[_]=>array.mkString("_")
-      case _=>value.toString
+      case (Int | Long | Float | Double | Boolean) => value.toString
+      case data: LynxDate => data.value.toString
+      case array: Array[_] => array.mkString("_")
+      case _ => value.toString
     }
   }
-
-
 }
