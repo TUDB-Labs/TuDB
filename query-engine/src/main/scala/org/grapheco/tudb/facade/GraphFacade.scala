@@ -193,19 +193,6 @@ class GraphFacade(
       labelIds.headOption.map(labelId=>nodeStoreAPI
         .getNodesByLabel(labelId).map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))).getOrElse(Nil.iterator)
     }
-
-
-    //    if (nodeFilter.labels.length == 0) nodeDatas.filter(tuNode => nodeFilter.matches(tuNode))
-    //    else {
-    //      val labelIds: Seq[Int] = nodeFilter.labels
-    //        .map(lynxNodeLabel =>
-    //          nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1)
-    //        )
-    //        .filter(labelId => labelId >= 0)
-    //      nodeStoreAPI
-    //        .getNodesByLabel(labelIds.head).filter(node=> if (nodeIds.isEmpty) true else  nodeIds.contains(node.id))
-    //        .map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))
-    //    }
   }
 
   /** Return all relationships as PathTriple.
