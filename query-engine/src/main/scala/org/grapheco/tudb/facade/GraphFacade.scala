@@ -190,10 +190,8 @@ class GraphFacade(
       val labelIds: Seq[Int] = nodeFilter.labels
         .map(lynxNodeLabel => nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
         .filter(labelId => labelId >= 0)
-
-      nodeStoreAPI
-        .getNodesByLabel(labelIds.head)
-        .map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))
+      labelIds.headOption.map(labelId=>nodeStoreAPI
+        .getNodesByLabel(labelId).map(mapNode).filter(tuNode => nodeFilter.matches(tuNode))).getOrElse(Nil.iterator)
     }
 
 
