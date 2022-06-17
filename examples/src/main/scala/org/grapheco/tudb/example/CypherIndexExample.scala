@@ -1,13 +1,10 @@
 package main.scala.org.grapheco.tudb.example
 
-import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
-import org.grapheco.tudb.{GraphDatabaseBuilder, TuDBServer, TuInstanceContext}
-import org.grapheco.tudb.client.TuClient
+import org.grapheco.tudb.{GraphDatabaseBuilder}
 import org.grapheco.tudb.facade.GraphFacade
 import org.grapheco.tudb.test.TestUtils
 
-import java.io.File
 
 /**
  * @author:John117
@@ -29,8 +26,8 @@ object CypherIndexExample {
   }
 
   def startServer(): Unit ={
-    val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/ldbc0.003.db.none"
-    db = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,f"db://${TestUtils.getModuleRootPath}/testSpace/index")
+    val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/ldbc0.003.db"
+    db = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath,f"none")
   }
   def shutdownServer() = db.close()
 
