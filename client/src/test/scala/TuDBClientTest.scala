@@ -1,9 +1,9 @@
-import ClientTest.testConnectionPort
+import TuDBClientTest.testConnectionPort
 import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
-import org.grapheco.tudb.client.TuClient
+import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{TuDBServer, TuInstanceContext}
 import org.junit.{AfterClass, Assert, BeforeClass, Test}
@@ -16,7 +16,7 @@ import java.io.File
   * @Modified By:
   */
 
-object ClientTest {
+object TuDBClientTest {
   val testConnectionPort = 7600
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
   TuInstanceContext.setDataPath(dbPath)
@@ -44,8 +44,8 @@ object ClientTest {
   }
 }
 
-class ClientTest {
-  val client: TuClient = new TuClient("127.0.0.1", testConnectionPort)
+class TuDBClientTest {
+  val client: TuDBClient = new TuDBClient("127.0.0.1", testConnectionPort)
   @Test
   def test(): Unit = {
     client.query("create (a:DB{name: 'panda1'})-[:use]->(b:RocksDB1);")
