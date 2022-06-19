@@ -29,6 +29,8 @@
         <junit.version>4.12</junit.version>
         <rocksdb.version>6.25.3</rocksdb.version>
         <scala-logging.version>3.8.0</scala-logging.version>
+        <logback.version>1.1.7</logback.version>
+        <slf4j.version>1.7.21</slf4j.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -77,11 +79,6 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>1.11</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>1.6.0</version>
             </dependency>
             <dependency>
                 <groupId>eu.medsea.mimeutil</groupId>
@@ -133,6 +130,22 @@
                 <groupId>org.grapheco</groupId>
                 <artifactId>lynx</artifactId>
                 <version>0.4.1-2022.04.22</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>compile</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

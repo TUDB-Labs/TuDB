@@ -3,16 +3,21 @@ package org.grapheco.tudb
 import com.typesafe.scalalogging.LazyLogging
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.{NettyServerBuilder => SNettyServerBuilder}
+import org.grapheco.tudb.common.utils.LogUtil
+import org.slf4j.{Logger, LoggerFactory}
+
 import java.io.{File, FileReader}
 import java.util.Properties
 
 
 /** @Author: Airzihao
-  * @Description:
-  * @Date: Created at 15:35 2022/4/1
-  * @Modified By:
-  */
+ * @Description:
+ * @Date: Created at 15:35 2022/4/1
+ * @Modified By:
+ */
 class TuDBServer(bindPort: Int, dbPath: String) extends LazyLogging {
+
+  val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   private val _port: Int = bindPort
   private val _server: Server = SNettyServerBuilder
@@ -48,6 +53,7 @@ class TuDBServer(bindPort: Int, dbPath: String) extends LazyLogging {
       TuInstanceContext.getDataPath
     )
     server.start()
+    LogUtil.info(LOGGER, "Server started success!")
   }
 
   // Caution: Init all the config item in this function.
