@@ -55,7 +55,7 @@ public class LogUtil {
      */
     public static final void warn(Logger logger, String format, Object... args) {
         if (logger.isWarnEnabled()) {
-            logger.debug(String.format(format, args));
+            logger.warn(String.format(format, args));
         }
     }
 
