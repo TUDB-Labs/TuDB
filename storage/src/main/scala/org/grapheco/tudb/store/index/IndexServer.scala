@@ -2,11 +2,10 @@ package org.grapheco.tudb.store.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx.types.time.LynxDate
-import org.grapheco.tudb.serializer.BaseSerializer
 
 /**
  */
-abstract class IndexSPI(uri: String) extends LazyLogging {
+abstract class IndexServer(uri: String) extends LazyLogging {
   init(uri)
 
   def init(uri: String)

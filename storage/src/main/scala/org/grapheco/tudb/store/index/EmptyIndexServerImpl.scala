@@ -3,7 +3,7 @@ package org.grapheco.tudb.store.index
 /**
  * EmptyIndexAPI
  */
-class EmptyIndexAPI(uri: String) extends IndexSPI(uri) {
+class EmptyIndexServerImpl(uri: String) extends IndexServer(uri) {
 
 
   def init(uri: String) = {

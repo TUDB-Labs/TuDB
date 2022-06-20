@@ -5,7 +5,7 @@ import scala.collection.mutable
 /**
  * MemoryIndexAPI is memory Hashmap
  */
-class MemoryIndexAPI(uri: String) extends IndexSPI(uri) {
+class MemoryIndexServerImpl(uri: String) extends IndexServer(uri) {
 
   private val memoryIndex = new mutable.HashMap[Any, mutable.HashSet[Long]]()
 

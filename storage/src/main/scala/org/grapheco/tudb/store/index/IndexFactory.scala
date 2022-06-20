@@ -5,17 +5,17 @@ import com.typesafe.scalalogging.StrictLogging
 /**
  * build index impl
  */
-object IndexBuilder extends StrictLogging {
+object IndexFactory extends StrictLogging {
 
-  def newIndex(indexUri: String): IndexSPI = {
+  def newIndex(indexUri: String): IndexServer = {
     if (null == indexUri || indexUri.isEmpty || indexUri == "none" || !indexUri.contains("://")) {
-      new EmptyIndexAPI(indexUri)
+      new EmptyIndexServerImpl(indexUri)
     } else {
       val List(indexType, indexValue) = indexUri.split(":").toList
       indexType match {
-        case "hashmap" => new MemoryIndexAPI(indexValue)
-        case "db"=> new RocksIndexAPI(indexValue)
-        case _ => new EmptyIndexAPI(indexUri)
+        case "hashmap" => new MemoryIndexServerImpl(indexValue)
+        case "db"=> new RocksIndexServerImpl(indexValue)
+        case _ => new EmptyIndexServerImpl(indexUri)
       }
     }
   }

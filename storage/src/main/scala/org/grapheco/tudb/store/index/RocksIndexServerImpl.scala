@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
  * RocksIndexAPI
  */
-class RocksIndexAPI(uri: String) extends IndexSPI(uri) {
+class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
 
   private  var db: RocksDB= _
 

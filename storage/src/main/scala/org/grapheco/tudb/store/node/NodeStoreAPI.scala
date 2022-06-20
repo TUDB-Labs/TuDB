@@ -2,7 +2,7 @@ package org.grapheco.tudb.store.node
 
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.tudb.serializer.{BaseSerializer, NodeSerializer}
-import org.grapheco.tudb.store.index.IndexBuilder
+import org.grapheco.tudb.store.index.IndexFactory
 import org.grapheco.tudb.store.meta.TypeManager.NodeId
 import org.grapheco.tudb.store.meta.{DBNameMap, IdGenerator, NodeLabelNameStore, PropertyNameStore}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
@@ -44,7 +44,7 @@ class NodeStoreAPI(
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
 
-  private val indexImpl=IndexBuilder.newIndex(indexUri)
+  private val indexImpl=IndexFactory.newIndex(indexUri)
 
   val NONE_LABEL_ID: Int = 0
 
