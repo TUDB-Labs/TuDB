@@ -15,7 +15,7 @@ import scala.collection.JavaConverters.asScalaIteratorConverter
   * @Date: Created at 11:17 2022/4/2
   * @Modified By:
   */
-class TuClient(host: String, port: Int) {
+class TuDBClient(host: String, port: Int) {
 
   val channel =
     NettyChannelBuilder.forAddress(host, port).usePlaintext().build();

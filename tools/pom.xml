@@ -13,7 +13,6 @@
     <artifactId>tools</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>client</module>
         <module>data-importer</module>
         <module>performance-test</module>
     </modules>
