@@ -20,5 +20,6 @@ jobs:
         java-version: '8'
         distribution: 'temurin'
         cache: maven
+        submodules: true
     - name: Build with Maven
       run: mvn -B clean install test --file pom.xml
