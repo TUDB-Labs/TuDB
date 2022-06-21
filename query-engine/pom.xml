@@ -22,6 +22,7 @@
         <dependency>
             <groupId>org.grapheco</groupId>
             <artifactId>lynx</artifactId>
+            <version>0.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.grapheco</groupId>

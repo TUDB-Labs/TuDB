@@ -16,6 +16,7 @@
         <module>client</module>
         <module>common-utils</module>
         <module>examples</module>
+        <module>lynx</module>
     </modules>
 
     <properties>
@@ -132,17 +133,6 @@
                 <groupId>org.grapheco</groupId>
                 <artifactId>lynx-rpc</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.grapheco</groupId>
-                <artifactId>lynx</artifactId>
-                <version>0.4.1-2022.04.22</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
