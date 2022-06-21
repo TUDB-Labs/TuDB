@@ -36,7 +36,27 @@ object GraphFacadeTest {
 
 // Fixme: Add an After Func to make sure the db is empty after the each test passed.
 class GraphFacadeTest {
+  @Test
+  def testQueryNodeInNoDataDB(): Unit = {
+    val res1 = db.cypher("match (n: Person) return n").records()
+    val res2 = db.cypher("match (n) return n").records()
+    val res3 = db.cypher("match (n)-[r]->(b) return r").records()
+    val res4 = db.cypher("match (n)-[r: KNOWS]->(b) return r").records()
+    Assert.assertEquals(0, res1.size)
+    Assert.assertEquals(0, res2.size)
+    Assert.assertEquals(0, res3.size)
+    Assert.assertEquals(0, res4.size)
+  }
+  @Test
+  def testQueryMultiLabelNode(): Unit = {
+    db.cypher("create (n:Chengdu:Product1{name:'TUDB1'})")
+    db.cypher("create (n:Chengdu:Product1{name:'TUDB2'})")
+    db.cypher("create (n:Chengdu1:Product1{name:'TUDB3'})")
 
+    val res =
+      db.cypher("match (n:Chengdu1:Product1) return n").records().next()("n").asInstanceOf[LynxNode]
+    Assert.assertEquals("TUDB3", res.property(LynxPropertyKey("name")).get.value)
+  }
   //Test relationship's startId and endId
   @Test
   def testRelationship1(): Unit = {
