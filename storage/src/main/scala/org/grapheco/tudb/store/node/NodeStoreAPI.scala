@@ -43,7 +43,7 @@ class NodeStoreAPI(
   private val propertyName = new PropertyNameStore(metaDB)
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
-
+  // this is the index engine instance
   private val indexImpl=IndexFactory.newIndex(indexUri)
 
   val NONE_LABEL_ID: Int = 0
@@ -65,7 +65,7 @@ class NodeStoreAPI(
     )
   }
   //add all index
-  println("start add index")
+  logger.info("start add index")
   var addCount=0
   if (indexImpl.hasIndex()){
     allNodes().foreach { node =>
@@ -75,7 +75,7 @@ class NodeStoreAPI(
       }
     }
   }
-  println(f"load index ok,size:${addCount}")
+  logger.info(f"load index ok,size:${addCount}")
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
     if (indexImpl.hasIndex()){
@@ -86,11 +86,18 @@ class NodeStoreAPI(
       }
     }
   }
-
+  /**
+   * @see [[NodeStoreSPI.getNodeIdByProperty()]]
+   *  @return bool
+   */
   def getNodeIdByProperty(propertyKey:Int,propertyValue: Any): Set[Long] = {
     indexImpl.getIndexByKey(indexImpl.encodeKey(propertyKey,propertyValue))
   }
 
+  /**
+   * @see [[NodeStoreSPI.hasIndex()]]
+   *  @return bool
+   */
   def hasIndex():Boolean={
     indexImpl.hasIndex()
   }

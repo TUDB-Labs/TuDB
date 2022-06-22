@@ -1,3 +1,4 @@
+/** Copyright (c) 2022 PandaDB **/
 package org.grapheco.tudb.store.index
 
 import org.grapheco.tudb.exception.TuDBException
@@ -7,8 +8,9 @@ import org.rocksdb.{BlockBasedTableConfig, BloomFilter, CompactionStyle, Compres
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, ObjectInputStream, ObjectOutputStream}
 import scala.collection.mutable
 
-/**
- * RocksIndexAPI
+/** @author: huagnlin
+ * @createDate: 2022-06-20 17:19:08
+ * @description: this is the rocksdb index engine . data storage on file
  */
 class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
 
@@ -18,9 +20,13 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
   writeOptions.setDisableWAL(true)
   writeOptions.setIgnoreMissingColumnFamilies(true)
   writeOptions.setSync(false)
-
+  /**
+   *uri is rocksdb data storage location
+   * @see  [[IndexServer.init()]]
+   */
   def init(uri: String) = {
     logger.info(f"start Rocks db:${uri}")
+    // make directory
     val dir = new File(uri)
     if (!dir.exists()) {
       dir.mkdirs()
@@ -29,7 +35,7 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
       throw new IllegalStateException(
         "Invalid db path, it's a regular file: " + uri
       )
-
+    // optimization rocksdb params
     val options: Options = new Options()
     val tableConfig = new BlockBasedTableConfig()
     tableConfig
@@ -70,8 +76,7 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
         256L * 1024L * 1024L
       ) // maxBytesForLevelBase / 10 or 15
       .setTargetFileSizeMultiplier(2)
-
-
+    // create rocksdb instance
     try {
       db = RocksDB.open(options, uri)
     } catch {
@@ -80,6 +85,11 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
     }
   }
 
+  /**
+   * convert object to bytes
+   * @param any object
+   * @return byte arrays
+   */
   private def objectToBytes(value: Any) = {
     val bos = new ByteArrayOutputStream()
     val oos = new ObjectOutputStream(bos)
@@ -88,18 +98,29 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
     bos.toByteArray
   }
 
+  /**
+   * convert bytes to object
+   * @param byte array
+   * @return object
+   */
   private def bytesToObject(data: Array[Byte]) = {
     val oos = new ObjectInputStream(new ByteArrayInputStream(data))
     oos.readObject()
   }
 
-
+  /**
+   * get data from rocksdb
+   * @param key
+   * @return (byte array key ,byte array value from db )
+   */
   private def getDataFromDb(key: String) = {
     val keyBytes = objectToBytes(key)
     val dbValue = db.get(keyBytes)
     (keyBytes, dbValue)
   }
-
+  /**
+   * @see  [[IndexServer.addIndex()]]
+   */
   def addIndex(key: String, value: Long): Unit = {
     val (keyBytes, dbValue) = getDataFromDb(key)
     val changeSet = if (dbValue == null) {
@@ -114,7 +135,9 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
     changeSet.add(value)
     db.put(writeOptions,keyBytes,objectToBytes(changeSet))
   }
-
+  /**
+   * @see  [[IndexServer.removeIndex()]]
+   */
   def removeIndex(key: String, value: Long): Unit = {
     val (keyBytes, dbValue) = getDataFromDb(key)
     if (dbValue != null) {
@@ -126,7 +149,9 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
       }
     }
   }
-
+  /**
+   * @see  [[IndexServer.getIndexByKey()]]
+   */
   def getIndexByKey(key: String): Set[Long] = {
     val (keyBytes, dbValue) = getDataFromDb(key)
     if (dbValue != null) {
@@ -136,10 +161,14 @@ class RocksIndexServerImpl(uri: String) extends IndexServer(uri) {
       } else Set[Long]()
     } else Set[Long]()
   }
-
+  /**
+   * @see  [[IndexServer.hasIndex()]]
+   */
   def hasIndex(): Boolean = true
 
-
+  /**
+   * @see  [[IndexServer.close()]]
+   */
   override def close(): Unit = {
     db.close()
   }

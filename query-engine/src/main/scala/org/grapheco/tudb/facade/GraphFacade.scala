@@ -175,9 +175,17 @@ class GraphFacade(
   override def nodes(): Iterator[LynxNode] =
     nodeStoreAPI.allNodes().map(mapNode).asInstanceOf[Iterator[LynxNode]]
 
+  /**
+   * Filter nodes based on conditions
+   * can use index engine  speed up property filter
+   * @see [[org.grapheco.tudb.store.index.IndexServer]]
+   * @param nodeFilter
+   * @return
+   */
   override def nodes(nodeFilter: NodeFilter): Iterator[LynxNode] = {
     //ugly impl: The getOrElse(-1) and filter(labelId > 0) is to avoid querying a unexisting label.
     var indexData: Iterator[LynxNode] = null
+    //if has index engine and  need filter property , use index filter
     if (nodeStoreAPI.hasIndex()) {
       if (nodeFilter.properties.nonEmpty) { //use index
         indexData = nodeFilter.properties.map(property => nodeStoreAPI.getNodeIdByProperty(nodeStoreAPI.getPropertyKeyId(property._1.value).getOrElse(0),property._2.value)).flatten.
@@ -186,7 +194,7 @@ class GraphFacade(
       }
     }
     if (indexData != null) indexData
-    else { // no index
+    else { // else load all data and filter it
       val labelIds: Seq[Int] = nodeFilter.labels
         .map(lynxNodeLabel => nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
         .filter(labelId => labelId >= 0)
