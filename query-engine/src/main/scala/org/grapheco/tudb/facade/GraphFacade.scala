@@ -20,9 +20,9 @@ class GraphFacade(
     nodeStoreAPI: NodeStoreSPI,
     relationStore: RelationStoreSPI,
     tuDBStatistics: TuDBStatistics,
-    onClose: => Unit
-) extends LazyLogging
-    with GraphModel {
+    onClose: => Unit)
+  extends LazyLogging
+  with GraphModel {
 
   override def statistics: TuDBStatistics = tuDBStatistics
 
@@ -89,7 +89,7 @@ class GraphFacade(
       id: Option[Long],
       labels: Seq[String],
       nodeProps: Map[String, Any]
-  ): Long = {
+    ): Long = {
     val nodeId = id.getOrElse(nodeStoreAPI.newNodeId())
     val labelIds = labels.map(nodeStoreAPI.addLabel).toArray
     val props: Map[Int, Any] =
@@ -106,7 +106,7 @@ class GraphFacade(
       from: Long,
       to: Long,
       relProps: Map[String, Any]
-  ): Long = {
+    ): Long = {
     val rid = id.getOrElse(relationStore.newRelationId())
     val typeId = relationStore.addRelationType(label)
     val props = relProps.map { case (key, value) =>
@@ -179,14 +179,19 @@ class GraphFacade(
     if (nodeFilter.labels.length == 0) nodes().filter(nodeFilter.matches(_))
     else {
       val labelIds: Seq[Int] = nodeFilter.labels
-        .map(lynxNodeLabel =>
-          nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1)
-        )
+        .map(lynxNodeLabel => nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
         .filter(labelId => labelId >= 0)
-      nodeStoreAPI
-        .getNodesByLabel(labelIds.head)
-        .map(mapNode)
-        .filter(tuNode => nodeFilter.matches(tuNode))
+      if (labelIds.isEmpty) {
+        Iterator.empty // the label not exist in db
+      } else {
+        // get min label
+        val minLabelId =
+          labelIds.map(lId => statistics.getNodeLabelCount(lId).get -> lId).minBy(f => f._1)._2
+        nodeStoreAPI
+          .getNodesByLabel(minLabelId)
+          .map(mapNode)
+          .filter(tuNode => nodeFilter.matches(tuNode))
+      }
     }
   }
 
@@ -210,19 +215,15 @@ class GraphFacade(
     override def createElements[T](
         nodesInput: Seq[(String, NodeInput)],
         relationshipsInput: Seq[(String, RelationshipInput)],
-        onCreated: (
-            Seq[(String, LynxNode)],
-            Seq[(String, LynxRelationship)]
-        ) => T
-    ): T = {
-      val nodesMap: Map[String, TuNode] = nodesInput.map {
-        case (valueName, input) =>
-          valueName ->
-            TuNode(
-              nodeStoreAPI.newNodeId(),
-              input.labels,
-              input.props.map(kv => (kv._1.value, kv._2))
-            )
+        onCreated: (Seq[(String, LynxNode)], Seq[(String, LynxRelationship)]) => T
+      ): T = {
+      val nodesMap: Map[String, TuNode] = nodesInput.map { case (valueName, input) =>
+        valueName ->
+          TuNode(
+            nodeStoreAPI.newNodeId(),
+            input.labels,
+            input.props.map(kv => (kv._1.value, kv._2))
+          )
       }.toMap
 
       def localNodeRef(ref: NodeInputRef): LynxNodeId = ref match {
@@ -261,9 +262,8 @@ class GraphFacade(
       onCreated(nodesMap.toSeq, relationshipsMap.toSeq)
     }
 
-    override def deleteRelations(ids: Iterator[LynxId]): Unit = ids.foreach {
-      id =>
-        relationStore.deleteRelation(id.value.asInstanceOf[Long])
+    override def deleteRelations(ids: Iterator[LynxId]): Unit = ids.foreach { id =>
+      relationStore.deleteRelation(id.value.asInstanceOf[Long])
     }
 
     override def deleteNodes(ids: Seq[LynxId]): Unit =
@@ -273,7 +273,7 @@ class GraphFacade(
         nodeIds: Iterator[LynxId],
         data: Array[(LynxPropertyKey, Any)],
         cleanExistProperties: Boolean
-    ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
+      ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       data.foreach { case (key, value) =>
         nodeStoreAPI.nodeSetProperty(
           id.toLynxInteger.value,
@@ -287,7 +287,7 @@ class GraphFacade(
     override def setNodesLabels(
         nodeIds: Iterator[LynxId],
         labels: Array[LynxNodeLabel]
-    ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
+      ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       labels.foreach { label =>
         nodeStoreAPI.nodeAddLabel(
           id.toLynxInteger.value,
@@ -300,7 +300,7 @@ class GraphFacade(
     override def setRelationshipsProperties(
         relationshipIds: Iterator[LynxId],
         data: Array[(LynxPropertyKey, Any)]
-    ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
+      ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       data.foreach { case (key, value) =>
         relationStore.relationSetProperty(
           id.toLynxInteger.value,
@@ -314,14 +314,14 @@ class GraphFacade(
     override def setRelationshipsType(
         relationshipIds: Iterator[LynxId],
         typeName: LynxRelationshipType
-    ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
+      ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       relationStore.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
 
     override def removeNodesProperties(
         nodeIds: Iterator[LynxId],
         data: Array[LynxPropertyKey]
-    ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
+      ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       data.foreach { key =>
         nodeStoreAPI.nodeRemoveProperty(
           id.toLynxInteger.value,
@@ -334,7 +334,7 @@ class GraphFacade(
     override def removeNodesLabels(
         nodeIds: Iterator[LynxId],
         labels: Array[LynxNodeLabel]
-    ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
+      ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       labels.foreach { label =>
         nodeStoreAPI.nodeRemoveLabel(
           id.toLynxInteger.value,
@@ -347,7 +347,7 @@ class GraphFacade(
     override def removeRelationshipsProperties(
         relationshipIds: Iterator[LynxId],
         data: Array[LynxPropertyKey]
-    ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
+      ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       data.foreach { key =>
         relationStore.relationRemoveProperty(
           id.toLynxInteger.value,
@@ -360,7 +360,7 @@ class GraphFacade(
     override def removeRelationshipsType(
         relationshipIds: Iterator[LynxId],
         typeName: LynxRelationshipType
-    ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
+      ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       // fixme
       relationStore.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
@@ -380,7 +380,7 @@ class GraphFacade(
   def cypher(
       query: String,
       param: Map[String, Any] = Map.empty[String, Any]
-  ): LynxResult = runner.run(query, param)
+    ): LynxResult = runner.run(query, param)
 
   def close(): Unit = {
     nodeStoreAPI.close()
