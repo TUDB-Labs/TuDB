@@ -1,10 +1,8 @@
 package org.grapheco.tudb
 
+import com.typesafe.config.ConfigFactory
 import org.grapheco.tudb.common.utils.LogUtil
 import org.slf4j.LoggerFactory
-
-import java.io.{File, FileReader}
-import java.util.Properties
 
 /**
  * the starter of TuDB
@@ -26,15 +24,13 @@ object TuDBServerStarter {
   def main(args: Array[String]): Unit = {
     /*
       started by script of tudb.sh
-      args(0): tudb.conf file path
      */
-    if (args.length != 1) sys.error("Need conf file path.")
-    val configFile: File = new File(args(0))
-    _initContext(configFile)
+    _initContext()
 
     val server: TuDBServer = new TuDBServer(
       TuInstanceContext.getPort,
-      TuInstanceContext.getDataPath
+      TuInstanceContext.getDataPath,
+      TuInstanceContext.getIndexUri
     )
     LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
     server.start()
@@ -44,14 +40,12 @@ object TuDBServerStarter {
   /**
    * Caution: Init all the config item in this function.
    *
-   * @param configFile
    */
-  private def _initContext(configFile: File) = {
-    val props: Properties = new Properties()
-    props.load(new FileReader(configFile))
-
-    TuInstanceContext.setDataPath(props.getProperty("datapath"))
-    TuInstanceContext.setPort(props.getProperty("port").toInt)
+  private def _initContext() = {
+    val conf = ConfigFactory.load
+    TuInstanceContext.setDataPath(conf.getString("datapath"))
+    TuInstanceContext.setPort(conf.getInt("port"))
+    TuInstanceContext.setIndexUri(conf.getString("index.uri"))
   }
 
 }
