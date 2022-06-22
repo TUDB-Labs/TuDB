@@ -1,9 +1,14 @@
+/**
+ * 
+ */
 package org.grapheco.tudb.store.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx.types.time.LynxDate
 
 /**
+ *
+ * @param uri
  */
 abstract class IndexServer(uri: String) extends LazyLogging {
   init(uri)
