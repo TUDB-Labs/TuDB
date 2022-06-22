@@ -2,7 +2,8 @@ package org.grapheco.tudb.example
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
-import org.grapheco.tudb.client.TuClient
+import org.grapheco.tudb.TuDBServer
+import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.test.TestUtils
 
 import java.io.File
@@ -15,7 +16,7 @@ import java.io.File
 object CypherExample {
   val port = 7600
   var server: TuDBServer = _
-  var client: TuClient = _
+  var client: TuDBClient = _
   def main(args: Array[String]): Unit = {
     startServer()
     startClient()
@@ -41,7 +42,7 @@ object CypherExample {
   def shutdownServer() = server.shutdown()
 
   def startClient(): Unit ={
-    client = new TuClient("127.0.0.1", port)
+    client = new TuDBClient("127.0.0.1", port)
   }
   def stopClient() = client.shutdown()
 

@@ -16,7 +16,7 @@
         <module>client</module>
         <module>common-utils</module>
         <module>examples</module>
-        <module>lynx</module>
+<!--        <module>lynx</module>-->
     </modules>
 
     <properties>
