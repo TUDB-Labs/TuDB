@@ -1,3 +1,0 @@
-[submodule "lynx"]
-	path = lynx
-	url = git@github.com:TUDB-Labs/lynx.git

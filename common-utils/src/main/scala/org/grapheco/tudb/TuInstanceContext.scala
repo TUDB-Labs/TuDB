@@ -20,4 +20,8 @@ object TuInstanceContext extends ContextMap {
 
   def getPort: Int = super.get[Int]("bindPort")
 
+  def setIndexUri(indexUri: String) = super.put("indexUri", indexUri)
+
+  def getIndexUri = super.get[String]("indexUri")
+
 }
