@@ -34,8 +34,11 @@ object GraphFacadeTest {
   }
 }
 
-// Fixme: Add an After Func to make sure the db is empty after the each test passed.
 class GraphFacadeTest {
+  @After
+  def clean(): Unit = {
+    db.cypher("match (n) detach delete n")
+  }
   @Test
   def testQueryNodeInNoDataDB(): Unit = {
     val res1 = db.cypher("match (n: Person) return n").records()
