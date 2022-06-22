@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <contextName>tudb-logger</contextName>
+    <property name="LOG_HOME" value="../logs"/>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} -%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="common-error"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/common-error.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <MaxHistory>20</MaxHistory>
+            <MaxFileSize>25MB</MaxFileSize>
+            <totalSizeCap>5000MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="server-info"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/server-info.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <MaxHistory>20</MaxHistory>
+            <MaxFileSize>25MB</MaxFileSize>
+            <totalSizeCap>5000MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="common-error" level="ERROR">
+        <appender-ref ref="common-error"/>
+    </logger>
+
+    <logger name="server-info" level="INFO">
+        <appender-ref ref="server-info"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>

@@ -71,7 +71,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.grapheco.tudb.TuDBServer</mainClass>
+                            <mainClass>org.grapheco.tudb.TuDBServerStarter</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
