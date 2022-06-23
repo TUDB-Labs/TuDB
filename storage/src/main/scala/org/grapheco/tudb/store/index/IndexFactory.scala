@@ -14,12 +14,12 @@ object IndexFactory extends StrictLogging {
     * memory://{any}  use hashmap storage index data
     * es://ip:port   use  es (Elasticsearch) storage index data,ip:port is es service address
     *  db://{path}  use rocksdb storage index data ,path is rocksdb data storage location
-    *  none is empty implement ,  use this engine where no  index is used
+    *  empty is empty implement ,  use this engine where no  index is used
     * @param indexUri
     * @return index engine
     */
   def newIndex(indexUri: String): IndexServer = {
-    if (null == indexUri || indexUri.isEmpty || indexUri == "none" || !indexUri.contains("://")) {
+    if (null == indexUri || indexUri.isEmpty || indexUri == "empty" || !indexUri.contains("://")) {
       new EmptyIndexServerImpl(indexUri)
     } else {
       val List(indexType, indexValue) = indexUri.split(":").toList

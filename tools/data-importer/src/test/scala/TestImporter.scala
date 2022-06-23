@@ -68,7 +68,7 @@ class TestImporter {
       s"${_dbPath}/${DBNameMap.nodeLabelDB}",
       "default",
       nodeMetaDB,
-      "none"
+      "empty"
     )
     Assert.assertEquals(862, nodeStore.allNodes().size)
     Assert.assertEquals(862, statisticDB.nodeCount)

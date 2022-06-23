@@ -10,7 +10,7 @@ import org.grapheco.lynx.types.time.LynxDate
   * memory://{any}  use hashmap storage index data
   * es://ip:port   use  es (Elasticsearch) storage index data,ip:port is es service address
   * db://{path}  use rocksdb storage index data ,path is rocksdb data storage location
-  * none is empty implement ,  use this engine where no  index is used
+  * empty is empty implement ,  use this engine where no  index is used
   */
 abstract class IndexServer(uri: String) extends LazyLogging {
   init(uri)

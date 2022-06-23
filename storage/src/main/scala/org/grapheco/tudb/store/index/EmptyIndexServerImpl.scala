@@ -10,7 +10,7 @@ class EmptyIndexServerImpl(uri: String) extends IndexServer(uri) {
 
 
   def init(uri: String) = {
-    logger.info(f"none index:${uri}")
+    logger.info(f"empty index:${uri}")
   }
 
   def addIndex(key: String, value: Long): Unit = {

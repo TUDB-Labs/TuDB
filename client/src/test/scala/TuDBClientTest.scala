@@ -21,7 +21,7 @@ object TuDBClientTest {
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
   TuInstanceContext.setDataPath(dbPath)
 
-  val server: TuDBServer = new TuDBServer(testConnectionPort, dbPath,"none")
+  val server: TuDBServer = new TuDBServer(testConnectionPort, dbPath,"empty")
   @BeforeClass
   def init(): Unit = {
     val dbFile: File = new File(dbPath)
