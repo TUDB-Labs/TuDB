@@ -8,6 +8,7 @@ import org.grapheco.tudb.FacadeTest.GraphFacadeTest.db
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuInstanceContext}
 import org.junit._
+import org.junit.runners.MethodSorters
 
 import java.io.File
 
@@ -25,7 +26,7 @@ object GraphFacadeTest {
   if (file.exists()) FileUtils.deleteDirectory(file)
   TuInstanceContext.setDataPath(outputPath)
   val db =
-    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath)
+    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath,"none")
 
   @AfterClass
   def onClose(): Unit = {
@@ -33,14 +34,14 @@ object GraphFacadeTest {
     if (file.exists()) FileUtils.deleteDirectory(file)
   }
 }
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class GraphFacadeTest {
   @After
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
   @Test
-  def testQueryNodeInNoDataDB(): Unit = {
+  def a_testQueryNodeInNoDataDB(): Unit = {
     val res1 = db.cypher("match (n: Person) return n").records()
     val res2 = db.cypher("match (n) return n").records()
     val res3 = db.cypher("match (n)-[r]->(b) return r").records()

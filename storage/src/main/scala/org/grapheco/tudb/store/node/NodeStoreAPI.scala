@@ -1,10 +1,14 @@
 package org.grapheco.tudb.store.node
 
+import org.grapheco.lynx.types.LynxValue
 import org.grapheco.tudb.serializer.{BaseSerializer, NodeSerializer}
+import org.grapheco.tudb.store.index.IndexFactory
 import org.grapheco.tudb.store.meta.TypeManager.NodeId
 import org.grapheco.tudb.store.meta.{DBNameMap, IdGenerator, NodeLabelNameStore, PropertyNameStore}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
 import org.rocksdb.{WriteBatch, WriteOptions}
+
+import scala.collection.mutable
 
 /** @Author: Airzihao
   * @Description:
@@ -13,12 +17,13 @@ import org.rocksdb.{WriteBatch, WriteOptions}
   */
 // NodeStoreAPI is supplied for the Query Engine
 class NodeStoreAPI(
-    nodeDBPath: String,
-    nodeDBConfigPath: String,
-    nodeLabelDBPath: String,
-    nodeLabelConfigPath: String,
-    metaDB: KeyValueDB
-) extends NodeStoreSPI {
+                    nodeDBPath: String,
+                    nodeDBConfigPath: String,
+                    nodeLabelDBPath: String,
+                    nodeLabelConfigPath: String,
+                    metaDB: KeyValueDB,
+                    indexUri: String,
+                  ) extends NodeStoreSPI {
 
   private val nodeDB =
     RocksDBStorage.getDB(nodeDBPath, rocksdbConfigPath = nodeDBConfigPath)
@@ -38,21 +43,63 @@ class NodeStoreAPI(
   private val propertyName = new PropertyNameStore(metaDB)
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
+  // this is the index engine instance
+  private val indexImpl=IndexFactory.newIndex(indexUri)
 
   val NONE_LABEL_ID: Int = 0
 
   def this(
-      dbPath: String,
-      rocksdbCfgPath: String = "default",
-      metaDB: KeyValueDB
-  ) {
+            dbPath: String,
+            rocksdbCfgPath: String = "default",
+            metaDB: KeyValueDB,
+            indexMode: String = "hashmap",
+            indexUri: String = "",
+          ) {
     this(
       s"${dbPath}/${DBNameMap.nodeDB}",
       rocksdbCfgPath,
       s"${dbPath}/${DBNameMap.nodeLabelDB}",
       rocksdbCfgPath,
-      metaDB
+      metaDB,
+      indexUri
     )
+  }
+  //add all index
+  logger.info("start add index")
+  var addCount=0
+  if (indexImpl.hasIndex()){
+    allNodes().foreach { node =>
+      node.properties.foreach { property =>
+        indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
+        addCount+=1
+      }
+    }
+  }
+  logger.info(f"load index ok,size:${addCount}")
+
+  def removePropertyIndexByNodeId(nodeId: Long): Unit = {
+    if (indexImpl.hasIndex()){
+      getNodeById(nodeId).foreach { node =>
+        node.properties.foreach { property =>
+          indexImpl.removeIndex(indexImpl.encodeKey(property._1,property._2),node.id)
+        }
+      }
+    }
+  }
+  /**
+   * @see [[NodeStoreSPI.getNodeIdByProperty()]]
+   *  @return bool
+   */
+  def getNodeIdByProperty(propertyKey:Int,propertyValue: Any): Set[Long] = {
+    indexImpl.getIndexByKey(indexImpl.encodeKey(propertyKey,propertyValue))
+  }
+
+  /**
+   * @see [[NodeStoreSPI.hasIndex()]]
+   *  @return bool
+   */
+  def hasIndex():Boolean={
+    indexImpl.hasIndex()
   }
 
   override def allLabels(): Array[String] =
@@ -149,35 +196,37 @@ class NodeStoreAPI(
       propertyValue: Any
   ): Unit = {
     getNodeById(nodeId)
-      .foreach { node =>
-        {
-          val nodeInBytes: Array[Byte] =
-            NodeSerializer.encodeNodeWithProperties(
-              node.id,
-              node.labelIds,
-              node.properties ++ Map(propertyKeyId -> propertyValue)
-            )
-          nodeStore.set(
-            new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
+      .foreach { node => {
+        val nodeInBytes: Array[Byte] =
+          NodeSerializer.encodeNodeWithProperties(
+            node.id,
+            node.labelIds,
+            node.properties ++ Map(propertyKeyId -> propertyValue)
           )
-        }
+        nodeStore.set(
+          new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
+        )
+        //add node id to index
+        indexImpl.addIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId)
+      }
       }
   }
 
   override def nodeRemoveProperty(nodeId: Long, propertyKeyId: Int): Any = {
     getNodeById(nodeId)
-      .foreach { node =>
-        {
-          val nodeInBytes: Array[Byte] =
-            NodeSerializer.encodeNodeWithProperties(
-              node.id,
-              node.labelIds,
-              node.properties - propertyKeyId
-            )
-          nodeStore.set(
-            new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
+      .foreach { node => {
+        val nodeInBytes: Array[Byte] =
+          NodeSerializer.encodeNodeWithProperties(
+            node.id,
+            node.labelIds,
+            node.properties - propertyKeyId
           )
-        }
+        nodeStore.set(
+          new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
+        )
+        //remove node id from index
+        node.properties.get(propertyKeyId).map(propertyValue => indexImpl.removeIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId))
+      }
       }
   }
 
@@ -188,6 +237,10 @@ class NodeStoreAPI(
     } else {
       nodeStore.set(NONE_LABEL_ID, node)
       nodeLabelStore.set(node.id, NONE_LABEL_ID)
+    }
+    //add node id to index
+    node.properties.foreach { property =>
+      indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
     }
   }
 
@@ -222,6 +275,7 @@ class NodeStoreAPI(
     nodeStore.getNodeIdsByLabel(labelId)
 
   override def deleteNode(nodeId: Long): Unit = {
+    removePropertyIndexByNodeId(nodeId)
     nodeLabelStore
       .getAll(nodeId)
       .foreach(labelId => nodeStore.delete(nodeId, labelId))
@@ -241,6 +295,8 @@ class NodeStoreAPI(
         NodeSerializer.encodeNodeKey(nid, 0),
         NodeSerializer.encodeNodeKey(nid, -1)
       )
+      //remove property index
+      removePropertyIndexByNodeId(nid)
     })
     nodeDB.write(writeOptions, nodesWB) //TODO Important! to guarantee atomic
     nodeLabelDB.write(
@@ -260,11 +316,13 @@ class NodeStoreAPI(
             nodeStore.delete(nodeid, _)
           }
         nodeLabelStore.delete(nodeid)
+        removePropertyIndexByNodeId(nodeid)
       }
     nodeStore.deleteByLabel(labelId)
   }
 
   override def close(): Unit = {
+    indexImpl.close()
     nodeDB.close()
     nodeLabelDB.close()
     metaDB.close()

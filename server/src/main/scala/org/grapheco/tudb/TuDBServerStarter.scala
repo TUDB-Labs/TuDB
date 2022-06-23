@@ -29,7 +29,8 @@ object TuDBServerStarter {
 
     val server: TuDBServer = new TuDBServer(
       TuInstanceContext.getPort,
-      TuInstanceContext.getDataPath
+      TuInstanceContext.getDataPath,
+      TuInstanceContext.getIndexUri
     )
     LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
     server.start()
@@ -44,6 +45,7 @@ object TuDBServerStarter {
     val conf = ConfigFactory.load
     TuInstanceContext.setDataPath(conf.getString("datapath"))
     TuInstanceContext.setPort(conf.getInt("port"))
+    TuInstanceContext.setIndexUri(conf.getString("index.uri"))
   }
 
 }
