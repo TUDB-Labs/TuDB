@@ -30,7 +30,7 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean)
       s"${dbPath}/${DBNameMap.nodeLabelDB}",
       "default",
       nodeMetaDB,
-      "empty"
+      "tudb://index?type=dummy"
     )
     relationshipStore = new RelationshipStoreAPI(
       s"${dbPath}/${DBNameMap.relationDB}",

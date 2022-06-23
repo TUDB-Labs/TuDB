@@ -32,7 +32,7 @@ object RelationshipStoreAPITest {
     s"${outputRoot}/${DBNameMap.nodeLabelDB}",
     "default",
     metaDB,
-    "empty"
+    "tudb://index?type=dummy"
   )
   val relationshipStoreAPI = new RelationshipStoreAPI(
     s"${outputRoot}/${DBNameMap.relationDB}",

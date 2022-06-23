@@ -52,8 +52,7 @@ class NodeStoreAPI(
             dbPath: String,
             rocksdbCfgPath: String = "default",
             metaDB: KeyValueDB,
-            indexMode: String = "hashmap",
-            indexUri: String = "",
+            indexUri: String ,
           ) {
     this(
       s"${dbPath}/${DBNameMap.nodeDB}",
