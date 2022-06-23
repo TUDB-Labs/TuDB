@@ -6,11 +6,11 @@ package org.grapheco.tudb.store.index
  * @description: this is the empty index engine. all method do nothing
  * method hasIndex return false
  */
-class EmptyIndexServerImpl(uri: String) extends IndexServer(uri) {
+class EmptyIndexServerImpl(params: Map[String,String]) extends IndexServer(params) {
 
 
-  def init(uri: String) = {
-    logger.info(f"empty index:${uri}")
+  def init(params: Map[String,String]) = {
+    logger.info(f"empty index:${params}")
   }
 
   def addIndex(key: String, value: Long): Unit = {

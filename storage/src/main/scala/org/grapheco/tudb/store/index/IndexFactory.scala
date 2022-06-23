@@ -3,6 +3,8 @@ package org.grapheco.tudb.store.index
 
 import com.typesafe.scalalogging.StrictLogging
 
+import java.net.URI
+
 /** @author: huagnlin
   * @createDate: 2022-06-20 17:19:08
   * @description: this is the index engine create  factory.
@@ -19,14 +21,15 @@ object IndexFactory extends StrictLogging {
     * @return index engine
     */
   def newIndex(indexUri: String): IndexServer = {
-    if (null == indexUri || indexUri.isEmpty || indexUri == "empty" || !indexUri.contains("://")) {
-      new EmptyIndexServerImpl(indexUri)
+    if (null == indexUri || indexUri.isEmpty || !indexUri.contains("://")) {
+      new EmptyIndexServerImpl(Map.empty)
     } else {
-      val List(indexType, indexValue) = indexUri.split(":").toList
-      indexType match {
+      val url=new URI(indexUri)
+      val params = url.getQuery.split("&").map(v=>v.split("=").toList).map(v=> v(0)-> ( if (v.size>1) v(1) else "" ) ).toMap
+      params.getOrElse("type","dummy") match {
 //        case "hashmap" => new MemoryIndexServerImpl(indexValue)
 //        case "db"      => new RocksIndexServerImpl(indexValue)
-        case _         => new EmptyIndexServerImpl(indexUri)
+        case _         => new EmptyIndexServerImpl(params)
       }
     }
   }
