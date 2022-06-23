@@ -6,6 +6,8 @@ import io.grpc.netty.shaded.io.grpc.netty.{NettyServerBuilder => SNettyServerBui
 import org.grapheco.tudb.common.utils.LogUtil
 import org.slf4j.LoggerFactory
 
+import java.util.concurrent.TimeUnit
+
 /** @Author: Airzihao
  * @Description:
  * @Date: Created at 15:35 2022/4/1
@@ -34,7 +36,7 @@ class TuDBServer(bindPort: Int, dbPath: String) extends LazyLogging {
   }
 
   def shutdown(): Unit = {
-    _server.shutdown()
+    _server.shutdown().awaitTermination(5, TimeUnit.SECONDS)
   }
 
 
