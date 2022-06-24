@@ -13,11 +13,11 @@ import org.junit.runners.MethodSorters
 import java.io.File
 
 /** @ClassName GraphFacadeTest
- * @Description TODO
- * @Author huchuan
- * @Date 2022/3/25
- * @Version 0.1
- */
+  * @Description TODO
+  * @Author huchuan
+  * @Date 2022/3/25
+  * @Version 0.1
+  */
 
 object GraphFacadeTest {
 
@@ -26,7 +26,10 @@ object GraphFacadeTest {
   if (file.exists()) FileUtils.deleteDirectory(file)
   TuInstanceContext.setDataPath(outputPath)
   val db =
-    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath, "tudb://index?type=dummy")
+    GraphDatabaseBuilder.newEmbeddedDatabase(
+      TuInstanceContext.getDataPath,
+      "tudb://index?type=dummy"
+    )
 
   @AfterClass
   def onClose(): Unit = {
@@ -40,6 +43,16 @@ class GraphFacadeTest {
   @After
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
+  }
+
+  @Test
+  def testDetachDelete(): Unit = {
+    db.cypher("create (n:person1)-[r: KNOWS]->(b:person1)")
+    db.cypher("create (n:person2)-[r:K2]->(m: person2)")
+    db.cypher("match (n) detach delete n")
+
+    Assert.assertEquals(0, db.nodes().size)
+    Assert.assertEquals(0, db.relationships().size)
   }
 
   @Test
@@ -145,7 +158,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     result2 match {
       case None => Assert.assertTrue(true)
-      case _ => Assert.assertTrue(false)
+      case _    => Assert.assertTrue(false)
     }
     val result3 = db
       .cypher("Match p = (n1:START)-[r1:rel]->(n2:End) return r1")
@@ -157,7 +170,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     result3 match {
       case None => Assert.assertTrue(true)
-      case _ => Assert.assertTrue(false)
+      case _    => Assert.assertTrue(false)
     }
 
   }
@@ -188,7 +201,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     deletedProp1 match {
       case None => Assert.assertTrue(true)
-      case _ => Assert.assertTrue(false)
+      case _    => Assert.assertTrue(false)
     }
   }
 }
