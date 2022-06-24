@@ -43,7 +43,7 @@ class GraphFacadeTest {
   }
 
   @Test
-  def a_testQueryNodeInNoDataDB(): Unit = {
+  def testQueryNodeInNoDataDB(): Unit = {
     val res1 = db.cypher("match (n: Person) return n").records()
     val res2 = db.cypher("match (n) return n").records()
     val res3 = db.cypher("match (n)-[r]->(b) return r").records()
