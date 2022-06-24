@@ -2,7 +2,7 @@ package org.grapheco.tudb.example
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
-import org.grapheco.tudb.TuDBServer
+import org.grapheco.tudb.{TuDBServer, TuDBServerContext}
 import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.test.TestUtils
 
@@ -33,8 +33,11 @@ object CypherExample {
   def startServer(): Unit ={
     val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
     FileUtils.deleteDirectory(new File(dbPath))
-
-    server = new TuDBServer(port, dbPath)
+    val serverContext = new TuDBServerContext()
+    serverContext.setPort(port)
+    serverContext.setDataPath(dbPath)
+    serverContext.setIndexUri("tudb://index?type=dummy")
+    server = new TuDBServer(serverContext)
     new Thread(new Runnable {
       override def run(): Unit = server.start()
     }).start()

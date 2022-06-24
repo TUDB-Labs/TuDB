@@ -25,13 +25,9 @@ object TuDBServerStarter {
     /*
       started by script of tudb.sh
      */
-    _initContext()
+    val serverContext = _initContext()
 
-    val server: TuDBServer = new TuDBServer(
-      TuInstanceContext.getPort,
-      TuInstanceContext.getDataPath,
-      TuInstanceContext.getIndexUri
-    )
+    val server: TuDBServer = new TuDBServer(serverContext)
     LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
     server.start()
 
@@ -41,11 +37,13 @@ object TuDBServerStarter {
    * Caution: Init all the config item in this function.
    *
    */
-  private def _initContext() = {
+  private def _initContext(): TuDBServerContext = {
     val conf = ConfigFactory.load
-    TuInstanceContext.setDataPath(conf.getString("datapath"))
-    TuInstanceContext.setPort(conf.getInt("port"))
-    TuInstanceContext.setIndexUri(conf.getString("index.uri"))
+    val serverContext = new TuDBServerContext()
+    serverContext.setDataPath(conf.getString("datapath"))
+    serverContext.setPort(conf.getInt("port"))
+    serverContext.setIndexUri(conf.getString("index.uri"))
+    serverContext
   }
 
 }

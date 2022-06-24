@@ -5,7 +5,7 @@ package org.grapheco.tudb
   * @Date: Created at 17:50 2022/4/12
   * @Modified By:
   */
-object TuServerContext extends ContextMap {
+class TuDBServerContext extends ContextMap {
 
   def setDataPath(path: String): Unit = {
     // Todo: check whether the path is illegal.
@@ -19,5 +19,9 @@ object TuServerContext extends ContextMap {
   def setPort(port: Int): Unit = super.put("bindPort", port)
 
   def getPort: Int = super.get[Int]("bindPort")
+
+  def setIndexUri(uri: String): Unit = super.put("indexUri", uri)
+
+  def getIndexUri: String = super.get[String]("indexUri")
 
 }
