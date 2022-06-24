@@ -4,7 +4,7 @@ package org.grapheco.tudb.store.index
 import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx.types.time.LynxDate
 
-/** @author: huagnlin
+/** @author: huanglin
   * @createDate: 2022-06-20 17:19:08
   * @description: this is the index engine  interface.
   * memory://{any}  use hashmap storage index data

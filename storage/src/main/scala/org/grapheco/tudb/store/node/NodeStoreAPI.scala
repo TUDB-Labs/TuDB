@@ -294,7 +294,6 @@ class NodeStoreAPI(
         NodeSerializer.encodeNodeKey(nid, 0),
         NodeSerializer.encodeNodeKey(nid, -1)
       )
-      //remove property index
       removePropertyIndexByNodeId(nid)
     })
     nodeDB.write(writeOptions, nodesWB) //TODO Important! to guarantee atomic
