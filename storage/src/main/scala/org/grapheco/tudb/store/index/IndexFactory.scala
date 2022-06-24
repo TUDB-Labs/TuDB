@@ -27,7 +27,7 @@ object IndexFactory extends StrictLogging {
       val url=new URI(indexUri)
       val params = url.getQuery.split("&").map(v=>v.split("=").toList).map(v=> v(0)-> ( if (v.size>1) v(1) else "" ) ).toMap
       params.getOrElse("type","dummy") match {
-//        case "hashmap" => new MemoryIndexServerImpl(indexValue)
+        case "memory" => new MemoryIndexServerImpl(params)
 //        case "db"      => new RocksIndexServerImpl(indexValue)
         case _         => new EmptyIndexServerImpl(params)
       }
