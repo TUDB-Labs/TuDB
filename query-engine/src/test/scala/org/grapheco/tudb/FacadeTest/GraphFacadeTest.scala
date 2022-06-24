@@ -8,15 +8,16 @@ import org.grapheco.tudb.FacadeTest.GraphFacadeTest.db
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuInstanceContext}
 import org.junit._
+import org.junit.runners.MethodSorters
 
 import java.io.File
 
 /** @ClassName GraphFacadeTest
-  * @Description TODO
-  * @Author huchuan
-  * @Date 2022/3/25
-  * @Version 0.1
-  */
+ * @Description TODO
+ * @Author huchuan
+ * @Date 2022/3/25
+ * @Version 0.1
+ */
 
 object GraphFacadeTest {
 
@@ -25,7 +26,7 @@ object GraphFacadeTest {
   if (file.exists()) FileUtils.deleteDirectory(file)
   TuInstanceContext.setDataPath(outputPath)
   val db =
-    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath)
+    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath, "tudb://index?type=dummy")
 
   @AfterClass
   def onClose(): Unit = {
@@ -34,11 +35,13 @@ object GraphFacadeTest {
   }
 }
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class GraphFacadeTest {
   @After
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
+
   @Test
   def testQueryNodeInNoDataDB(): Unit = {
     val res1 = db.cypher("match (n: Person) return n").records()
@@ -50,6 +53,7 @@ class GraphFacadeTest {
     Assert.assertEquals(0, res3.size)
     Assert.assertEquals(0, res4.size)
   }
+
   @Test
   def testQueryMultiLabelNode(): Unit = {
     db.cypher("create (n:Chengdu:Product1{name:'TUDB1'})")
@@ -60,6 +64,7 @@ class GraphFacadeTest {
       db.cypher("match (n:Chengdu1:Product1) return n").records().next()("n").asInstanceOf[LynxNode]
     Assert.assertEquals("TUDB3", res.property(LynxPropertyKey("name")).get.value)
   }
+
   //Test relationship's startId and endId
   @Test
   def testRelationship1(): Unit = {
@@ -140,7 +145,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     result2 match {
       case None => Assert.assertTrue(true)
-      case _    => Assert.assertTrue(false)
+      case _ => Assert.assertTrue(false)
     }
     val result3 = db
       .cypher("Match p = (n1:START)-[r1:rel]->(n2:End) return r1")
@@ -152,7 +157,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     result3 match {
       case None => Assert.assertTrue(true)
-      case _    => Assert.assertTrue(false)
+      case _ => Assert.assertTrue(false)
     }
 
   }
@@ -183,7 +188,7 @@ class GraphFacadeTest {
       .property(LynxPropertyKey("prop1"))
     deletedProp1 match {
       case None => Assert.assertTrue(true)
-      case _    => Assert.assertTrue(false)
+      case _ => Assert.assertTrue(false)
     }
   }
 }

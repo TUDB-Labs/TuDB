@@ -18,6 +18,7 @@ object GraphDatabaseBuilder extends StrictLogging {
 
   def newEmbeddedDatabase(
       dataPath: String,
+      indexUri: String,
       rocksdbConfPath: String = "default"
   ): GraphFacade = {
     val file = new File(dataPath)
@@ -39,7 +40,8 @@ object GraphDatabaseBuilder extends StrictLogging {
       "default",
       s"${dataPath}/${DBNameMap.nodeLabelDB}",
       "default",
-      nodeMetaDB
+      nodeMetaDB,
+      indexUri
     )
 
     val relMetaDB =
