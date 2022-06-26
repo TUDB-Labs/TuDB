@@ -5,11 +5,11 @@ import org.grapheco.lynx.procedure.CallableProcedure
 import org.grapheco.lynx.procedure.exceptions.{UnknownProcedureException, WrongArgumentException, WrongNumberOfArgumentsException}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull}
+import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull, LynxPath}
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
 import org.opencypher.v9_0.ast._
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipChain, _}
-import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CTNode, CTPath, CTRelationship, CypherType}
+import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CTNode, CTPath, CTRelationship, CypherType, ListType}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -534,7 +534,7 @@ case class PPTRelationshipScan(
     DataFrame(
       schema,
       () => {
-        graphModel
+        val data = graphModel
           .paths(
             NodeFilter(
               labels1.map(_.name).map(LynxNodeLabel),
@@ -558,7 +558,15 @@ case class PPTRelationshipScan(
             upperLimit,
             lowerLimit
           )
-          .map(triple => Seq(triple.startNode, triple.storedRelation, triple.endNode))
+        val relCypherType = schema(1)._2
+        relCypherType match {
+          case r @ CTRelationship => {
+            data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
+          }
+          case rs @ ListType(CTRelationship) => {
+            data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
+          }
+        }
       }
     )
   }

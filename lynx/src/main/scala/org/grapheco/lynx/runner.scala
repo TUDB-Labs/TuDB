@@ -575,7 +575,7 @@ trait GraphModel {
       direction: SemanticDirection,
       upperLimit: Option[Int],
       lowerLimit: Option[Int]
-    ): Iterator[PathTriple] =
+    ): Iterator[Seq[PathTriple]] =
     (direction match {
       case BOTH     => relationships().flatMap(item => Seq(item, item.revert))
       case INCOMING => relationships().map(_.revert)
@@ -583,7 +583,7 @@ trait GraphModel {
     }).filter { case PathTriple(startNode, rel, endNode, _) =>
       relationshipFilter.matches(rel) && startNodeFilter.matches(startNode) && endNodeFilter
         .matches(endNode)
-    }
+    }.map(Seq(_))
 
   /** Take a node as the starting or ending node and expand in a certain direction.
     * @param nodeId The id of this node
