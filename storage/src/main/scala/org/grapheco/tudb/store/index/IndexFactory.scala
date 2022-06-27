@@ -30,7 +30,9 @@ object IndexFactory extends StrictLogging {
         .map(v => v.split("=").toList).map(v => v(0) -> (if (v.size > 1) v(1) else "")).toMap
       params.getOrElse("type", "dummy") match {
         case "memory" => new MemoryIndexServerImpl(params)
-        //        case "db"      => new RocksIndexServerImpl(indexValue)
+        case "rocksdb" =>
+          val path = params.getOrElse("path", "")
+          if (path == null || path.isEmpty) new EmptyIndexServerImpl(params) else new RocksIndexServerImpl(params)
         case _ => new EmptyIndexServerImpl(params)
       }
     }
