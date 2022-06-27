@@ -49,7 +49,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
       .setBlockSize(64L * 1024L)
       .setBlockCache(new LRUCache(1024L * 1024L * 1024L))
 
-
+    //TODO:  configure  parameters
     options
       .setTableFormatConfig(tableConfig)
       .setCreateIfMissing(true)
@@ -122,7 +122,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
    * @param key
    * @return (byte array key ,byte array value from db )
    */
-  private def getDataFromDb(key: String) = {
+  private def getDataFromDB(key: String) = {
     val keyBytes = objectToBytes(key)
     val dbValue = db.get(keyBytes)
     (keyBytes, dbValue)
@@ -132,7 +132,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
    * @see [[IndexServer.addIndex()]]
    */
   def addIndex(key: String, value: Long): Unit = {
-    val (keyBytes, dbValue) = getDataFromDb(key)
+    val (keyBytes, dbValue) = getDataFromDB(key)
     val changeSet = if (dbValue == null) {
       new mutable.HashSet[Long]()
     } else {
@@ -150,7 +150,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
    * @see [[IndexServer.removeIndex()]]
    */
   def removeIndex(key: String, value: Long): Unit = {
-    val (keyBytes, dbValue) = getDataFromDb(key)
+    val (keyBytes, dbValue) = getDataFromDB(key)
     if (dbValue != null) {
       val obj = bytesToObject(dbValue)
       if (obj.isInstanceOf[mutable.Set[Long]]) {
@@ -165,7 +165,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
    * @see [[IndexServer.getIndexByKey()]]
    */
   def getIndexByKey(key: String): Set[Long] = {
-    val (_, dbValue) = getDataFromDb(key)
+    val (_, dbValue) = getDataFromDB(key)
     if (dbValue != null) {
       val obj = bytesToObject(dbValue)
       if (obj.isInstanceOf[mutable.Set[Long]]) {
