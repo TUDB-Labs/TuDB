@@ -1,6 +1,6 @@
 package org.grapheco.tudb.test.index
 
-import org.grapheco.tudb.store.index.{EmptyIndexServerImpl, IndexFactory, IndexServer, MemoryIndexServerImpl}
+import org.grapheco.tudb.store.index.{EmptyIndexServerImpl, IndexFactory, IndexServer, MemoryIndexServerImpl, RocksIndexServerImpl}
 import org.junit._
 import org.junit.runners.MethodSorters
 
@@ -26,13 +26,29 @@ class IndexServerTest {
     //memory index server
     val memoryIndexImpl = IndexFactory.newIndex("tudb://index?type=memory")
     Assert.assertTrue(memoryIndexImpl.isInstanceOf[MemoryIndexServerImpl])
+
+    //rocksdb index server
+
+    //test empty path
+    val rocksDBIndexImpl = IndexFactory.newIndex("tudb://index?type=rocksdb&path=")
+    Assert.assertTrue(rocksDBIndexImpl.isInstanceOf[EmptyIndexServerImpl])
+
+    val rocksDB1IndexImpl = IndexFactory.newIndex("tudb://index?type=rocksdb&path=./test/index")
+    Assert.assertTrue(rocksDB1IndexImpl.isInstanceOf[RocksIndexServerImpl])
   }
 
   @Test
   def testMemoryEngine(): Unit = {
     val memoryIndexImpl = IndexFactory.newIndex("tudb://index?type=memory")
-    memoryIndexImpl.init(Map.empty)
     testEngineImpl(memoryIndexImpl)
+  }
+
+  @Test
+  def testRocksDbEngine(): Unit = {
+
+    val rocksdbIndexImpl = IndexFactory.newIndex("tudb://index?type=rocksdb&path=./test/RocksDB")
+    testEngineImpl(rocksdbIndexImpl)
+    rocksdbIndexImpl.close()
   }
 
   /*
@@ -51,6 +67,11 @@ class IndexServerTest {
 
   @Before
   def cleanUp(): Unit = {
+
+  }
+
+  @After
+  def close(): Unit = {
 
   }
 
