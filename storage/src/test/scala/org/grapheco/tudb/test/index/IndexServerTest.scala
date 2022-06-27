@@ -39,12 +39,13 @@ class IndexServerTest {
   test index engine impl
    */
   def testEngineImpl(impl: IndexServer): Unit = {
-    impl.addIndex("a", 1)
-    Assert.assertTrue(impl.getIndexByKey("a").contains(1))
-    Assert.assertFalse(impl.getIndexByKey("a").contains(2))
-    impl.removeIndex("a", 1)
-    Assert.assertFalse(impl.getIndexByKey("a").contains(1))
-    Assert.assertTrue(impl.getIndexByKey("a").isEmpty)
+    val (propertyKey,nodeId)=("property_key_value",1)
+    impl.addIndex(propertyKey, nodeId)
+    Assert.assertTrue(impl.getIndexByKey(propertyKey).contains(nodeId))
+    Assert.assertFalse(impl.getIndexByKey(propertyKey).contains(2))
+    impl.removeIndex(propertyKey, nodeId)
+    Assert.assertFalse(impl.getIndexByKey(propertyKey).contains(nodeId))
+    Assert.assertTrue(impl.getIndexByKey(propertyKey).isEmpty)
   }
 
 
