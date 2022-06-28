@@ -35,7 +35,7 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
     override def notificationLogger: InternalNotificationLogger = devNullLogger
 
     override def monitors: Monitors = new Monitors {
-      override def newMonitor[T <: AnyRef : ClassTag](tags: String*): T = {
+      override def newMonitor[T <: AnyRef: ClassTag](tags: String*): T = {
         new AstRewritingMonitor {
           override def abortedRewriting(obj: AnyRef): Unit = ()
 
@@ -48,33 +48,44 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
 
     override def errorHandler: Seq[SemanticErrorDef] => Unit = errors => {}
 
-    override def exceptionCreator: (String, InputPosition) => CypherException = new LynxCypherException(_, _)
+    override def exceptionCreator: (String, InputPosition) => CypherException =
+      new LynxCypherException(_, _)
   }
 
   protected val transformers: Transformer[BaseContext, BaseState, BaseState] =
     Parsing.adds(BaseContains[Statement]) andThen
       SyntaxDeprecationWarnings(V2) andThen
       PreparatoryRewriting(V2) andThen
-      SemanticAnalysis(warn = true, SemanticFeature.Cypher10Support, SemanticFeature.MultipleGraphs, SemanticFeature.WithInitialQuerySignature)
+      SemanticAnalysis(
+        warn = true,
+        SemanticFeature.Cypher10Support,
+        SemanticFeature.MultipleGraphs,
+        SemanticFeature.WithInitialQuerySignature
+      )
         .adds(BaseContains[SemanticState]) andThen
       AstRewriting(RewriterStepSequencer.newPlain, Never, getDegreeRewriting = false) andThen
       isolateAggregation andThen
-      SemanticAnalysis(warn = false, SemanticFeature.Cypher10Support, SemanticFeature.MultipleGraphs, SemanticFeature.WithInitialQuerySignature) andThen
+      SemanticAnalysis(
+        warn = false,
+        SemanticFeature.Cypher10Support,
+        SemanticFeature.MultipleGraphs,
+        SemanticFeature.WithInitialQuerySignature
+      ) andThen
       Namespacer andThen
       CNFNormalizer andThen
       LateAstRewriting andThen
       FunctionMapper(runnerContext)
 
-  case class FunctionMapper(runnerContext: CypherRunnerContext) extends Phase[BaseContext, BaseState, BaseState] {
+  case class FunctionMapper(runnerContext: CypherRunnerContext)
+    extends Phase[BaseContext, BaseState, BaseState] {
     override def phase: CompilationPhase = AST_REWRITE
 
     override def description: String = "map functions to their procedure implementations"
 
     override def process(from: BaseState, ignored: BaseContext): BaseState = {
-      val rewriter = inSequence(
-        bottomUp(Rewriter.lift {
-          case func: FunctionInvocation => ProcedureExpression(func)(runnerContext)
-        }))
+      val rewriter = inSequence(bottomUp(Rewriter.lift { case func: FunctionInvocation =>
+        ProcedureExpression(func)(runnerContext)
+      }))
       val newStatement = from.statement().endoRewrite(rewriter)
       from.withStatement(newStatement)
     }
@@ -83,14 +94,18 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
   }
 
   override def parse(query: String): (Statement, Map[String, Any], SemanticState) = {
-    val startState = InitialState(query, None, new PlannerName {
-      override def name: String = "lynx"
+    val startState = InitialState(
+      query,
+      None,
+      new PlannerName {
+        override def name: String = "lynx"
 
-      override def toTextOutput: String = s"$name $version"
+        override def toTextOutput: String = s"$name $version"
 
-      override def version: String = org.grapheco.lynx.version
+        override def version: String = org.grapheco.lynx.version
 
-    })
+      }
+    )
 
     val endState = transformers.transform(startState, context)
     val params = endState.extractedParams
@@ -99,6 +114,8 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
   }
 }
 
-class LynxCypherException(msg: String, position: InputPosition) extends CypherException(msg, null) with LynxException {
+class LynxCypherException(msg: String, position: InputPosition)
+  extends CypherException(msg, null)
+  with LynxException {
   override def mapToPublic[T <: Throwable](mapper: MapToPublicExceptions[T]): T = ???
 }

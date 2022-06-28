@@ -28,15 +28,20 @@ object DataFrame {
   def cached(schema0: Seq[(String, LynxType)], records: Seq[Seq[LynxValue]]): DataFrame =
     apply(schema0, () => records.iterator)
 
-  def unit(columns: Seq[(String, Expression)])(implicit expressionEvaluator: ExpressionEvaluator, ctx: ExpressionContext): DataFrame = {
-    val schema = columns.map(col =>
-      col._1 -> expressionEvaluator.typeOf(col._2, Map.empty)
-    )
+  def unit(
+      columns: Seq[(String, Expression)]
+    )(implicit expressionEvaluator: ExpressionEvaluator,
+      ctx: ExpressionContext
+    ): DataFrame = {
+    val schema = columns.map(col => col._1 -> expressionEvaluator.typeOf(col._2, Map.empty))
 
-    DataFrame(schema, () => Iterator.single(
-      columns.map(col => {
-        expressionEvaluator.eval(col._2)(ctx)
-      })))
+    DataFrame(
+      schema,
+      () =>
+        Iterator.single(columns.map(col => {
+          expressionEvaluator.eval(col._2)(ctx)
+        }))
+    )
   }
 }
 
@@ -47,7 +52,12 @@ trait DataFrameOperator {
 
   def project(df: DataFrame, columns: Seq[(String, Expression)])(ctx: ExpressionContext): DataFrame
 
-  def groupBy(df: DataFrame, groupings: Seq[(String, Expression)], aggregations: Seq[(String, Expression)])(ctx: ExpressionContext): DataFrame
+  def groupBy(
+      df: DataFrame,
+      groupings: Seq[(String, Expression)],
+      aggregations: Seq[(String, Expression)]
+    )(ctx: ExpressionContext
+    ): DataFrame
 
   def skip(df: DataFrame, num: Int): DataFrame
 
@@ -57,19 +67,26 @@ trait DataFrameOperator {
 
   def distinct(df: DataFrame): DataFrame
 
-  def orderBy(df: DataFrame, sortItem: Seq[(Expression, Boolean)])(ctx: ExpressionContext): DataFrame
+  def orderBy(
+      df: DataFrame,
+      sortItem: Seq[(Expression, Boolean)]
+    )(ctx: ExpressionContext
+    ): DataFrame
 }
 
 class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends DataFrameOperator {
-  def distinct(df: DataFrame): DataFrame = DataFrame(df.schema, () => df.records.toSeq.distinct.iterator)
+  def distinct(df: DataFrame): DataFrame =
+    DataFrame(df.schema, () => df.records.toSeq.distinct.iterator)
 
-  private def sortByItem(a: Seq[LynxValue],
-                         b: Seq[LynxValue],
-                         items: Seq[(Expression, Boolean)],
-                         schema: Map[String, (CypherType, Int)],
-                         ctx: ExpressionContext): Boolean = {
-    val sd = items.foldLeft((true, true)) {
-      (f, s) => {
+  private def sortByItem(
+      a: Seq[LynxValue],
+      b: Seq[LynxValue],
+      items: Seq[(Expression, Boolean)],
+      schema: Map[String, (CypherType, Int)],
+      ctx: ExpressionContext
+    ): Boolean = {
+    val sd = items.foldLeft((true, true)) { (f, s) =>
+      {
         f match {
           case (true, true) => {
 
@@ -78,7 +95,7 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
             val ev1 = expressionEvaluator.eval(s._1)(ctx.withVars(schema.map(_._1).zip(a).toMap))
             val ev2 = expressionEvaluator.eval(s._1)(ctx.withVars(schema.map(_._1).zip(b).toMap))
             s._2 match {
-                // LynxNull = MAX
+              // LynxNull = MAX
               case true => {
                 if (ev1 == LynxNull && ev2 != LynxNull) (false, false)
                 else if (ev1 == LynxNull && ev2 == LynxNull) (true, true)
@@ -93,8 +110,8 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
               }
             }
           }
-          case (true, false) => (true, false)
-          case (false, true) => (false, true)
+          case (true, false)  => (true, false)
+          case (false, true)  => (false, true)
           case (false, false) => (false, false)
         }
       }
@@ -102,44 +119,63 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
     sd._1
   }
 
-  override def orderBy(df: DataFrame, sortItem: Seq[(Expression, Boolean)])(ctx: ExpressionContext): DataFrame = {
-    val schema1: Map[String, (CypherType, Int)] = df.schema.zipWithIndex.map(x => x._1._1 -> (x._1._2, x._2)).toMap
-    DataFrame(df.schema, () => df.records.toSeq.sortWith(sortByItem(_, _, sortItem, schema1, ctx)).toIterator)
+  override def orderBy(
+      df: DataFrame,
+      sortItem: Seq[(Expression, Boolean)]
+    )(ctx: ExpressionContext
+    ): DataFrame = {
+    val schema1: Map[String, (CypherType, Int)] =
+      df.schema.zipWithIndex.map(x => x._1._1 -> (x._1._2, x._2)).toMap
+    DataFrame(
+      df.schema,
+      () => df.records.toSeq.sortWith(sortByItem(_, _, sortItem, schema1, ctx)).toIterator
+    )
   }
 
   override def select(df: DataFrame, columns: Seq[(String, Option[String])]): DataFrame = {
-    val schema1: Map[String, (CypherType, Int)] = df.schema.zipWithIndex.map(x => x._1._1 -> (x._1._2, x._2)).toMap
+    val schema1: Map[String, (CypherType, Int)] =
+      df.schema.zipWithIndex.map(x => x._1._1 -> (x._1._2, x._2)).toMap
     val schema2 = columns.map { column =>
       column._2.getOrElse(column._1) -> schema1(column._1)._1
     }
     DataFrame(
       schema2,
-      () => df.records.map {
-        row =>
+      () =>
+        df.records.map { row =>
           columns.map(column => row.apply(schema1(column._1)._2))
-      }
+        }
     )
   }
 
-  override def project(df: DataFrame, columns: Seq[(String, Expression)])(ctx: ExpressionContext): DataFrame = {
+  override def project(
+      df: DataFrame,
+      columns: Seq[(String, Expression)]
+    )(ctx: ExpressionContext
+    ): DataFrame = {
     val schema1 = df.schema
-    val schema2 = columns.map{
-      case (name, expression) => name -> expressionEvaluator.typeOf(expression, schema1.toMap)}
+    val schema2 = columns.map { case (name, expression) =>
+      name -> expressionEvaluator.typeOf(expression, schema1.toMap)
+    }
 
-    val colNames = schema1.map {case (name, lynxType) => name}
+    val colNames = schema1.map { case (name, lynxType) => name }
 
-    DataFrame(schema2,
-      () => df.records.map(
-        record => {
+    DataFrame(
+      schema2,
+      () =>
+        df.records.map(record => {
           val recordCtx = ctx.withVars(colNames.zip(record).toMap)
           columns.map(col => expressionEvaluator.eval(col._2)(recordCtx)) //TODO: to opt
-        }
-      )
+        })
     )
   }
 
   // TODO rewrite it.
-  override def groupBy(df: DataFrame, groupings: Seq[(String, Expression)], aggregations: Seq[(String, Expression)])(ctx: ExpressionContext): DataFrame = {
+  override def groupBy(
+      df: DataFrame,
+      groupings: Seq[(String, Expression)],
+      aggregations: Seq[(String, Expression)]
+    )(ctx: ExpressionContext
+    ): DataFrame = {
 
     // match (n:nothislabel) return count(n)
     val schema1 = df.schema
@@ -148,37 +184,64 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
     )
     val columnsName = df.columnsName
 
-    DataFrame(schema2, () => {
-      if (groupings.nonEmpty) {
-        df.records.map { record =>
-          val recordCtx = ctx.withVars(columnsName.zip(record).toMap)
-          groupings.map(col => expressionEvaluator.eval(col._2)(recordCtx)) -> recordCtx
-        } // (groupingValue: Seq[LynxValue] -> recordCtx: ExpressionContext)
-          .toSeq.groupBy(_._1) // #group by 'groupingValue'.
-          .mapValues(_.map(_._2)) // #trans to: (groupingValue: Seq[LynxValue] -> recordsCtx: Seq[ExpressionContext])
-          .map { case (groupingValue, recordsCtx) => // #aggragate: (groupingValues & aggregationValues): Seq[LynxValue]
-            groupingValue ++ {
-              aggregations.map { case(name, expr) => expressionEvaluator.aggregateEval(expr)(recordsCtx) }
+    DataFrame(
+      schema2,
+      () => {
+        if (groupings.nonEmpty) {
+          df.records
+            .map { record =>
+              val recordCtx = ctx.withVars(columnsName.zip(record).toMap)
+              groupings.map(col => expressionEvaluator.eval(col._2)(recordCtx)) -> recordCtx
+            } // (groupingValue: Seq[LynxValue] -> recordCtx: ExpressionContext)
+            .toSeq
+            .groupBy(_._1) // #group by 'groupingValue'.
+            .mapValues(
+              _.map(_._2)
+            ) // #trans to: (groupingValue: Seq[LynxValue] -> recordsCtx: Seq[ExpressionContext])
+            .map {
+              case (
+                    groupingValue,
+                    recordsCtx
+                  ) => // #aggragate: (groupingValues & aggregationValues): Seq[LynxValue]
+                groupingValue ++ {
+                  aggregations.map { case (name, expr) =>
+                    expressionEvaluator.aggregateEval(expr)(recordsCtx)
+                  }
+                }
             }
-          }.toIterator
-      } else {
-        val allRecordsCtx = df.records.map{record => ctx.withVars(columnsName.zip(record).toMap)}.toSeq
-        Iterator(aggregations.map{ case(name, expr) => expressionEvaluator.aggregateEval(expr)(allRecordsCtx)})
+            .toIterator
+        } else {
+          val allRecordsCtx = df.records.map { record =>
+            ctx.withVars(columnsName.zip(record).toMap)
+          }.toSeq
+          Iterator(aggregations.map { case (name, expr) =>
+            expressionEvaluator.aggregateEval(expr)(allRecordsCtx)
+          })
+        }
       }
-    })
-  }
-
-  override def filter(df: DataFrame, predicate: (Seq[LynxValue]) => Boolean)(ctx: ExpressionContext): DataFrame = {
-    DataFrame(df.schema,
-      () => df.records.filter(predicate)
     )
   }
 
-  override def skip(df: DataFrame, num: Int): DataFrame = DataFrame(df.schema, () => df.records.drop(num))
+  override def filter(
+      df: DataFrame,
+      predicate: (Seq[LynxValue]) => Boolean
+    )(ctx: ExpressionContext
+    ): DataFrame = {
+    DataFrame(df.schema, () => df.records.filter(predicate))
+  }
 
-  override def take(df: DataFrame, num: Int): DataFrame = DataFrame(df.schema, () => df.records.take(num))
+  override def skip(df: DataFrame, num: Int): DataFrame =
+    DataFrame(df.schema, () => df.records.drop(num))
 
-  override def join(a: DataFrame, b: DataFrame, isSinglesMatch: Boolean, bigTableIndex: Int): DataFrame = {
+  override def take(df: DataFrame, num: Int): DataFrame =
+    DataFrame(df.schema, () => df.records.take(num))
+
+  override def join(
+      a: DataFrame,
+      b: DataFrame,
+      isSinglesMatch: Boolean,
+      bigTableIndex: Int
+    ): DataFrame = {
     val colsa = a.schema.map(_._1).zipWithIndex.toMap
     val colsb = b.schema.map(_._1).zipWithIndex.toMap
     //["m", "n"]
@@ -186,8 +249,7 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
     val (smallTable, largeTable, smallColumns, largeColumns, swapped) =
       if (bigTableIndex == 1) {
         (a, b, colsa, colsb, false)
-      }
-      else {
+      } else {
         (b, a, colsb, colsa, true)
       }
 
@@ -196,51 +258,58 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
     val joinedSchema = a.schema ++ b.schema.filter(x => !joinCols.contains(x._1))
     val needCheckSkip = isSinglesMatch && a.schema.size == b.schema.size
 
-    DataFrame(joinedSchema, () => {
-      val smallMap: Map[Seq[LynxValue], Iterable[(Seq[LynxValue], Seq[LynxValue])]] = {
-        smallTable.records.map {
-          row => {
-            val value = joinCols.map(joinCol => row(smallColumns(joinCol)))
-            value -> row
-          }
-        }.toIterable.groupBy(_._1)
-      }
+    DataFrame(
+      joinedSchema,
+      () => {
+        val smallMap: Map[Seq[LynxValue], Iterable[(Seq[LynxValue], Seq[LynxValue])]] = {
+          smallTable.records
+            .map { row =>
+              {
+                val value = joinCols.map(joinCol => row(smallColumns(joinCol)))
+                value -> row
+              }
+            }
+            .toIterable
+            .groupBy(_._1)
+        }
 
-      val joinedRecords = largeTable.records.flatMap {
-        row => {
-          val value = joinCols.map(joinCol => row(largeColumns(joinCol)))
-          smallMap.getOrElse(value, Seq()).map(x => {
-            val lvs = largeColumns2.map(lc => row(lc._1)).toSeq
-            if (swapped) {
-              lvs ++ x._2
-            } else {
-              x._2 ++ lvs
-            }
-          })
-        }
-      }
-      val result = if (needCheckSkip) {
-        val gap = a.schema.size
-        joinedRecords.filterNot(r => {
-          var identical: Boolean = true
-          for (i <- 0 until gap) {
-            if (r(i).value != r(i + gap).value) {
-              identical = false
-            }
+        val joinedRecords = largeTable.records.flatMap { row =>
+          {
+            val value = joinCols.map(joinCol => row(largeColumns(joinCol)))
+            smallMap
+              .getOrElse(value, Seq())
+              .map(x => {
+                val lvs = largeColumns2.map(lc => row(lc._1)).toSeq
+                if (swapped) {
+                  lvs ++ x._2
+                } else {
+                  x._2 ++ lvs
+                }
+              })
           }
-          identical
-        })
-      } else {
-        joinedRecords
-      }
-      result.filter(
-        item => {
-          //(m)-[r]-(n)-[p]-(t), r!=p
-          val relIds = item.filter(_.isInstanceOf[LynxRelationship]).map(_.asInstanceOf[LynxRelationship].id)
-          relIds.size == relIds.toSet.size
         }
-      )
-    })
+        val result = if (needCheckSkip) {
+          val gap = a.schema.size
+          joinedRecords.filterNot(r => {
+            var identical: Boolean = true
+            for (i <- 0 until gap) {
+              if (r(i).value != r(i + gap).value) {
+                identical = false
+              }
+            }
+            identical
+          })
+        } else {
+          joinedRecords
+        }
+        result.filter(item => {
+          //(m)-[r]-(n)-[p]-(t), r!=p
+          val relIds =
+            item.filter(_.isInstanceOf[LynxRelationship]).map(_.asInstanceOf[LynxRelationship].id)
+          relIds.size == relIds.toSet.size
+        })
+      }
+    )
   }
 }
 
@@ -253,12 +322,18 @@ trait DataFrameOps {
   def project(columns: Seq[(String, Expression)])(implicit ctx: ExpressionContext): DataFrame =
     operator.project(srcFrame, columns)(ctx)
 
-  def groupBy(groupings: Seq[(String, Expression)], aggregations: Seq[(String, Expression)])(implicit ctx: ExpressionContext): DataFrame =
+  def groupBy(
+      groupings: Seq[(String, Expression)],
+      aggregations: Seq[(String, Expression)]
+    )(implicit ctx: ExpressionContext
+    ): DataFrame =
     operator.groupBy(srcFrame, groupings, aggregations)(ctx)
 
-  def join(b: DataFrame, isSingleMatch: Boolean, bigTableIndex: Int): DataFrame = operator.join(srcFrame, b, isSingleMatch, bigTableIndex)
+  def join(b: DataFrame, isSingleMatch: Boolean, bigTableIndex: Int): DataFrame =
+    operator.join(srcFrame, b, isSingleMatch, bigTableIndex)
 
-  def filter(predicate: Seq[LynxValue] => Boolean)(ctx: ExpressionContext): DataFrame = operator.filter(srcFrame, predicate)(ctx)
+  def filter(predicate: Seq[LynxValue] => Boolean)(ctx: ExpressionContext): DataFrame =
+    operator.filter(srcFrame, predicate)(ctx)
 
   def take(num: Int): DataFrame = operator.take(srcFrame, num)
 
@@ -266,12 +341,13 @@ trait DataFrameOps {
 
   def distinct(): DataFrame = operator.distinct(srcFrame)
 
-
-  def orderBy(sortItem: Seq[(Expression, Boolean)])(ctx: ExpressionContext): DataFrame = operator.orderBy(srcFrame, sortItem)(ctx)
+  def orderBy(sortItem: Seq[(Expression, Boolean)])(ctx: ExpressionContext): DataFrame =
+    operator.orderBy(srcFrame, sortItem)(ctx)
 }
 
 object DataFrameOps {
-  implicit def ops(ds: DataFrame)(implicit dfo: DataFrameOperator): DataFrameOps = DataFrameOps(ds)(dfo)
+  implicit def ops(ds: DataFrame)(implicit dfo: DataFrameOperator): DataFrameOps =
+    DataFrameOps(ds)(dfo)
 
   def apply(ds: DataFrame)(dfo: DataFrameOperator): DataFrameOps = new DataFrameOps {
     override val srcFrame: DataFrame = ds
