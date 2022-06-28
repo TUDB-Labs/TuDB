@@ -48,7 +48,7 @@ class GraphFacade(
     }
   }
 
-  private def relTypeNameToId(name: String): Option[Int] =
+  def relTypeNameToId(name: String): Option[Int] =
     relationStore.getRelationTypeId(name)
 
   private def relPropNameToId(name: String): Option[Int] = {
@@ -59,6 +59,19 @@ class GraphFacade(
         relationStore.addPropertyKey(name)
         relationStore.getPropertyKeyId(name)
     }
+  }
+
+  def findOutRelations(
+      fromNodeId: Long,
+      edgeType: Option[Int] = None
+    ): Iterator[StoredRelationship] = {
+    relationStore.findOutRelations(fromNodeId, edgeType)
+  }
+  def findInRelations(
+      endNodeId: Long,
+      edgeType: Option[Int] = None
+    ): Iterator[StoredRelationship] = {
+    relationStore.findInRelations(endNodeId, edgeType)
   }
 
   private def mapLynxNodeLabel(id: Int): LynxNodeLabel =
