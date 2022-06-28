@@ -13,15 +13,15 @@ import java.util.concurrent.TimeUnit
  * @Date: Created at 15:35 2022/4/1
  * @Modified By:
  */
-class TuDBServer(bindPort: Int, dbPath: String, indexUri: String = "tudb://index?type=dummy") extends LazyLogging {
+class TuDBServer(serverContext: TuDBServerContext) extends LazyLogging {
 
   /** main logger */
   val LOGGER = LoggerFactory.getLogger("server-info")
 
-  private val _port: Int = bindPort
+  private val _port: Int = serverContext.getPort
   private val _server: Server = SNettyServerBuilder
     .forPort(_port)
-    .addService(new TuDBQueryService(dbPath, indexUri))
+    .addService(new TuDBQueryService(serverContext.getDataPath, serverContext.getIndexUri))
     .build()
 
   def start(): Unit = {

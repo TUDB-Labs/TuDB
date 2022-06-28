@@ -5,7 +5,7 @@ import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
 import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.{TuDBServer, TuInstanceContext}
+import org.grapheco.tudb.{TuDBServer, TuInstanceContext, TuDBServerContext}
 import org.junit.{After, AfterClass, Assert, Before, BeforeClass, Test}
 
 import java.io.File
@@ -21,7 +21,11 @@ object TuDBClientTest {
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
   TuInstanceContext.setDataPath(dbPath)
 
-  val server: TuDBServer = new TuDBServer(testConnectionPort, dbPath)
+  val serverContext = new TuDBServerContext()
+  serverContext.setDataPath(dbPath)
+  serverContext.setPort(testConnectionPort)
+  serverContext.setIndexUri("tudb://index?type=dummy")
+  val server: TuDBServer = new TuDBServer(serverContext)
   @BeforeClass
   def init(): Unit = {
     val dbFile: File = new File(dbPath)
