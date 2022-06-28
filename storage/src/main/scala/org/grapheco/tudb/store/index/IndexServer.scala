@@ -12,13 +12,17 @@ import org.grapheco.lynx.types.time.LynxDate
   * db://{path}  use rocksdb storage index data ,path is rocksdb data storage location
   * empty is empty implement ,  use this engine where no  index is used
   */
-abstract class IndexServer(params: Map[String,String]) extends LazyLogging {
+abstract class IndexServer(params: Map[String, String]) extends LazyLogging {
+  /*
+    * @param indexName: index name
+   */
+  val indexName: String
   init(params)
 
   /** initialization index engine
     * @param uri
     */
-  def init(params: Map[String,String])
+  def init(params: Map[String, String])
 
   /** add one index records to index engine
     * @param key
@@ -46,6 +50,13 @@ abstract class IndexServer(params: Map[String,String]) extends LazyLogging {
   /** close index engine where system close
     */
   def close(): Unit
+
+  /**
+   * check  need rebuild index or not when system start
+   * @param lastIndex last time use index
+   * @return
+   */
+  def needRebuildIndex(lastIndex: String): Boolean
 
   /** encode tudb Key to string
     * @param keyType

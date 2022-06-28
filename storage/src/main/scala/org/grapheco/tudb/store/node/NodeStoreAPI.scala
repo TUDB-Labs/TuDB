@@ -4,7 +4,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.tudb.serializer.{BaseSerializer, NodeSerializer}
 import org.grapheco.tudb.store.index.IndexFactory
 import org.grapheco.tudb.store.meta.TypeManager.NodeId
-import org.grapheco.tudb.store.meta.{DBNameMap, IdGenerator, NodeLabelNameStore, PropertyNameStore}
+import org.grapheco.tudb.store.meta.{ConfigNameMap, DBNameMap, IdGenerator, NodeLabelNameStore, PropertyNameStore}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
 import org.rocksdb.{WriteBatch, WriteOptions}
 
@@ -68,7 +68,7 @@ class NodeStoreAPI(
   //add all index
   logger.info("start add index")
   var addCount=0
-  if (indexImpl.hasIndex()){
+  if (indexImpl.hasIndex() && needRebuildIndex()){
     allNodes().foreach { node =>
       node.properties.foreach { property =>
         indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
@@ -76,7 +76,23 @@ class NodeStoreAPI(
       }
     }
   }
+  metaDB.put(ConfigNameMap.indexNameStorageKey,indexImpl.indexName.getBytes)
   logger.info(f"load index ok,size:${addCount}")
+
+  /**
+   *
+   * @return true if need rebuild index
+   */
+  def needRebuildIndex():Boolean={
+    // check last time use index engine
+    val indexType=metaDB.get(ConfigNameMap.indexNameStorageKey)
+    if (indexType==null || indexType.length==0){
+      true
+    }else{
+      indexImpl.needRebuildIndex(indexType.toString)
+    }
+
+  }
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
     if (indexImpl.hasIndex()){
