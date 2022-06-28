@@ -23,6 +23,7 @@ class NodeStoreAPI(
                     nodeLabelConfigPath: String,
                     metaDB: KeyValueDB,
                     indexUri: String,
+                    dbPath:String,
                   ) extends NodeStoreSPI {
 
   private val nodeDB =
@@ -44,7 +45,7 @@ class NodeStoreAPI(
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
   // this is the index engine instance
-  private val indexImpl=IndexFactory.newIndex(indexUri)
+  private val indexImpl=IndexFactory.newIndex(indexUri+"&path="+dbPath)
 
   val NONE_LABEL_ID: Int = 0
 
@@ -60,7 +61,8 @@ class NodeStoreAPI(
       s"${dbPath}/${DBNameMap.nodeLabelDB}",
       rocksdbCfgPath,
       metaDB,
-      indexUri
+      indexUri,
+      dbPath
     )
   }
   //add all index
