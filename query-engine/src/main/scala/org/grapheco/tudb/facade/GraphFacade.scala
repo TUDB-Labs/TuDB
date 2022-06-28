@@ -4,6 +4,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
+import org.grapheco.tudb.commons.{BothHopUtils, BothPathUtils, InComingHopUtils, InComingPathUtils, OutGoingHopUtils, OutGoingPathUtils}
+import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 import org.grapheco.tudb.store.meta.TuDBStatistics
 import org.grapheco.tudb.store.node._
 import org.grapheco.tudb.store.relationship._
@@ -74,7 +76,7 @@ class GraphFacade(
     * [:TYPE*..maxHops]  = query relationships from 1 to maxHops
     * [:TYPE*Hops] = query fixed length relationships
     *
-    *  p = PathTriple
+    *  p = PathTriple(START_NODE, RELATIONSHIP, END_NODE)
     *      eg: match (n: Person)-[r:TYPE*1..3]->(m: Person)
     *      hop1 ==>   Seq( Seq(p1), Seq(p2), Seq(p3), Seq(p4), Seq(p5) ) // five single relationships
     *      hop2 ==>   Seq( Seq(p1, p2), Seq(p3, p4) ) // two hop-2 relationships
@@ -86,6 +88,8 @@ class GraphFacade(
     *              Seq( Seq(p1, p2), Seq(p3, p4) ),
     *              Seq( Seq(p1, p2, p5) )
     *            )
+    *
+    *            TODO: Check circle
     */
   private def processLengthPath(
       startNodeFilter: NodeFilter,
@@ -95,25 +99,46 @@ class GraphFacade(
       lowerLimit: Int,
       upperLimit: Int
     ): Iterator[Seq[PathTriple]] = {
-
     direction match {
       case SemanticDirection.OUTGOING => {
         val startHop =
-          initStartHop(startNodeFilter, relationshipFilter, direction, lowerLimit)
+          initInOutStartHop(startNodeFilter, relationshipFilter, direction, lowerLimit)
 
-        getOutGoingLengthPaths(
+        val hops = getOutGoingLengthPaths(
           startHop,
           relationshipFilter,
           endNodeFilter,
           lowerLimit,
           upperLimit
-        ).toIterator
+        )
+        val r1 = hops.map(hop => hop.paths.map(path => path.pathTriples))
+        r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
       }
       case SemanticDirection.INCOMING => {
-        ???
+        val startHop =
+          initInOutStartHop(startNodeFilter, relationshipFilter, direction, lowerLimit)
+        val hops = getInComingLengthPaths(
+          startHop,
+          relationshipFilter,
+          endNodeFilter,
+          lowerLimit,
+          upperLimit
+        )
+        val r1 = hops.map(hop => hop.paths.map(path => path.pathTriples))
+        r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
       }
       case SemanticDirection.BOTH => {
-        ???
+        val startHop = initBothStartHop(startNodeFilter, relationshipFilter, lowerLimit)
+        val hops = getBothLengthPaths(
+          startHop,
+          relationshipFilter,
+          startNodeFilter,
+          endNodeFilter,
+          lowerLimit,
+          upperLimit
+        )
+        val r1 = hops.map(hop => hop.paths.map(path => path.pathTriples))
+        r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
       }
     }
   }
@@ -122,14 +147,17 @@ class GraphFacade(
       get all the outgoing relationship paths
    */
   def getOutGoingLengthPaths(
-      startHop: Seq[Seq[Seq[PathTriple]]],
+      startHop: Seq[GraphHop],
       relationshipFilter: RelationshipFilter,
       endNodeFilter: NodeFilter,
       lowerLimit: Int,
       upperLimit: Int
-    ): Seq[Seq[PathTriple]] = {
-    val collectedResult: ArrayBuffer[Seq[Seq[PathTriple]]] = ArrayBuffer.empty
-    val filteredResult: ArrayBuffer[Seq[Seq[PathTriple]]] = ArrayBuffer.empty
+    ): Seq[GraphHop] = {
+
+    val outGoingHopUtils = new OutGoingHopUtils(new OutGoingPathUtils(this))
+
+    val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     var nextHop = {
       if (lowerLimit == 0 || lowerLimit == 1) startHop.head
       else startHop(lowerLimit - 1)
@@ -145,33 +173,121 @@ class GraphFacade(
     }
     while (count <= upperLimit && flag) {
       count += 1
-      nextHop = getNextOutGoingHop(nextHop, relationshipFilter)
-      if (nextHop.nonEmpty) {
+      nextHop = outGoingHopUtils.getNextOutGoingHop(nextHop, relationshipFilter)
+      if (nextHop.paths.nonEmpty) {
         collectedResult.append(nextHop)
       } else flag = false
     }
     collectedResult.foreach(hops => {
-      val res = hops.filter(hop => endNodeFilter.matches(hop.last.endNode))
-      filteredResult.append(res)
+      val filteredPaths =
+        hops.paths.filter(path => endNodeFilter.matches(path.pathTriples.last.endNode))
+      filteredResult.append(GraphHop(filteredPaths))
     })
-    val res = filteredResult.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b)
-    res
+
+    filteredResult
+  }
+
+  def getInComingLengthPaths(
+      startHop: Seq[GraphHop],
+      relationshipFilter: RelationshipFilter,
+      stopNodeFilter: NodeFilter,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Seq[GraphHop] = {
+    val inComingHopUtils = new InComingHopUtils(new InComingPathUtils(this))
+    val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    var nextHop = {
+      if (lowerLimit == 0 || lowerLimit == 1) startHop.head
+      else startHop(lowerLimit - 1)
+    }
+    collectedResult.append(nextHop)
+    var count = {
+      if (lowerLimit == 0) 0
+      else lowerLimit + 1
+    }
+    var flag = {
+      if (upperLimit != 0) true
+      else false
+    }
+    while (count <= upperLimit && flag) {
+      count += 1
+      nextHop = inComingHopUtils.getNextInComingHop(nextHop, relationshipFilter)
+      if (nextHop.paths.nonEmpty) {
+        collectedResult.append(nextHop)
+      } else flag = false
+    }
+    collectedResult.foreach(hops => {
+      val filteredPaths =
+        hops.paths.filter(path => stopNodeFilter.matches(path.pathTriples.head.startNode))
+      filteredResult.append(GraphHop(filteredPaths))
+    })
+
+    filteredResult
+  }
+
+  def getBothLengthPaths(
+      startHop: Seq[GraphHop],
+      relationshipFilter: RelationshipFilter,
+      startNodeFilter: NodeFilter,
+      endNodeFilter: NodeFilter,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Seq[GraphHop] = {
+    val bothHopUtils = new BothHopUtils(this)
+
+    val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    var nextHop = {
+      if (lowerLimit == 0 || lowerLimit == 1) startHop.head
+      else startHop(lowerLimit - 1)
+    }
+    collectedResult.append(nextHop)
+    var count = {
+      if (lowerLimit == 0) 0
+      else lowerLimit + 1
+    }
+    var flag = {
+      if (upperLimit != 0) true
+      else false
+    }
+    while (count <= upperLimit && flag) {
+      count += 1
+      nextHop = bothHopUtils.getNextBothHop(nextHop, relationshipFilter)
+      if (nextHop.paths.nonEmpty) {
+        collectedResult.append(nextHop)
+      } else flag = false
+    }
+    collectedResult.distinct.foreach(hops => {
+      val res = hops.paths.filter(thisPath =>
+        startNodeFilter.matches(thisPath.pathTriples.head.startNode) && endNodeFilter.matches(
+          thisPath.pathTriples.last.endNode
+        ) ||
+          startNodeFilter.matches(thisPath.pathTriples.last.endNode) && endNodeFilter.matches(
+            thisPath.pathTriples.head.startNode
+          )
+      )
+      filteredResult.append(GraphHop(res))
+    })
+    filteredResult
   }
 
   /*
       If a path start at hop-3 like [:TYPE*3..5], we should init start hop to hop-3
    */
-  private def initStartHop(
+  private def initInOutStartHop(
       startNodeFilter: NodeFilter,
       relationshipFilter: RelationshipFilter,
       direction: SemanticDirection,
       lowerLimit: Int
-    ): Seq[Seq[Seq[PathTriple]]] = {
+    ): Seq[GraphHop] = {
     val beginNodes = nodes(startNodeFilter)
     lowerLimit match {
       case 0 => {
-        val res = beginNodes.map(node => Seq(PathTriple(node, null, node))).toSeq
-        Seq(res)
+        val res = beginNodes.map(node => GraphPath(Seq(PathTriple(node, null, node)))).toSeq
+        Seq(GraphHop(res))
       }
       case _ => {
         direction match {
@@ -179,9 +295,27 @@ class GraphFacade(
             getOutGoingHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
           }
           case SemanticDirection.INCOMING => {
-            ???
+            getInComingHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
           }
         }
+      }
+    }
+  }
+
+  // need both for every hop
+  private def initBothStartHop(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      lowerLimit: Int
+    ): Seq[GraphHop] = {
+    val beginNodes = nodes(startNodeFilter)
+    lowerLimit match {
+      case 0 => {
+        val res = beginNodes.map(node => GraphPath(Seq(PathTriple(node, null, node)))).toSeq
+        Seq(GraphHop(res))
+      }
+      case _ => {
+        getBothHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
       }
     }
   }
@@ -193,41 +327,85 @@ class GraphFacade(
       beginNodes: Iterator[LynxNode],
       relationshipFilter: RelationshipFilter,
       lowerLimit: Int
-    ): ArrayBuffer[Seq[Seq[PathTriple]]] = {
-    val collected: ArrayBuffer[Seq[Seq[PathTriple]]] = ArrayBuffer.empty
-    val firstHop = beginNodes
-      .flatMap(start => getSingleNodeOutGoingRelationships(start, relationshipFilter))
-      .toSeq
-      .map(Seq(_))
+    ): ArrayBuffer[GraphHop] = {
+    val outGoingPathUtils = new OutGoingPathUtils(this)
+    val outGoingHopUtils = new OutGoingHopUtils(outGoingPathUtils)
+
+    val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    val firstHop = GraphHop(
+      beginNodes
+        .flatMap(node =>
+          outGoingPathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples
+        )
+        .map(p => GraphPath(Seq(p)))
+        .toSeq
+    )
 
     collected.append(firstHop)
-    var nextHop: Seq[Seq[PathTriple]] = Seq.empty
+    var nextHop: GraphHop = null
     var count = 1
     while (count < lowerLimit) {
       count += 1
-      nextHop = getNextOutGoingHop(firstHop, relationshipFilter).distinct
+      nextHop = outGoingHopUtils.getNextOutGoingHop(firstHop, relationshipFilter)
+      collected.append(nextHop)
+    }
+    collected
+  }
+
+  private def getInComingHopFromOne2Limit(
+      beginNodes: Iterator[LynxNode],
+      relationshipFilter: RelationshipFilter,
+      lowerLimit: Int
+    ): ArrayBuffer[GraphHop] = {
+    val inComingPathUtils = new InComingPathUtils(this)
+    val inComingHopUtils = new InComingHopUtils(inComingPathUtils)
+
+    val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val firstHop = GraphHop(
+      beginNodes
+        .flatMap(node =>
+          inComingPathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples
+        )
+        .map(p => GraphPath(Seq(p)))
+        .toSeq
+    )
+
+    collected.append(firstHop)
+    var nextHop: GraphHop = null
+    var count = 1
+    while (count < lowerLimit) {
+      count += 1
+      nextHop = inComingHopUtils.getNextInComingHop(firstHop, relationshipFilter)
       collected.append(nextHop)
     }
     collected
   }
 
   /*
-      get next outgoing hops
+      get both relationship paths from hop-1 to hop-lowerLimit
    */
-  private def getNextOutGoingHop(
-      start: Seq[Seq[PathTriple]],
-      relationshipFilter: RelationshipFilter
-    ): Seq[Seq[PathTriple]] = {
+  private def getBothHopFromOne2Limit(
+      beginNodes: Iterator[LynxNode],
+      relationshipFilter: RelationshipFilter,
+      lowerLimit: Int
+    ): ArrayBuffer[GraphHop] = {
+    val bothPathUtils = new BothPathUtils(this)
+    val bothHopUtils = new BothHopUtils(this)
 
-    val nextHop: ArrayBuffer[Seq[PathTriple]] = ArrayBuffer.empty
-    start.foreach(thisPath => {
-      val left = thisPath.last.endNode
-      val nextTriple = getSingleNodeOutGoingRelationships(left, relationshipFilter)
-      nextTriple.foreach(next => {
-        nextHop.append(thisPath ++ Seq(next))
-      })
-    })
-    nextHop.distinct.toSeq
+    val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val firstHop = GraphHop(
+      beginNodes.map(node => bothPathUtils.getSingleNodeBothPaths(node, relationshipFilter)).toSeq
+    )
+    collected.append(firstHop)
+    var nextHop: GraphHop = null
+    var count = 1
+    while (count < lowerLimit) {
+      count += 1
+      nextHop = bothHopUtils.getNextBothHop(firstHop, relationshipFilter)
+      collected.append(nextHop)
+    }
+    collected
   }
 
   /*
@@ -241,74 +419,43 @@ class GraphFacade(
     ): Iterator[PathTriple] = {
     direction match {
       case SemanticDirection.OUTGOING => {
+        val outGoingPathUtils = new OutGoingPathUtils(this)
+
         val startNodes = nodes(startNodeFilter)
         startNodes
-          .flatMap(startNode => getSingleNodeOutGoingRelationships(startNode, relationshipFilter))
+          .flatMap(startNode =>
+            outGoingPathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
           .filter(p => endNodeFilter.matches(p.endNode))
       }
       case SemanticDirection.INCOMING => {
+        val inComingPathUtils = new InComingPathUtils(this)
+
         val endNodes = nodes(endNodeFilter)
         endNodes
-          .flatMap(endNode => getSingleNodeInComingRelationships(endNode, relationshipFilter))
+          .flatMap(endNode =>
+            inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+          )
           .filter(p => startNodeFilter.matches(p.startNode))
       }
       case SemanticDirection.BOTH => {
+        val outGoingPathUtils = new OutGoingPathUtils(this)
+        val inComingPathUtils = new InComingPathUtils(this)
+
         val startNodes = nodes(startNodeFilter)
         val endNodes = nodes(endNodeFilter)
         startNodes
-          .flatMap(startNode => getSingleNodeOutGoingRelationships(startNode, relationshipFilter))
+          .flatMap(startNode =>
+            outGoingPathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
           .filter(p => endNodeFilter.matches(p.endNode)) ++
           endNodes
-            .flatMap(endNode => getSingleNodeInComingRelationships(endNode, relationshipFilter))
+            .flatMap(endNode =>
+              inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+            )
             .filter(p => startNodeFilter.matches(p.startNode))
       }
     }
-  }
-
-  /*
-      get single node's outgoing relationships
-   */
-  private def getSingleNodeOutGoingRelationships(
-      startNode: LynxNode,
-      relationshipFilter: RelationshipFilter
-    ): Seq[PathTriple] = {
-    val relTypeIds = relationshipFilter.types.map(r => relTypeNameToId(r.value))
-    val _relationships: Seq[Iterator[StoredRelationship]] = {
-      if (relTypeIds.isEmpty) Seq(relationStore.findOutRelations(startNode.id.toLynxInteger.value))
-      else {
-        relTypeIds.map(typeId =>
-          relationStore.findOutRelations(startNode.id.toLynxInteger.value, typeId)
-        )
-      }
-    }
-    val pathTriples = _relationships.flatMap(rels => {
-      rels.map(r => PathTriple(startNode, relationshipAt(r.id).get, nodeAt(r.to).get))
-    })
-
-    pathTriples.filter(p => relationshipFilter.matches(p.storedRelation))
-  }
-
-  /*
-        get single node's incoming relationships
-   */
-  private def getSingleNodeInComingRelationships(
-      endNode: LynxNode,
-      relationshipFilter: RelationshipFilter
-    ): Seq[PathTriple] = {
-    val relTypeIds = relationshipFilter.types.map(r => relTypeNameToId(r.value))
-    val _relationships: Seq[Iterator[StoredRelationship]] = {
-      if (relTypeIds.isEmpty) Seq(relationStore.findInRelations(endNode.id.toLynxInteger.value))
-      else {
-        relTypeIds.map(typeId =>
-          relationStore.findInRelations(endNode.id.toLynxInteger.value, typeId)
-        )
-      }
-    }
-
-    val pathTriples = _relationships.flatMap(rels => {
-      rels.map(r => PathTriple(endNode, mapRelation(r), nodeAt(r.to).get))
-    })
-    pathTriples.filter(p => relationshipFilter.matches(p.storedRelation))
   }
 
   private def nodeLabelNameToId(name: String): Option[Int] = {
@@ -333,10 +480,10 @@ class GraphFacade(
     }
   }
 
-  private def relTypeNameToId(name: String): Option[Int] =
+  def relTypeNameToId(name: String): Option[Int] =
     relationStore.getRelationTypeId(name)
 
-  private def relPropNameToId(name: String): Option[Int] = {
+  def relPropNameToId(name: String): Option[Int] = {
     val relPropId = relationStore.getPropertyKeyId(name)
     relPropId match {
       case Some(propertyId) => Some(propertyId)
@@ -346,25 +493,38 @@ class GraphFacade(
     }
   }
 
-  private def mapLynxNodeLabel(id: Int): LynxNodeLabel =
+  def findOutRelations(
+      fromNodeId: Long,
+      edgeType: Option[Int] = None
+    ): Iterator[StoredRelationship] = {
+    relationStore.findOutRelations(fromNodeId, edgeType)
+  }
+  def findInRelations(
+      endNodeId: Long,
+      edgeType: Option[Int] = None
+    ): Iterator[StoredRelationship] = {
+    relationStore.findInRelations(endNodeId, edgeType)
+  }
+
+  def mapLynxNodeLabel(id: Int): LynxNodeLabel =
     nodeStoreAPI
       .getLabelName(id)
       .map(LynxNodeLabel)
       .getOrElse(LynxNodeLabel("unknown"))
 
-  private def mapLynxRelationshipType(id: Int): LynxRelationshipType =
+  def mapLynxRelationshipType(id: Int): LynxRelationshipType =
     relationStore
       .getRelationTypeName(id)
       .map(LynxRelationshipType)
       .getOrElse(LynxRelationshipType("unknown"))
 
-  private def mapLynxPropKeyOfNodes(id: Int): LynxPropertyKey =
+  def mapLynxPropKeyOfNodes(id: Int): LynxPropertyKey =
     nodeStoreAPI
       .getPropertyKeyName(id)
       .map(LynxPropertyKey)
       .getOrElse(LynxPropertyKey("unknown"))
 
-  private def mapLynxPropKeyOfRelationships(id: Int): LynxPropertyKey =
+  def mapLynxPropKeyOfRelationships(id: Int): LynxPropertyKey =
     relationStore
       .getPropertyKeyName(id)
       .map(LynxPropertyKey)
@@ -491,7 +651,7 @@ class GraphFacade(
       val labelIds: Seq[Int] = nodeFilter.labels
         .map(lynxNodeLabel => nodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
       if (labelIds.isEmpty) {
-        nodes()
+        nodes().filter(p => nodeFilter.matches(p))
       } else if (labelIds.contains(-1)) {
         Iterator.empty // the label not exist in db
       } else {

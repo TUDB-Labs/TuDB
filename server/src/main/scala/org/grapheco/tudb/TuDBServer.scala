@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /** @Author: Airzihao
- * @Description:
- * @Date: Created at 15:35 2022/4/1
- * @Modified By:
- */
-class TuDBServer(bindPort: Int, dbPath: String, indexUri: String = "tudb://index?type=dummy") extends LazyLogging {
+  * @Description:
+  * @Date: Created at 15:35 2022/4/1
+  * @Modified By:
+  */
+class TuDBServer(bindPort: Int, dbPath: String, indexUri: String = "tudb://index?type=dummy")
+  extends LazyLogging {
 
   /** main logger */
   val LOGGER = LoggerFactory.getLogger("server-info")
@@ -39,6 +40,4 @@ class TuDBServer(bindPort: Int, dbPath: String, indexUri: String = "tudb://index
     _server.shutdown().awaitTermination(5, TimeUnit.SECONDS)
   }
 
-
 }
-

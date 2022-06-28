@@ -148,6 +148,35 @@ class GraphFacadeTest {
   }
 
   @Test
+  def testBothPath(): Unit = {
+    initManualExample()
+    val res1 = db
+      .cypher("""
+        |MATCH (charlie {name: 'Charlie Sheen'})-[r:ACTED_IN*1..3]-(movie:Movie)
+        |RETURN movie.title
+        |""".stripMargin)
+      .records()
+      .toList
+
+    Assert.assertEquals(
+      List("Wall Street", "The American President", "The American President"),
+      res1.map(f => f("movie.title").value)
+    )
+
+    val res2 = db
+      .cypher("""
+        |MATCH (charlie {name: 'Charlie Sheen'})-[:ACTED_IN|DIRECTED*2]-(person:Person)
+        |RETURN person.name
+        |""".stripMargin)
+      .records()
+      .toList
+      .map(f => f("person.name").value)
+      .toSet
+
+    Assert.assertEquals(Set("Oliver Stone", "Michael Douglas", "Martin Sheen"), res2)
+  }
+
+  @Test
   def testOutPath(): Unit = {
     initOutGoingExample()
     val res1 = db.cypher("match (n:person)-[r:XXX*0..3]->(m:person) return r").records()
@@ -176,6 +205,42 @@ class GraphFacadeTest {
 
     // 8 hop1 + 4 hop2 + 1 hop3
     val res7 = db.cypher("match (n:person)-[r:XXX*1..]->(m:person) return r").records()
+    Assert.assertEquals(13, res7.size)
+  }
+
+  @Test
+  def testInComingPath(): Unit = {
+    initOutGoingExample()
+    // 1 hop1 + 1 hop2 + 1 hop3
+    val res = db.cypher("match (n:person{nid: 7})<-[r:XXX*1..]-(m:person) return r").records()
+    Assert.assertEquals(3, res.size)
+
+    val res1 = db.cypher("match (n:person)<-[r:XXX*0..3]-(m:person) return r").records()
+    // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    Assert.assertEquals(24, res1.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res2 = db.cypher("match (n:person)<-[r:XXX*1..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res2.size)
+
+    // 4 hop2 + 1 hop3
+    val res3 = db.cypher("match (n:person)<-[r:XXX*2..3]-(m:person) return r").records()
+    Assert.assertEquals(5, res3.size)
+
+    // 11 nodes
+    val res4 = db.cypher("match (n:person)<-[r:XXX*0]-(m:person) return r").records()
+    Assert.assertEquals(11, res4.size)
+
+    // 4 hop2
+    val res5 = db.cypher("match (n:person)<-[r:XXX*2]-(m:person) return r").records()
+    Assert.assertEquals(4, res5.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res6 = db.cypher("match (n:person)<-[r:XXX*..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res6.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res7 = db.cypher("match (n:person)<-[r:XXX*1..]-(m:person) return r").records()
     Assert.assertEquals(13, res7.size)
   }
 
