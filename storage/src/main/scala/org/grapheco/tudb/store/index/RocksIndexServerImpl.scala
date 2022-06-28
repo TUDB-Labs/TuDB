@@ -134,4 +134,14 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
   override def close(): Unit = {
     db.close()
   }
+
+  override val indexName: String = "rocksdb"
+
+  /**
+   * check   need rebuild index or not
+   *
+   * @param lastIndex last time use index
+   * @return
+   */
+  override def needRebuildIndex(lastIndex: String): Boolean = if (lastIndex==indexName) false else true
 }

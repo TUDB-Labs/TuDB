@@ -36,4 +36,14 @@ class EmptyIndexServerImpl(params: Map[String,String]) extends IndexServer(param
 
   override def close(): Unit = {
   }
+
+  override val indexName: String = "empty"
+
+  /**
+   * check   need rebuild index or not
+   *
+   * @param lastIndex last time use index
+   * @return
+   */
+  override def needRebuildIndex(lastIndex: String): Boolean = false
 }
