@@ -123,4 +123,12 @@ class TuDBClientTest {
     client.shutdown()
   }
 
+  @Test
+  def testLynxException(): Unit = {
+    val client: TuDBClient = new TuDBClient("127.0.0.1", testConnectionPort)
+    val iter = client.query("321321321321")
+    iter.foreach(println)
+    client.shutdown()
+  }
+
 }

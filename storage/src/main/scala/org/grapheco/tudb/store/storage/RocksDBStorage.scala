@@ -1,7 +1,7 @@
 package org.grapheco.tudb.store.storage
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.tudb.exception.TuDBException
+import org.grapheco.tudb.exception.{StorageException, TuDBErrorCode}
 import org.rocksdb._
 
 import java.io.File
@@ -17,7 +17,7 @@ object RocksDBStorage extends LazyLogging {
       useForImporter: Boolean = false,
       prefix: Int = 0,
       rocksdbConfigPath: String = "default"
-  ): KeyValueDB = {
+    ): KeyValueDB = {
 
     val dir = new File(path)
     if (!dir.exists()) {
@@ -75,14 +75,14 @@ object RocksDBStorage extends LazyLogging {
         new RocksDBStorage(RocksDB.open(options, path))
       } catch {
         case ex: Exception =>
-          throw new TuDBException(s"$path, ${ex.getMessage}")
+          throw new StorageException(TuDBErrorCode.STORAGE_ERROR, s"$path, ${ex.getMessage}")
       }
 
     } else {
       logger.debug("read setting file")
       val rocksFile = new File(rocksdbConfigPath)
       if (!rocksFile.exists())
-        throw new TuDBException("rocksdb config file not exist...")
+        throw new StorageException(TuDBErrorCode.STORAGE_ERROR, "rocksdb config file not exist...")
       val options = new RocksDBConfigBuilder(rocksFile).getOptions()
       val db = RocksDB.open(options, path)
       new RocksDBStorage(db)
