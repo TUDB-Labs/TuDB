@@ -67,7 +67,9 @@ class TestImporter {
       "default",
       s"${_dbPath}/${DBNameMap.nodeLabelDB}",
       "default",
-      nodeMetaDB
+      nodeMetaDB,
+      "tudb://index?type=dummy",
+    _dbPath
     )
     Assert.assertEquals(862, nodeStore.allNodes().size)
     Assert.assertEquals(862, statisticDB.nodeCount)

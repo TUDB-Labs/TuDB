@@ -8,6 +8,7 @@ import org.grapheco.tudb.FacadeTest.GraphFacadeTest.db
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuInstanceContext}
 import org.junit._
+import org.junit.runners.MethodSorters
 
 import java.io.File
 
@@ -25,7 +26,10 @@ object GraphFacadeTest {
   if (file.exists()) FileUtils.deleteDirectory(file)
   TuInstanceContext.setDataPath(outputPath)
   val db =
-    GraphDatabaseBuilder.newEmbeddedDatabase(TuInstanceContext.getDataPath)
+    GraphDatabaseBuilder.newEmbeddedDatabase(
+      TuInstanceContext.getDataPath,
+      "tudb://index?type=dummy"
+    )
 
   @AfterClass
   def onClose(): Unit = {
@@ -34,11 +38,23 @@ object GraphFacadeTest {
   }
 }
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class GraphFacadeTest {
   @After
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
+
+  @Test
+  def testDetachDelete(): Unit = {
+    db.cypher("create (n:person1)-[r: KNOWS]->(b:person1)")
+    db.cypher("create (n:person2)-[r:K2]->(m: person2)")
+    db.cypher("match (n) detach delete n")
+
+    Assert.assertEquals(0, db.nodes().size)
+    Assert.assertEquals(0, db.relationships().size)
+  }
+
   @Test
   def testQueryNodeInNoDataDB(): Unit = {
     val res1 = db.cypher("match (n: Person) return n").records()
@@ -50,6 +66,7 @@ class GraphFacadeTest {
     Assert.assertEquals(0, res3.size)
     Assert.assertEquals(0, res4.size)
   }
+
   @Test
   def testQueryMultiLabelNode(): Unit = {
     db.cypher("create (n:Chengdu:Product1{name:'TUDB1'})")
@@ -60,6 +77,7 @@ class GraphFacadeTest {
       db.cypher("match (n:Chengdu1:Product1) return n").records().next()("n").asInstanceOf[LynxNode]
     Assert.assertEquals("TUDB3", res.property(LynxPropertyKey("name")).get.value)
   }
+
   //Test relationship's startId and endId
   @Test
   def testRelationship1(): Unit = {

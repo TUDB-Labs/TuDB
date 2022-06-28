@@ -10,14 +10,15 @@ import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.tudb.common.utils.LogUtil
 import org.grapheco.tudb.exception.TuDBException
 import org.grapheco.tudb.facade.GraphFacade
-import org.grapheco.tudb.network.Query.QueryResponse
 import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
+import org.grapheco.tudb.network.Query.QueryResponse
 import org.opencypher.v9_0.util.CypherException
 import org.slf4j.LoggerFactory
 
-class TuDBQueryService(dbPath: String) extends TuQueryServiceGrpc.TuQueryServiceImplBase {
+class TuDBQueryService(dbPath: String, indexUri: String)
+  extends TuQueryServiceGrpc.TuQueryServiceImplBase {
   val LOGGER = LoggerFactory.getLogger(this.getClass)
-  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath)
+  val db: GraphFacade = GraphDatabaseBuilder.newEmbeddedDatabase(dbPath, indexUri)
   var errorMessage: String = null
 
   override def query(

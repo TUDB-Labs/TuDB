@@ -31,7 +31,9 @@ object NodeStoreAPITest {
     "default",
     s"$outputRoot/${DBNameMap.nodeLabelDB}",
     "default",
-    metaDB
+    metaDB,
+    "tudb://index?type=dummy",
+    outputRoot
   )
 
   @BeforeClass
