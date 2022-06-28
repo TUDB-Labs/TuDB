@@ -42,7 +42,7 @@ object RocksDBStorage extends LazyLogging {
       logger.debug("use performance setting")
 
       try {
-        new RocksDBStorage(RocksDB.open(RocksDBStorageConfig.getPerformance(createIfMissing), path))
+        new RocksDBStorage(RocksDB.open(RocksDBStorageConfig.getHighPerConfig(createIfMissing), path))
       } catch {
         case ex: Exception =>
           throw new TuDBException(s"$path, ${ex.getMessage}")
