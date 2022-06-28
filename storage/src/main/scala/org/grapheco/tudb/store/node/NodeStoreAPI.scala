@@ -69,11 +69,27 @@ class NodeStoreAPI(
   logger.info("start add index")
   var addCount=0
   if (indexImpl.hasIndex() && needRebuildIndex()){
+    //generate index for all node    use memory to speedup
+    val cacheHashMap=new mutable.HashMap[String,mutable.HashSet[Long]]()
     allNodes().foreach { node =>
       node.properties.foreach { property =>
-        indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
+        val key=indexImpl.encodeKey(property._1,property._2)
+        if (cacheHashMap.contains(key)){
+          cacheHashMap(key).add(node.id)
+          if (cacheHashMap(key).size >=100000){ //batch add index TODO size can be config
+            indexImpl.batchAddIndex(key,cacheHashMap(key).toSet)
+            cacheHashMap(key).clear()
+          }else{
+            cacheHashMap(key)=new mutable.HashSet[Long]()
+            cacheHashMap(key).add(node.id)
+          }
+        }
         addCount+=1
       }
+    }
+    cacheHashMap.foreach{//batch add index
+      case (key,value)=>
+        indexImpl.batchAddIndex(key,value.toSet)
     }
   }
   metaDB.put(ConfigNameMap.indexNameStorageKey,indexImpl.indexName.getBytes)

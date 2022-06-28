@@ -36,6 +36,12 @@ abstract class IndexServer(params: Map[String, String]) extends LazyLogging {
     */
   def removeIndex(key: String, value: Long): Unit
 
+  /** batch add index records
+    * @param key
+    * @return
+    */
+  def batchAddIndex(key: String, value: Set[Long]): Unit
+
   /** get index by key
     * @param key
     * @return
