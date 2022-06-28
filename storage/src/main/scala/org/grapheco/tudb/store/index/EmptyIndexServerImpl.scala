@@ -21,6 +21,10 @@ class EmptyIndexServerImpl(params: Map[String,String]) extends IndexServer(param
 
   }
 
+  def batchAddIndex(key: String, value: Set[Long]): Unit = {
+
+  }
+
   def getIndexByKey(key: String): Set[Long] = {
     Set[Long]()
   }
