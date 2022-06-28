@@ -76,7 +76,7 @@ class NodeStoreAPI(
         val key=indexImpl.encodeKey(property._1,property._2)
         if (cacheHashMap.contains(key)){
           cacheHashMap(key).add(node.id)
-          if (cacheHashMap(key).size >=100000){ //batch add index
+          if (cacheHashMap(key).size >=100000){ //batch add index TODO size can be config
             indexImpl.batchAddIndex(key,cacheHashMap(key).toSet)
             cacheHashMap(key).clear()
           }else{
