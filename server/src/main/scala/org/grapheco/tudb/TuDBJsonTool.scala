@@ -44,14 +44,14 @@ object TuDBJsonTool {
 
   def getJson(node: TuNode): String = {
     """{"identity":""" + node.id.value + ""","labels":""" + objectMapper.writeValueAsString(
-      node.labels
+      node.labels.map(_.value)
     ) + ""","properties":""" + objectMapper.writeValueAsString(node.properties.map(kv=>kv._1->kv._2.value)) + """}"""
   }
 
   def getJson(relationship: TuRelationship): String = {
-    """{"identity":""" + relationship.id + ""","start":""" + relationship.startId + ""","end":""" +
-      relationship.endId + ""","type":""" + relationship.relationType.get.value +
-      ""","properties":""" + objectMapper.writeValueAsString(relationship.properties.map(kv=>kv._1->kv._2.value)) + """}"""
+    """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
+      relationship.endId + ""","type":"""" + relationship.relationType.get.value +
+      """","properties":""" + objectMapper.writeValueAsString(relationship.properties.map(kv=>kv._1->kv._2.value)) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
     """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
