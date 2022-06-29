@@ -1,9 +1,9 @@
+/** Copyright (c) 2022 PandaDB * */
 package org.grapheco.tudb.example
 
-import org.apache.commons.io.FileUtils
-import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
+import org.grapheco.lynx.types.structural.LynxNode
 import org.grapheco.tudb.client.TuDBClient
-import org.grapheco.tudb.test.TestUtils
+import org.grapheco.tudb.example.CypherExample.showNode
 import org.grapheco.tudb.{TuDBServer, TuDBServerContext}
 
 import java.io.{FileInputStream, FileOutputStream}
@@ -12,48 +12,41 @@ import java.io.File
 import java.net.URL
 import sys.process._
 
-/** @author:John117
+/** @author:huanglin
   * @createDate:2022/5/30
-  * @description:
+  * @description: this is benchmark for TuDB index engine
   */
 object BenchmarkExample {
   val port = 7600
-//  var server: TuDBServer = _
-//  var client: TuDBClient = _
   def main(args: Array[String]): Unit = {
+    //download the data
     val path = downloadData("https://cdcdn.tudb.work/ldbc/0.003.zip")
-    val useIndex = if (args.length > 0) args(0).toBoolean else false
-    val indexServer = startServer(path, port, "tudb://index?type=dummy")
+    //get index url
+    val indexUrl = if (args.length > 0) args(0) else "tudb://index?type=dummy"
+    //start server
+    val indexServer = startServer(path, port, indexUrl)
 
-    val indexClient = startClient(port)
+    val indexClient = new TuDBClient("127.0.0.1", port)
 
     val indexUseTime1 = calMethod(indexClient, queryPropertyNode)
     val indexUseTime2 = calMethod(indexClient, queryPropertyNode)
     val indexUseTime3 = calMethod(indexClient, queryPropertyNode)
     val indexUseTime4 = calMethod(indexClient, queryPropertyNode)
+    val indexUseTime5 = calMethod(indexClient, queryPropertyNode)
 
     println("index use time:" + indexUseTime1)
     println("index use time:" + indexUseTime2)
     println("index use time:" + indexUseTime3)
     println("index use time:" + indexUseTime4)
+    println("index use time:" + indexUseTime5)
 
-    stopClient(indexClient)
-    shutdownServer(indexServer)
-//    Thread.sleep(6000)
-//
-//    val server = startServer(path, port )
-//    val client = startClient(port)
-//    val useTime = calMethod(client, queryPropertyNode)
-//    println("use time:" + useTime)
-//
-//    stopClient(client)
-//    shutdownServer(server)
+    indexClient.shutdown()
+    indexServer.shutdown()
 
   }
 
   def calMethod(client: TuDBClient, fun: TuDBClient => Long): Long = {
     val useTime = fun(client)
-//    println("use time:" + (useTime))
     useTime
   }
 
@@ -99,23 +92,7 @@ object BenchmarkExample {
     }).start()
     server
   }
-  def shutdownServer(server: TuDBServer) = server.shutdown()
 
-  def startClient(port: Int): TuDBClient = {
-    new TuDBClient("127.0.0.1", port)
-  }
-  def stopClient(client: TuDBClient) = client.shutdown()
-
-  def queryNode(client: TuDBClient): Unit = {
-    val res = client.query("match (n) return n limit 10")
-    println()
-    println("Query Node result: ")
-    while (res.hasNext) {
-      val record = res.next()("n").asInstanceOf[LynxNode]
-      showNode(record)
-    }
-    println()
-  }
   def queryPropertyNode(client: TuDBClient): Long = {
     val time = System.currentTimeMillis()
     val res = client.query("match (n:Tag) where n.name='Rumi' return n limit 10")
@@ -127,12 +104,5 @@ object BenchmarkExample {
     }
     println()
     System.currentTimeMillis() - time
-  }
-
-  def showNode(node: LynxNode): Unit = {
-    println(
-      s"Node<id: ${node.id.toLynxInteger.value}, labels: ${node.labels.map(l => l.value)}," +
-        s" properties: ${node.keys.map(k => k.value + "->" + node.property(k).get.value)}>"
-    )
   }
 }
