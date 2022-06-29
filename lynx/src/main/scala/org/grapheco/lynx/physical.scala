@@ -563,6 +563,7 @@ case class PPTRelationshipScan(
           case r @ CTRelationship => {
             data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
           }
+          // process relationship Path to support like (a)-[r:TYPE*1..3]->(b)
           case rs @ ListType(CTRelationship) => {
             data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
           }
