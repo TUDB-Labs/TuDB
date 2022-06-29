@@ -3,8 +3,7 @@ package org.grapheco.tudb.example
 
 import org.grapheco.lynx.types.structural.LynxNode
 import org.grapheco.tudb.client.TuDBClient
-import org.grapheco.tudb.example.CypherExample.showNode
-import org.grapheco.tudb.{TuDBServer, TuDBServerContext}
+import org.grapheco.tudb.example.CypherExample.{showNode, startServer}
 
 import java.io.{FileInputStream, FileOutputStream}
 import java.util.zip.ZipInputStream
@@ -16,7 +15,7 @@ import sys.process._
   * @createDate:2022/5/30
   * @description: this is benchmark for TuDB index engine
   */
-object BenchmarkExample {
+object BenchmarkExampleForIndex {
   val port = 7600
   def main(args: Array[String]): Unit = {
     //download the data
@@ -75,22 +74,6 @@ object BenchmarkExample {
     }
     //return dictionary path
     dictionaryName.split("/").headOption.getOrElse("")
-  }
-
-  def startServer(
-      dbPath: String,
-      port: Int,
-      indexUri: String = "tudb://index?type=dummy"
-    ): TuDBServer = {
-    val serverContext = new TuDBServerContext()
-    serverContext.setPort(port)
-    serverContext.setDataPath(dbPath)
-    serverContext.setIndexUri(indexUri)
-    val server = new TuDBServer(serverContext)
-    new Thread(new Runnable {
-      override def run(): Unit = server.start()
-    }).start()
-    server
   }
 
   def queryPropertyNode(client: TuDBClient): Long = {
