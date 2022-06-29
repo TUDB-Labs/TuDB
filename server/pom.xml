@@ -62,6 +62,12 @@
             <artifactId>config</artifactId>
             <version>1.4.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_2.12</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
