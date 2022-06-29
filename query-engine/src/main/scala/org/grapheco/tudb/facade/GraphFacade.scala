@@ -28,6 +28,15 @@ class GraphFacade(
   extends LazyLogging
   with GraphModel {
 
+  /*
+    The default paths will scan all the relationships then use filter to get the data we want,
+    and it cannot deal with the situation of relationship with variable length,
+    the cypher like (a)-[r:TYPE*1..3]->(b).
+
+    But in TuDB, we have the relationship-index (findInRelationship and findOutRelationship),
+    and we can speed up the search.
+    So we need to override the paths, and impl the relationship with variable length.
+   */
   override def paths(
       startNodeFilter: NodeFilter,
       relationshipFilter: RelationshipFilter,
@@ -41,7 +50,7 @@ class GraphFacade(
       val lower = lowerLimit.getOrElse(1)
       val upper = upperLimit.getOrElse(Int.MaxValue)
 
-      processPathWithLength(
+      getPathsWithLength(
         startNodeFilter,
         relationshipFilter,
         endNodeFilter,
@@ -62,7 +71,33 @@ class GraphFacade(
     }
   }
 
-  private def processPathWithLength(
+  /**  minHops and maxHops are optional and default to 1 and infinity respectively.
+    *
+    *  If the path length between two nodes is zero, they are by definition the same node.
+    *  Note that when matching zero length paths the result may contain a match
+    *  even when matching on a relationship type not in use.
+    *
+    * [:TYPE*minHops..maxHops] = query fixed range relationships
+    * [:TYPE*minHops..]  = query relationships from minHops to INF
+    * [:TYPE*..maxHops]  = query relationships from 1 to maxHops
+    * [:TYPE*Hops] = query fixed length relationships
+    *
+    *  p = PathTriple(START_NODE, RELATIONSHIP, END_NODE)
+    *      eg: match (n: Person)-[r:TYPE*1..3]->(m: Person)
+    *      hop1 ==>   Seq( Seq(p1), Seq(p2), Seq(p3), Seq(p4), Seq(p5) ) // five single relationships
+    *      hop2 ==>   Seq( Seq(p1, p2), Seq(p3, p4) ) // two hop-2 relationships
+    *      hop3 ==>   Seq( Seq(p1, p2, p5) ) // one hop-3 relationships
+    *
+    *      Total: hop1 ++ hop2 ++ hop3 =
+    *         Seq(
+    *              Seq( Seq(p1), Seq(p2), Seq(p3), Seq(p4), Seq(p5) ),
+    *              Seq( Seq(p1, p2), Seq(p3, p4) ),
+    *              Seq( Seq(p1, p2, p5) )
+    *            )
+    *
+    *            TODO: Check circle
+    */
+  private def getPathsWithLength(
       startNodeFilter: NodeFilter,
       relationshipFilter: RelationshipFilter,
       endNodeFilter: NodeFilter,
