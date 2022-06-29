@@ -79,10 +79,10 @@ class NodeStoreAPI(
           if (cacheHashMap(key).size >=100000){ //batch add index TODO size can be config
             indexImpl.batchAddIndex(key,cacheHashMap(key).toSet)
             cacheHashMap(key).clear()
-          }else{
-            cacheHashMap(key)=new mutable.HashSet[Long]()
-            cacheHashMap(key).add(node.id)
           }
+        }else{
+          cacheHashMap(key)=new mutable.HashSet[Long]()
+          cacheHashMap(key).add(node.id)
         }
         addCount+=1
       }
