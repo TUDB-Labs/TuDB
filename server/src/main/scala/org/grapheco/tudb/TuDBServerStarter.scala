@@ -28,7 +28,7 @@ object TuDBServerStarter {
     val serverContext = _initContext()
 
     val server: TuDBServer = new TuDBServer(serverContext)
-    LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
+//    LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
     server.start()
 
   }
