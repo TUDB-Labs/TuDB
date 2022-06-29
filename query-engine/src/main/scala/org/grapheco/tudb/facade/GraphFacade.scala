@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
-import org.grapheco.tudb.commons.{OutGoingHopUtils, OutGoingPathUtils}
+import org.grapheco.tudb.commons.{InComingHopUtils, InComingPathUtils, OutGoingHopUtils, OutGoingPathUtils}
 import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 import org.grapheco.tudb.store.meta.TuDBStatistics
 import org.grapheco.tudb.store.node._
@@ -123,8 +123,17 @@ class GraphFacade(
         r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
       }
       case SemanticDirection.INCOMING => {
-        // TODO: in latter pr
-        ???
+        val startHop =
+          initInOutStartHop(startNodeFilter, relationshipFilter, direction, lowerLimit)
+        val hops = getInComingLengthPaths(
+          startHop,
+          relationshipFilter,
+          endNodeFilter,
+          lowerLimit,
+          upperLimit
+        )
+        val r1 = hops.map(hop => hop.paths.map(path => path.pathTriples))
+        r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
       }
       case SemanticDirection.BOTH => {
         // TODO: in latter pr
@@ -199,8 +208,7 @@ class GraphFacade(
             getOutGoingHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
           }
           case SemanticDirection.INCOMING => {
-            // TODO: in next pr
-            ???
+            getInComingHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
           }
         }
       }
@@ -234,6 +242,77 @@ class GraphFacade(
     while (count < lowerLimit) {
       count += 1
       nextHop = outGoingHopUtils.getNextOutGoingHop(firstHop, relationshipFilter)
+      collected.append(nextHop)
+    }
+    collected
+  }
+
+  // Same logic as getOutGoingLengthPath.
+  def getInComingLengthPaths(
+      hopsToLowerLimit: Seq[GraphHop],
+      relationshipFilter: RelationshipFilter,
+      stopNodeFilter: NodeFilter,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Seq[GraphHop] = {
+    val inComingHopUtils = new InComingHopUtils(new InComingPathUtils(this))
+    val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    var nextHop = {
+      if (lowerLimit == 0 || lowerLimit == 1) hopsToLowerLimit.head
+      else hopsToLowerLimit(lowerLimit - 1)
+    }
+    collectedResult.append(nextHop)
+    var count = {
+      if (lowerLimit == 0) 0
+      else lowerLimit + 1
+    }
+    var flag = {
+      if (upperLimit != 0) true
+      else false
+    }
+    while (count <= upperLimit && flag) {
+      count += 1
+      nextHop = inComingHopUtils.getNextInComingHop(nextHop, relationshipFilter)
+      if (nextHop.paths.nonEmpty) {
+        collectedResult.append(nextHop)
+      } else flag = false
+    }
+    collectedResult.foreach(hops => {
+      val filteredPaths =
+        hops.paths.filter(path => stopNodeFilter.matches(path.pathTriples.head.startNode))
+      filteredResult.append(GraphHop(filteredPaths))
+    })
+
+    filteredResult
+  }
+
+  // Same logic as getOutGoingHopFromOne2Limit
+  private def getInComingHopFromOne2Limit(
+      beginNodes: Iterator[LynxNode],
+      relationshipFilter: RelationshipFilter,
+      lowerLimit: Int
+    ): ArrayBuffer[GraphHop] = {
+    val inComingPathUtils = new InComingPathUtils(this)
+    val inComingHopUtils = new InComingHopUtils(inComingPathUtils)
+
+    val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val firstHop = GraphHop(
+      beginNodes
+        .flatMap(node =>
+          inComingPathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples
+        )
+        .map(p => GraphPath(Seq(p)))
+        .toSeq
+    )
+
+    collected.append(firstHop)
+    var nextHop: GraphHop = null
+    var count = 1
+    while (count < lowerLimit) {
+      count += 1
+      nextHop = inComingHopUtils.getNextInComingHop(firstHop, relationshipFilter)
       collected.append(nextHop)
     }
     collected
@@ -340,7 +419,7 @@ class GraphFacade(
     val props = relProps.map { case (key, value) =>
       (relationStore.addPropertyKey(key), value)
     }
-//    val rel = new StoredRelationshipWithProperty(rid, from, to, labelId, props)
+    //    val rel = new StoredRelationshipWithProperty(rid, from, to, labelId, props)
     relationStore.addRelationship(rid, from, to, typeId, props)
     tuDBStatistics.increaseRelationCount(1)
     tuDBStatistics.increaseRelationTypeCount(typeId, 1)
