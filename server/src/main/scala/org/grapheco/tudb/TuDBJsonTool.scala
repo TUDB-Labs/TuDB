@@ -9,6 +9,17 @@ import org.grapheco.tudb.graph.{GraphPath, TuNode, TuRelationship}
 
 import java.text.SimpleDateFormat
 
+/**
+ * add toJson method to AnyRef
+ *
+ * use case:
+ *
+ * import org.grapheco.tudb.TuDB.TuDBJsonTool.AnyRefAddMethod
+ *
+ * val mapString=Map("a"->1,"b"->2).toJson()
+ * val nodeString=Node("a").toJson()
+ * AnyObject.toJson()
+ */
 object TuDBJsonTool {
   val objectMapper = new ObjectMapper()
     .findAndRegisterModules()
@@ -24,34 +35,37 @@ object TuDBJsonTool {
 
   implicit class AnyRefAddMethod[A <: AnyRef](bean: A) {
 
-    def toJson(): String = {
-      bean match {
-        case node: TuNode                 => getJson(node)
-        case relationship: TuRelationship => getJson(relationship)
-        case subPath: PathTriple          => getJson(subPath)
-        case path: LynxPath               => getJson(path)
-        case v: Any                       => objectMapper.writeValueAsString(v)
-      }
+    def toJson(): String = TuDBJsonTool.toJson(bean)
 
+  }
+
+  def toJson(bean: Any): String = {
+    bean match {
+      case node: TuNode                 => getJson(node)
+      case relationship: TuRelationship => getJson(relationship)
+      case subPath: PathTriple          => getJson(subPath)
+      case path: LynxPath               => getJson(path)
+      case seq: Seq[Any]                => objectMapper.writeValueAsString(seq.map(toJson))
+      case m: Map[Any, Any] =>
+        objectMapper.writeValueAsString(m.map(kv => (toJson(kv._1), toJson(kv._2))))
+      case v: Any => objectMapper.writeValueAsString(v)
     }
-//
-//    def toBean(json: String): A = {
-//      Tool.toBean(json, bean.getClass)
-//    }
-//
-
   }
 
   def getJson(node: TuNode): String = {
     """{"identity":""" + node.id.value + ""","labels":""" + objectMapper.writeValueAsString(
       node.labels.map(_.value)
-    ) + ""","properties":""" + objectMapper.writeValueAsString(node.properties.map(kv=>kv._1->kv._2.value)) + """}"""
+    ) + ""","properties":""" + objectMapper.writeValueAsString(
+      node.properties.map(kv => kv._1 -> kv._2.value)
+    ) + """}"""
   }
 
   def getJson(relationship: TuRelationship): String = {
     """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
       relationship.endId + ""","type":"""" + relationship.relationType.get.value +
-      """","properties":""" + objectMapper.writeValueAsString(relationship.properties.map(kv=>kv._1->kv._2.value)) + """}"""
+      """","properties":""" + objectMapper.writeValueAsString(
+        relationship.properties.map(kv => kv._1 -> kv._2.value)
+      ) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
     """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
