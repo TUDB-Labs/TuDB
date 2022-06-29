@@ -28,7 +28,7 @@ class ServerTest {
         println("onCompleted")
       }
     }
-    server.query(Query.QueryRequest.newBuilder().setStatement("match (n)-[r*1..3]->(m) return r").build(),responseObserver)
+    server.query(Query.QueryRequest.newBuilder().setStatement("match (n) return n").build(),responseObserver)
   }
 
 

@@ -27,9 +27,12 @@ object TuDBServerStarter {
      */
     val serverContext = _initContext()
 
-    val server: TuDBServer = new TuDBServer(serverContext)
+//    val server: TuDBServer = new TuDBServer(serverContext)
+//    serverContext.setPort(7400)
+    val jsonServer=new TuDBJsonServer(serverContext)
 //    LogUtil.info(LOGGER, "TuDB server is starting,config file is %s", args(0))
-    server.start()
+//    server.start()
+    jsonServer.start()
 
   }
 
