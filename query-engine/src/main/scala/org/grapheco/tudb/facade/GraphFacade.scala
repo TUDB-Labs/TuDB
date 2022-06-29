@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
-import org.grapheco.tudb.commons.{BothHopUtils, BothPathUtils, InComingHopUtils, InComingPathUtils, OutGoingHopUtils, OutGoingPathUtils}
+import org.grapheco.tudb.commons.{HopUtils, PathUtils}
 import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 import org.grapheco.tudb.store.meta.TuDBStatistics
 import org.grapheco.tudb.store.node._
@@ -59,15 +59,56 @@ class GraphFacade(
         upper
       )
     } else {
-      // TODO: process pathWithoutLength
-      super.paths(
-        startNodeFilter,
-        relationshipFilter,
-        endNodeFilter,
-        direction,
-        upperLimit,
-        lowerLimit
+      getPathWithoutLength(startNodeFilter, relationshipFilter, endNodeFilter, direction).map(
+        Seq(_)
       )
+    }
+  }
+
+  // logic like pathWithLength
+  private def getPathWithoutLength(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection
+    ): Iterator[PathTriple] = {
+    direction match {
+      case SemanticDirection.OUTGOING => {
+        val pathUtils = new PathUtils(this)
+
+        val startNodes = nodes(startNodeFilter)
+        startNodes
+          .flatMap(startNode =>
+            pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
+          .filter(p => endNodeFilter.matches(p.endNode))
+      }
+      case SemanticDirection.INCOMING => {
+        val inComingPathUtils = new PathUtils(this)
+
+        val endNodes = nodes(endNodeFilter)
+        endNodes
+          .flatMap(endNode =>
+            inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+          )
+          .filter(p => startNodeFilter.matches(p.startNode))
+      }
+      case SemanticDirection.BOTH => {
+        val pathUtils = new PathUtils(this)
+
+        val startNodes = nodes(startNodeFilter)
+        val endNodes = nodes(endNodeFilter)
+        startNodes
+          .flatMap(startNode =>
+            pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
+          .filter(p => endNodeFilter.matches(p.endNode)) ++
+          endNodes
+            .flatMap(endNode =>
+              pathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+            )
+            .filter(p => startNodeFilter.matches(p.startNode))
+      }
     }
   }
 
@@ -160,7 +201,7 @@ class GraphFacade(
       upperLimit: Int
     ): Seq[GraphHop] = {
 
-    val outGoingHopUtils = new OutGoingHopUtils(new OutGoingPathUtils(this))
+    val hopUtils = new HopUtils(new PathUtils(this))
 
     val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
@@ -183,7 +224,7 @@ class GraphFacade(
     // Loop to reach the upperLimit, if nextHop is empty, loop stop.
     while (count <= upperLimit && flag) {
       count += 1
-      nextHop = outGoingHopUtils.getNextOutGoingHop(nextHop, relationshipFilter)
+      nextHop = hopUtils.getNextOutGoingHop(nextHop, relationshipFilter)
       if (nextHop.paths.nonEmpty) {
         collectedResult.append(nextHop)
       } else flag = false
@@ -230,16 +271,14 @@ class GraphFacade(
       relationshipFilter: RelationshipFilter,
       lowerLimit: Int
     ): ArrayBuffer[GraphHop] = {
-    val outGoingPathUtils = new OutGoingPathUtils(this)
-    val outGoingHopUtils = new OutGoingHopUtils(outGoingPathUtils)
+    val pathUtils = new PathUtils(this)
+    val hopUtils = new HopUtils(pathUtils)
 
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
 
     val firstHop = GraphHop(
       beginNodes
-        .flatMap(node =>
-          outGoingPathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples
-        )
+        .flatMap(node => pathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples)
         .map(p => GraphPath(Seq(p)))
         .toSeq
     )
@@ -251,7 +290,7 @@ class GraphFacade(
     var count = 1
     while (count < lowerLimit) {
       count += 1
-      nextHop = outGoingHopUtils.getNextOutGoingHop(firstHop, relationshipFilter)
+      nextHop = hopUtils.getNextOutGoingHop(firstHop, relationshipFilter)
       collected.append(nextHop)
     }
     collected
@@ -265,7 +304,7 @@ class GraphFacade(
       lowerLimit: Int,
       upperLimit: Int
     ): Seq[GraphHop] = {
-    val inComingHopUtils = new InComingHopUtils(new InComingPathUtils(this))
+    val hopUtils = new HopUtils(new PathUtils(this))
     val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
 
@@ -284,7 +323,7 @@ class GraphFacade(
     }
     while (count <= upperLimit && flag) {
       count += 1
-      nextHop = inComingHopUtils.getNextInComingHop(nextHop, relationshipFilter)
+      nextHop = hopUtils.getNextInComingHop(nextHop, relationshipFilter)
       if (nextHop.paths.nonEmpty) {
         collectedResult.append(nextHop)
       } else flag = false
@@ -304,15 +343,13 @@ class GraphFacade(
       relationshipFilter: RelationshipFilter,
       lowerLimit: Int
     ): ArrayBuffer[GraphHop] = {
-    val inComingPathUtils = new InComingPathUtils(this)
-    val inComingHopUtils = new InComingHopUtils(inComingPathUtils)
+    val pathUtils = new PathUtils(this)
+    val hopUtils = new HopUtils(pathUtils)
 
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val firstHop = GraphHop(
       beginNodes
-        .flatMap(node =>
-          inComingPathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples
-        )
+        .flatMap(node => pathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples)
         .map(p => GraphPath(Seq(p)))
         .toSeq
     )
@@ -322,7 +359,7 @@ class GraphFacade(
     var count = 1
     while (count < lowerLimit) {
       count += 1
-      nextHop = inComingHopUtils.getNextInComingHop(firstHop, relationshipFilter)
+      nextHop = hopUtils.getNextInComingHop(firstHop, relationshipFilter)
       collected.append(nextHop)
     }
     collected
@@ -354,7 +391,7 @@ class GraphFacade(
       lowerLimit: Int,
       upperLimit: Int
     ): Seq[GraphHop] = {
-    val bothHopUtils = new BothHopUtils(this)
+    val hopUtils = new HopUtils(new PathUtils(this))
 
     val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
@@ -376,7 +413,7 @@ class GraphFacade(
 
     while (count <= upperLimit && flag) {
       count += 1
-      nextHop = bothHopUtils.getNextBothHop(nextHop, relationshipFilter)
+      nextHop = hopUtils.getNextBothHop(nextHop, relationshipFilter)
       if (nextHop.paths.nonEmpty) {
         collectedResult.append(nextHop)
       } else flag = false
@@ -407,19 +444,19 @@ class GraphFacade(
       relationshipFilter: RelationshipFilter,
       lowerLimit: Int
     ): ArrayBuffer[GraphHop] = {
-    val bothPathUtils = new BothPathUtils(this)
-    val bothHopUtils = new BothHopUtils(this)
+    val pathUtils = new PathUtils(this)
+    val hopUtils = new HopUtils(pathUtils)
 
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val firstHop = GraphHop(
-      beginNodes.map(node => bothPathUtils.getSingleNodeBothPaths(node, relationshipFilter)).toSeq
+      beginNodes.map(node => pathUtils.getSingleNodeBothPaths(node, relationshipFilter)).toSeq
     )
     collected.append(firstHop)
     var nextHop: GraphHop = null
     var count = 1
     while (count < lowerLimit) {
       count += 1
-      nextHop = bothHopUtils.getNextBothHop(firstHop, relationshipFilter)
+      nextHop = hopUtils.getNextBothHop(firstHop, relationshipFilter)
       collected.append(nextHop)
     }
     collected

@@ -236,6 +236,13 @@ class GraphFacadeTest {
   }
 
   @Test
+  def getPathWithoutLengthTest(): Unit = {
+    initOutGoingExample()
+    val res = db.cypher("match (n:person)-[r]->(m:person) return r").records()
+    Assert.assertEquals(8, res.size)
+  }
+
+  @Test
   def circleTest(): Unit = {
     initHaveCircleGraphData()
     val res =
