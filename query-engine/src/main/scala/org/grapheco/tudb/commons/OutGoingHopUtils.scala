@@ -20,18 +20,30 @@ class OutGoingHopUtils(pathUtils: OutGoingPathUtils) {
       relationshipFilter: RelationshipFilter
     ): GraphHop = {
 
-    // save single hop's paths
+    // Save single hop's paths.
     val nextHop: ArrayBuffer[GraphPath] = ArrayBuffer.empty
 
     start.paths.foreach(thisPath => {
-      // from path's last pathTriple's endNode to expand
+      // From path's last pathTriple's endNode to expand.
       val left = thisPath.pathTriples.last.endNode
       val paths = pathUtils.getSingleNodeOutGoingPaths(left, relationshipFilter)
       paths.pathTriples.foreach(next => {
-        // endNode may expand many paths, then add each new-path to thisPath's last respectively
-        nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
+        /*
+          EndNode may expand many paths, then add each new-path to thisPath's last respectively.
+
+          we should filter the circle situation:
+            1 -friend-> 2 -friend-> 3 -friend-> 4 -friend-> 1
+            , then from 1, circle will happen.
+            pathTriple's like below
+                                                                    circle happened
+                                                                          ||
+                                                                          \/
+            (1,friend,2), (2,friend,3), (3,friend,4), (4,friend,1), (1, friend, 2)
+         */
+        if (!thisPath.pathTriples.contains(next))
+          nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
       })
     })
-    GraphHop(nextHop.distinct)
+    GraphHop(nextHop)
   }
 }

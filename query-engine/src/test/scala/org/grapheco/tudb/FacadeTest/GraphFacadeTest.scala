@@ -44,6 +44,29 @@ class GraphFacadeTest {
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
+
+  private def initHaveCircleGraphData(): Unit = {
+    db.cypher("create (n:person{age:1})")
+    db.cypher("create (n:person{age:2})")
+    db.cypher("create (n:person{age:3})")
+
+    db.cypher("""
+                |match (n:person{age: 1})
+                |match (m: person{age:2})
+                |create (n)-[r:KNOW]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{age: 2})
+                |match (m: person{age:3})
+                |create (n)-[r:KNOW]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{age: 3})
+                |match (m: person{age:1})
+                |create (n)-[r:KNOW]->(m)
+                |""".stripMargin)
+  }
+
   private def initManualExample(): Unit = {
     db.cypher("create (n: Person{name:'Oliver Stone'})")
     db.cypher("create (n: Person{name:'Michael Douglas'})")
@@ -209,6 +232,14 @@ class GraphFacadeTest {
     // 8 hop1 + 4 hop2 + 1 hop3
     val res7 = db.cypher("match (n:person)<-[r:XXX*1..]-(m:person) return r").records()
     Assert.assertEquals(13, res7.size)
+  }
+
+  @Test
+  def circleTest(): Unit = {
+    initHaveCircleGraphData()
+    val res =
+      db.cypher("match (n:person{age:1})-[r:KNOW*1..7]->(m:person{age:3}) return r").records()
+    Assert.assertEquals(1, res.size)
   }
 
   @Test

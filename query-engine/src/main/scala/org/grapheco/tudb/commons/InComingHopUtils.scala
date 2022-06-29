@@ -24,9 +24,10 @@ class InComingHopUtils(pathUtils: InComingPathUtils) {
       val paths = pathUtils.getSingleNodeInComingPaths(right, relationshipFilter)
       paths.pathTriples.foreach(next => {
         // startNode may expand many paths, then add each new-path to thisPath's head respectively
-        nextHop.append(GraphPath(Seq(next) ++ thisPath.pathTriples))
+        if (!thisPath.pathTriples.contains(next))
+          nextHop.append(GraphPath(Seq(next) ++ thisPath.pathTriples))
       })
     })
-    GraphHop(nextHop.distinct)
+    GraphHop(nextHop)
   }
 }
