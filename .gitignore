@@ -93,3 +93,6 @@ docs/.jekyll-cache
 
 # For Node.js
 node_modules
+
+# For the Storage test
+storage/test/
