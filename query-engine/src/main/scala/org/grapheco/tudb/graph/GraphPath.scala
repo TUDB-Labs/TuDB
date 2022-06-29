@@ -12,6 +12,8 @@ import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
   */
 case class GraphPath(pathTriples: Seq[PathTriple]) {
 
+  def length: Int = pathTriples.length
+
   def revert: GraphPath = GraphPath(pathTriples.map(f => f.revert))
 
   def isEmpty: Boolean = pathTriples.isEmpty
