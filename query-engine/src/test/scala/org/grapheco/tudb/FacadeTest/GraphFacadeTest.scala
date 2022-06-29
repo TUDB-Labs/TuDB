@@ -131,7 +131,41 @@ class GraphFacadeTest {
     val res7 = db.cypher("match (n:person)-[r:XXX*1..]->(m:person) return r").records()
     Assert.assertEquals(13, res7.size)
   }
+  @Test
+  def testInComingPath(): Unit = {
+    initOutGoingExample()
+    // 1 hop1 + 1 hop2 + 1 hop3
+    val res = db.cypher("match (n:person{nid: 7})<-[r:XXX*1..]-(m:person) return r").records()
+    Assert.assertEquals(3, res.size)
 
+    val res1 = db.cypher("match (n:person)<-[r:XXX*0..3]-(m:person) return r").records()
+    // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    Assert.assertEquals(24, res1.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res2 = db.cypher("match (n:person)<-[r:XXX*1..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res2.size)
+
+    // 4 hop2 + 1 hop3
+    val res3 = db.cypher("match (n:person)<-[r:XXX*2..3]-(m:person) return r").records()
+    Assert.assertEquals(5, res3.size)
+
+    // 11 nodes
+    val res4 = db.cypher("match (n:person)<-[r:XXX*0]-(m:person) return r").records()
+    Assert.assertEquals(11, res4.size)
+
+    // 4 hop2
+    val res5 = db.cypher("match (n:person)<-[r:XXX*2]-(m:person) return r").records()
+    Assert.assertEquals(4, res5.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res6 = db.cypher("match (n:person)<-[r:XXX*..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res6.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res7 = db.cypher("match (n:person)<-[r:XXX*1..]-(m:person) return r").records()
+    Assert.assertEquals(13, res7.size)
+  }
   @Test
   def testDetachDelete(): Unit = {
     db.cypher("create (n:person1)-[r: KNOWS]->(b:person1)")
