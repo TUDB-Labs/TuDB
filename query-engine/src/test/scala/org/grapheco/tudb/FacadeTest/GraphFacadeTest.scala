@@ -44,7 +44,51 @@ class GraphFacadeTest {
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
+  private def initManualExample(): Unit = {
+    db.cypher("create (n: Person{name:'Oliver Stone'})")
+    db.cypher("create (n: Person{name:'Michael Douglas'})")
+    db.cypher("create (n: Person{name:'Charlie Sheen'})")
+    db.cypher("create (n: Person{name:'Martin Sheen'})")
+    db.cypher("create (n: Person{name:'Rob Reiner'})")
+    db.cypher("create (n: Movie{title:'Wall Street'})")
+    db.cypher("create (n: Movie{title:'The American President'})")
 
+    db.cypher("""
+                |match (n: Person{name:'Oliver Stone'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: DIRECTED]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Michael Douglas'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Gordon Gekko'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Charlie Sheen'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Bud Fox'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Martin Sheen'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Carl Fox'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Michael Douglas'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: ACTED_IN{role: 'President Andrew Shepherd'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Martin Sheen'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: ACTED_IN{role: 'A.J. MacInerney'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Rob Reiner'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: DIRECTED]->(m)
+                |""".stripMargin)
+  }
   private def initOutGoingExample(): Unit = {
     db.cypher("create (n:person{nid: 1})")
     db.cypher("create (n:person{nid: 2})")
@@ -166,6 +210,36 @@ class GraphFacadeTest {
     val res7 = db.cypher("match (n:person)<-[r:XXX*1..]-(m:person) return r").records()
     Assert.assertEquals(13, res7.size)
   }
+
+  @Test
+  def testBothPath(): Unit = {
+    initManualExample()
+    val res1 = db
+      .cypher("""
+                |MATCH (charlie {name: 'Charlie Sheen'})-[r:ACTED_IN*1..3]-(movie:Movie)
+                |RETURN movie.title
+                |""".stripMargin)
+      .records()
+      .toList
+
+    Assert.assertEquals(
+      List("Wall Street", "The American President", "The American President"),
+      res1.map(f => f("movie.title").value)
+    )
+
+    val res2 = db
+      .cypher("""
+                |MATCH (charlie {name: 'Charlie Sheen'})-[:ACTED_IN|DIRECTED*2]-(person:Person)
+                |RETURN person.name
+                |""".stripMargin)
+      .records()
+      .toList
+      .map(f => f("person.name").value)
+      .toSet
+
+    Assert.assertEquals(Set("Oliver Stone", "Michael Douglas", "Martin Sheen"), res2)
+  }
+
   @Test
   def testDetachDelete(): Unit = {
     db.cypher("create (n:person1)-[r: KNOWS]->(b:person1)")
