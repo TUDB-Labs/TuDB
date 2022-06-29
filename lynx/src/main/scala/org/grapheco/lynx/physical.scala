@@ -5,11 +5,11 @@ import org.grapheco.lynx.procedure.CallableProcedure
 import org.grapheco.lynx.procedure.exceptions.{UnknownProcedureException, WrongArgumentException, WrongNumberOfArgumentsException}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull}
+import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull, LynxPath}
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
 import org.opencypher.v9_0.ast._
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipChain, _}
-import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CTNode, CTPath, CTRelationship, CypherType}
+import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CTNode, CTPath, CTRelationship, CypherType, ListType}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -534,7 +534,7 @@ case class PPTRelationshipScan(
     DataFrame(
       schema,
       () => {
-        graphModel
+        val data = graphModel
           .paths(
             NodeFilter(
               labels1.map(_.name).map(LynxNodeLabel),
@@ -558,7 +558,16 @@ case class PPTRelationshipScan(
             upperLimit,
             lowerLimit
           )
-          .map(triple => Seq(triple.startNode, triple.storedRelation, triple.endNode))
+        val relCypherType = schema(1)._2
+        relCypherType match {
+          case r @ CTRelationship => {
+            data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
+          }
+          // process relationship Path to support like (a)-[r:TYPE*1..3]->(b)
+          case rs @ ListType(CTRelationship) => {
+            data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
+          }
+        }
       }
     )
   }
@@ -829,55 +838,55 @@ case class PPTMerge(
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     implicit val ec = ctx.expressionContext
 
-//    def createNode(nodesToCreate: Seq[MergeNode],
-//                   mergedNodesAndRels: mutable.Map[String, Seq[LynxValue]],
-//                   ctxMap: Map[String, LynxValue] = Map.empty,
-//                   forceToCreate: Boolean = false): Unit = {
-//      nodesToCreate.foreach(mergeNode => {
-//        val MergeNode(varName, labels, properties) = mergeNode
-//        val nodeFilter = NodeFilter(labels.map(f => f.name), properties.map {
-//          case MapExpression(items) =>
-//            items.map({
-//              case (k, v) => k.name -> eval(v)(ec.withVars(ctxMap))
-//            })
-//        }.getOrElse(Seq.empty).toMap)
-//
-//        val res = {
-//          if (ctxMap.contains(varName)) ctxMap(varName)
-//          else graphModel.mergeNode(nodeFilter, forceToCreate, ctx.tx)
-//        }
-//
-//        mergedNodesAndRels += varName -> Seq(res)
-//      })
-//    }
-//
-//    def createRelationship(relsToCreate: Seq[MergeRelationship], createdNodesAndRels: mutable.Map[String, Seq[LynxValue]], ctxMap: Map[String, LynxValue] = Map.empty, forceToCreate: Boolean = false): Unit = {
-//      relsToCreate.foreach(mergeRels => {
-//        val MergeRelationship(varName, types, properties, varNameLeftNode, varNameRightNode, direction) = mergeRels
-//        val relationshipFilter = RelationshipFilter(types.map(t => t.name),
-//          properties.map {
-//            case MapExpression(items) =>
-//              items.map({
-//                case (k, v) => k.name -> eval(v)(ec.withVars(ctxMap))
-//              })
-//          }.getOrElse(Seq.empty[(String, LynxValue)]).toMap)
-//
-//        val leftNode = {
-//          if (createdNodesAndRels.contains(varNameLeftNode)) createdNodesAndRels(varNameLeftNode).head
-//          else if (ctxMap.contains(varNameLeftNode)) ctxMap(varNameLeftNode)
-//          else ???
-//        }
-//        val rightNode = {
-//          if (createdNodesAndRels.contains(varNameRightNode)) createdNodesAndRels(varNameRightNode).head
-//          else if (ctxMap.contains(varNameRightNode)) ctxMap(varNameRightNode)
-//          else ???
-//        }
-//
-//        val res = graphModel.mergeRelationship(relationshipFilter, leftNode.asInstanceOf[LynxNode], rightNode.asInstanceOf[LynxNode], direction, forceToCreate, ctx.tx)
-//
-//        createdNodesAndRels += varName -> Seq(res.storedRelation)
-//      })
-//    }
+    //    def createNode(nodesToCreate: Seq[MergeNode],
+    //                   mergedNodesAndRels: mutable.Map[String, Seq[LynxValue]],
+    //                   ctxMap: Map[String, LynxValue] = Map.empty,
+    //                   forceToCreate: Boolean = false): Unit = {
+    //      nodesToCreate.foreach(mergeNode => {
+    //        val MergeNode(varName, labels, properties) = mergeNode
+    //        val nodeFilter = NodeFilter(labels.map(f => f.name), properties.map {
+    //          case MapExpression(items) =>
+    //            items.map({
+    //              case (k, v) => k.name -> eval(v)(ec.withVars(ctxMap))
+    //            })
+    //        }.getOrElse(Seq.empty).toMap)
+    //
+    //        val res = {
+    //          if (ctxMap.contains(varName)) ctxMap(varName)
+    //          else graphModel.mergeNode(nodeFilter, forceToCreate, ctx.tx)
+    //        }
+    //
+    //        mergedNodesAndRels += varName -> Seq(res)
+    //      })
+    //    }
+    //
+    //    def createRelationship(relsToCreate: Seq[MergeRelationship], createdNodesAndRels: mutable.Map[String, Seq[LynxValue]], ctxMap: Map[String, LynxValue] = Map.empty, forceToCreate: Boolean = false): Unit = {
+    //      relsToCreate.foreach(mergeRels => {
+    //        val MergeRelationship(varName, types, properties, varNameLeftNode, varNameRightNode, direction) = mergeRels
+    //        val relationshipFilter = RelationshipFilter(types.map(t => t.name),
+    //          properties.map {
+    //            case MapExpression(items) =>
+    //              items.map({
+    //                case (k, v) => k.name -> eval(v)(ec.withVars(ctxMap))
+    //              })
+    //          }.getOrElse(Seq.empty[(String, LynxValue)]).toMap)
+    //
+    //        val leftNode = {
+    //          if (createdNodesAndRels.contains(varNameLeftNode)) createdNodesAndRels(varNameLeftNode).head
+    //          else if (ctxMap.contains(varNameLeftNode)) ctxMap(varNameLeftNode)
+    //          else ???
+    //        }
+    //        val rightNode = {
+    //          if (createdNodesAndRels.contains(varNameRightNode)) createdNodesAndRels(varNameRightNode).head
+    //          else if (ctxMap.contains(varNameRightNode)) ctxMap(varNameRightNode)
+    //          else ???
+    //        }
+    //
+    //        val res = graphModel.mergeRelationship(relationshipFilter, leftNode.asInstanceOf[LynxNode], rightNode.asInstanceOf[LynxNode], direction, forceToCreate, ctx.tx)
+    //
+    //        createdNodesAndRels += varName -> Seq(res.storedRelation)
+    //      })
+    //    }
 
     children match {
       case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
@@ -914,8 +923,8 @@ case class PPTMerge(
                 else false
               }
 
-//              createNode(nodesToCreate, mergedNodesAndRels, ctxMap, forceToCreate)
-//              createRelationship(relsToCreate, mergedNodesAndRels, ctxMap, forceToCreate)
+              //              createNode(nodesToCreate, mergedNodesAndRels, ctxMap, forceToCreate)
+              //              createRelationship(relsToCreate, mergedNodesAndRels, ctxMap, forceToCreate)
 
               record ++ toCreateSchema.flatMap(f => mergedNodesAndRels(f._1))
             }
@@ -938,8 +947,8 @@ case class PPTMerge(
             .filter(f => f.isInstanceOf[MergeRelationship])
             .map(f => f.asInstanceOf[MergeRelationship])
 
-//          createNode(nodesToCreate, createdNodesAndRels, Map.empty, true)
-//          createRelationship(relsToCreate, createdNodesAndRels, Map.empty, true)
+          //          createNode(nodesToCreate, createdNodesAndRels, Map.empty, true)
+          //          createRelationship(relsToCreate, createdNodesAndRels, Map.empty, true)
 
           val res = Seq(mergeSchema.flatMap(f => createdNodesAndRels(f._1))).toIterator
           DataFrame(mergeSchema, () => res)
@@ -1307,7 +1316,7 @@ case class PPTSetClause(
                 case v @ Variable(name) => {
                   val srcNode = ctxMap(variable.name).asInstanceOf[LynxNode]
                   val maskNode = ctxMap(name).asInstanceOf[LynxNode]
-//                  tmpNode = graphModel.copyNode(srcNode, maskNode, ctx.tx)
+                  //                  tmpNode = graphModel.copyNode(srcNode, maskNode, ctx.tx)
                 }
               }
             }
@@ -1485,11 +1494,11 @@ case class PPTUnwind(
             rsl
           }
       )
-//      df.project(, Seq((variable.name, expression)))(ctx.expressionContext).records
-//        .flatten.flatMap{
-//        case list: LynxList => list.value
-//        case element: LynxValue => List(element)
-//      }.map(lv => Seq(lv))
+    //      df.project(, Seq((variable.name, expression)))(ctx.expressionContext).records
+    //        .flatten.flatMap{
+    //        case list: LynxList => list.value
+    //        case element: LynxValue => List(element)
+    //      }.map(lv => Seq(lv))
     } getOrElse {
       DataFrame(
         schema,
