@@ -1,4 +1,4 @@
-FROM registry.cn-beijing.aliyuncs.com/tudb/server:base as ybuild
+FROM registry.cn-beijing.aliyuncs.com/tudb-ai/server:base as ybuild
 
 
 WORKDIR /opt/

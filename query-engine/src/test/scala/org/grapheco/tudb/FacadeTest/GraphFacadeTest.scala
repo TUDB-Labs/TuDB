@@ -44,6 +44,201 @@ class GraphFacadeTest {
   def clean(): Unit = {
     db.cypher("match (n) detach delete n")
   }
+  private def initManualExample(): Unit = {
+    db.cypher("create (n: Person{name:'Oliver Stone'})")
+    db.cypher("create (n: Person{name:'Michael Douglas'})")
+    db.cypher("create (n: Person{name:'Charlie Sheen'})")
+    db.cypher("create (n: Person{name:'Martin Sheen'})")
+    db.cypher("create (n: Person{name:'Rob Reiner'})")
+    db.cypher("create (n: Movie{title:'Wall Street'})")
+    db.cypher("create (n: Movie{title:'The American President'})")
+
+    db.cypher("""
+                |match (n: Person{name:'Oliver Stone'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: DIRECTED]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Michael Douglas'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Gordon Gekko'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Charlie Sheen'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Bud Fox'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Martin Sheen'})
+                |match (m: Movie{title:'Wall Street'})
+                |create (n)-[r: ACTED_IN{role: 'Carl Fox'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Michael Douglas'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: ACTED_IN{role: 'President Andrew Shepherd'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Martin Sheen'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: ACTED_IN{role: 'A.J. MacInerney'}]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n: Person{name:'Rob Reiner'})
+                |match (m: Movie{title:'The American President'})
+                |create (n)-[r: DIRECTED]->(m)
+                |""".stripMargin)
+  }
+  private def initOutGoingExample(): Unit = {
+    db.cypher("create (n:person{nid: 1})")
+    db.cypher("create (n:person{nid: 2})")
+    db.cypher("create (n:person{nid: 3})")
+    db.cypher("create (n:person{nid: 4})")
+    db.cypher("create (n:person{nid: 5})")
+    db.cypher("create (n:person{nid: 6})")
+    db.cypher("create (n:person{nid: 7})")
+    db.cypher("create (n:person{nid: 8})")
+    db.cypher("create (n:person{nid: 9})")
+    db.cypher("create (n:person{nid: 1, name:'a'})")
+    db.cypher("create (n:person{nid: 11})")
+
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:2})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:3})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:4})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 2})
+                |match (m:person{nid:5})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 2})
+                |match (m:person{nid:6})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 6})
+                |match (m:person{nid:7})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 3})
+                |match (m:person{nid: 9})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+
+    db.cypher("""
+                |match (n:person{nid: 1, name:'a'})
+                |match (m:person{nid:11})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+  }
+  @Test
+  def testOutPath(): Unit = {
+    initOutGoingExample()
+    val res1 = db.cypher("match (n:person)-[r:XXX*0..3]->(m:person) return r").records()
+    // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    Assert.assertEquals(24, res1.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res2 = db.cypher("match (n:person)-[r:XXX*1..3]->(m:person) return r").records()
+    Assert.assertEquals(13, res2.size)
+
+    // 4 hop2 + 1 hop3
+    val res3 = db.cypher("match (n:person)-[r:XXX*2..3]->(m:person) return r").records()
+    Assert.assertEquals(5, res3.size)
+
+    // 11 nodes
+    val res4 = db.cypher("match (n:person)-[r:XXX*0]->(m:person) return r").records()
+    Assert.assertEquals(11, res4.size)
+
+    // 4 hop2
+    val res5 = db.cypher("match (n:person)-[r:XXX*2]->(m:person) return r").records()
+    Assert.assertEquals(4, res5.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res6 = db.cypher("match (n:person)-[r:XXX*..3]->(m:person) return r").records()
+    Assert.assertEquals(13, res6.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res7 = db.cypher("match (n:person)-[r:XXX*1..]->(m:person) return r").records()
+    Assert.assertEquals(13, res7.size)
+  }
+  @Test
+  def testInComingPath(): Unit = {
+    initOutGoingExample()
+    // 1 hop1 + 1 hop2 + 1 hop3
+    val res = db.cypher("match (n:person{nid: 7})<-[r:XXX*1..]-(m:person) return r").records()
+    Assert.assertEquals(3, res.size)
+
+    val res1 = db.cypher("match (n:person)<-[r:XXX*0..3]-(m:person) return r").records()
+    // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    Assert.assertEquals(24, res1.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res2 = db.cypher("match (n:person)<-[r:XXX*1..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res2.size)
+
+    // 4 hop2 + 1 hop3
+    val res3 = db.cypher("match (n:person)<-[r:XXX*2..3]-(m:person) return r").records()
+    Assert.assertEquals(5, res3.size)
+
+    // 11 nodes
+    val res4 = db.cypher("match (n:person)<-[r:XXX*0]-(m:person) return r").records()
+    Assert.assertEquals(11, res4.size)
+
+    // 4 hop2
+    val res5 = db.cypher("match (n:person)<-[r:XXX*2]-(m:person) return r").records()
+    Assert.assertEquals(4, res5.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res6 = db.cypher("match (n:person)<-[r:XXX*..3]-(m:person) return r").records()
+    Assert.assertEquals(13, res6.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res7 = db.cypher("match (n:person)<-[r:XXX*1..]-(m:person) return r").records()
+    Assert.assertEquals(13, res7.size)
+  }
+
+  @Test
+  def testBothPath(): Unit = {
+    initManualExample()
+    val res1 = db
+      .cypher("""
+                |MATCH (charlie {name: 'Charlie Sheen'})-[r:ACTED_IN*1..3]-(movie:Movie)
+                |RETURN movie.title
+                |""".stripMargin)
+      .records()
+      .toList
+
+    Assert.assertEquals(
+      List("Wall Street", "The American President", "The American President"),
+      res1.map(f => f("movie.title").value)
+    )
+
+    val res2 = db
+      .cypher("""
+                |MATCH (charlie {name: 'Charlie Sheen'})-[:ACTED_IN|DIRECTED*2]-(person:Person)
+                |RETURN person.name
+                |""".stripMargin)
+      .records()
+      .toList
+      .map(f => f("person.name").value)
+      .toSet
+
+    Assert.assertEquals(Set("Oliver Stone", "Michael Douglas", "Martin Sheen"), res2)
+  }
 
   @Test
   def testDetachDelete(): Unit = {
