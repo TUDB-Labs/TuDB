@@ -38,10 +38,11 @@ class BothHopUtils(facade: GraphFacade) {
             .map(p => p.revert) // revert, then we only need to use last node to expand.
       }
       nextTriple.foreach(next => {
-        nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
+        if (!thisPath.pathTriples.contains(next))
+          nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
       })
     })
 
-    GraphHop(nextHop.distinct)
+    GraphHop(nextHop)
   }
 }
