@@ -59,15 +59,57 @@ class GraphFacade(
         upper
       )
     } else {
-      // TODO: process pathWithoutLength
-      super.paths(
-        startNodeFilter,
-        relationshipFilter,
-        endNodeFilter,
-        direction,
-        upperLimit,
-        lowerLimit
+      getPathWithoutLength(startNodeFilter, relationshipFilter, endNodeFilter, direction).map(
+        Seq(_)
       )
+    }
+  }
+
+  // logic like pathWithLength
+  private def getPathWithoutLength(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection
+    ): Iterator[PathTriple] = {
+    direction match {
+      case SemanticDirection.OUTGOING => {
+        val outGoingPathUtils = new OutGoingPathUtils(this)
+
+        val startNodes = nodes(startNodeFilter)
+        startNodes
+          .flatMap(startNode =>
+            outGoingPathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
+          .filter(p => endNodeFilter.matches(p.endNode))
+      }
+      case SemanticDirection.INCOMING => {
+        val inComingPathUtils = new InComingPathUtils(this)
+
+        val endNodes = nodes(endNodeFilter)
+        endNodes
+          .flatMap(endNode =>
+            inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+          )
+          .filter(p => startNodeFilter.matches(p.startNode))
+      }
+      case SemanticDirection.BOTH => {
+        val outGoingPathUtils = new OutGoingPathUtils(this)
+        val inComingPathUtils = new InComingPathUtils(this)
+
+        val startNodes = nodes(startNodeFilter)
+        val endNodes = nodes(endNodeFilter)
+        startNodes
+          .flatMap(startNode =>
+            outGoingPathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
+          )
+          .filter(p => endNodeFilter.matches(p.endNode)) ++
+          endNodes
+            .flatMap(endNode =>
+              inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+            )
+            .filter(p => startNodeFilter.matches(p.startNode))
+      }
     }
   }
 
