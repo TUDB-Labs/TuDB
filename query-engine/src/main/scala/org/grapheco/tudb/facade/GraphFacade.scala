@@ -4,10 +4,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
+import org.grapheco.tudb.commons.{OutGoingHopUtils, OutGoingPathUtils}
+import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 import org.grapheco.tudb.store.meta.TuDBStatistics
 import org.grapheco.tudb.store.node._
 import org.grapheco.tudb.store.relationship._
+import org.opencypher.v9_0.expressions.SemanticDirection
 
+import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 
 /** @ClassName GraphFacade
@@ -23,6 +27,217 @@ class GraphFacade(
     onClose: => Unit)
   extends LazyLogging
   with GraphModel {
+
+  /*
+    The default paths will scan all the relationships then use filter to get the data we want,
+    and it cannot deal with the situation of relationship with variable length,
+    the cypher like (a)-[r:TYPE*1..3]->(b).
+
+    But in TuDB, we have the relationship-index (findInRelationship and findOutRelationship),
+    and we can speed up the search.
+    So we need to override the paths, and impl the relationship with variable length.
+   */
+  override def paths(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection,
+      upperLimit: Option[Int],
+      lowerLimit: Option[Int]
+    ): Iterator[Seq[PathTriple]] = {
+
+    if (upperLimit.isDefined || lowerLimit.isDefined) {
+      val lower = lowerLimit.getOrElse(1)
+      val upper = upperLimit.getOrElse(Int.MaxValue)
+
+      getPathsWithLength(
+        startNodeFilter,
+        relationshipFilter,
+        endNodeFilter,
+        direction,
+        lower,
+        upper
+      )
+    } else {
+      // TODO: process pathWithoutLength
+      super.paths(
+        startNodeFilter,
+        relationshipFilter,
+        endNodeFilter,
+        direction,
+        upperLimit,
+        lowerLimit
+      )
+    }
+  }
+
+  /**  minHops and maxHops are optional and default to 1 and infinity respectively.
+    *
+    *  If the path length between two nodes is zero, they are by definition the same node.
+    *  Note that when matching zero length paths the result may contain a match
+    *  even when matching on a relationship type not in use.
+    *
+    * [:TYPE*minHops..maxHops] = query fixed range relationships
+    * [:TYPE*minHops..]  = query relationships from minHops to INF
+    * [:TYPE*..maxHops]  = query relationships from 1 to maxHops
+    * [:TYPE*Hops] = query fixed length relationships
+    *
+    *  p = PathTriple(START_NODE, RELATIONSHIP, END_NODE)
+    *      eg: match (n: Person)-[r:TYPE*1..3]->(m: Person)
+    *      hop1 ==>   Seq( Seq(p1), Seq(p2), Seq(p3), Seq(p4), Seq(p5) ) // five single relationships
+    *      hop2 ==>   Seq( Seq(p1, p2), Seq(p3, p4) ) // two hop-2 relationships
+    *      hop3 ==>   Seq( Seq(p1, p2, p5) ) // one hop-3 relationships
+    *
+    *      Total: hop1 ++ hop2 ++ hop3 =
+    *         Seq(
+    *              Seq( Seq(p1), Seq(p2), Seq(p3), Seq(p4), Seq(p5) ),
+    *              Seq( Seq(p1, p2), Seq(p3, p4) ),
+    *              Seq( Seq(p1, p2, p5) )
+    *            )
+    *
+    *            TODO: Check circle
+    */
+  private def getPathsWithLength(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Iterator[Seq[PathTriple]] = {
+    direction match {
+      // Outgoing relationships.
+      case SemanticDirection.OUTGOING => {
+        // Get hops from 1 to lowerLimit, like (a)-[r:TYPE*3..5]->(b), we should init hop to hop-3.
+        val hopsToLowerLimit =
+          initInOutStartHop(startNodeFilter, relationshipFilter, direction, lowerLimit)
+
+        val hops = getOutGoingPathsWithLength(
+          hopsToLowerLimit,
+          relationshipFilter,
+          endNodeFilter,
+          lowerLimit,
+          upperLimit
+        )
+        val r1 = hops.map(hop => hop.paths.map(path => path.pathTriples))
+        r1.foldLeft(Seq.empty[Seq[PathTriple]])((a, b) => a ++ b).toIterator
+      }
+      case SemanticDirection.INCOMING => {
+        // TODO: in latter pr
+        ???
+      }
+      case SemanticDirection.BOTH => {
+        // TODO: in latter pr
+        ???
+      }
+    }
+  }
+
+  def getOutGoingPathsWithLength(
+      hopsToLowerLimit: Seq[GraphHop],
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Seq[GraphHop] = {
+
+    val outGoingHopUtils = new OutGoingHopUtils(new OutGoingPathUtils(this))
+
+    val collectedResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+    val filteredResult: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    // If (a)-[r:TYPE*3..5]->(b), then hopsToLowerLimit have the hops from 1 to 3, we only need to get hop3's paths
+    var nextHop = {
+      if (lowerLimit == 0 || lowerLimit == 1) hopsToLowerLimit.head
+      else hopsToLowerLimit(lowerLimit - 1)
+    }
+    collectedResult.append(nextHop)
+    var count = {
+      if (lowerLimit == 0) 0
+      else lowerLimit + 1
+    }
+    var flag = {
+      if (upperLimit != 0) true
+      else false
+    }
+
+    // Loop to reach the upperLimit, if nextHop is empty, loop stop.
+    while (count <= upperLimit && flag) {
+      count += 1
+      nextHop = outGoingHopUtils.getNextOutGoingHop(nextHop, relationshipFilter)
+      if (nextHop.paths.nonEmpty) {
+        collectedResult.append(nextHop)
+      } else flag = false
+    }
+
+    // Filter loop result
+    collectedResult.foreach(hops => {
+      val filteredPaths =
+        hops.paths.filter(path => endNodeFilter.matches(path.pathTriples.last.endNode))
+      filteredResult.append(GraphHop(filteredPaths))
+    })
+
+    filteredResult
+  }
+
+  private def initInOutStartHop(
+      startNodeFilter: NodeFilter,
+      relationshipFilter: RelationshipFilter,
+      direction: SemanticDirection,
+      lowerLimit: Int
+    ): Seq[GraphHop] = {
+    val beginNodes = nodes(startNodeFilter)
+    lowerLimit match {
+      // 0 means relationship to itself, like (a)-->(a)
+      case 0 => {
+        val res = beginNodes.map(node => GraphPath(Seq(PathTriple(node, null, node)))).toSeq
+        Seq(GraphHop(res))
+      }
+      case _ => {
+        direction match {
+          case SemanticDirection.OUTGOING => {
+            getOutGoingHopFromOne2Limit(beginNodes, relationshipFilter, lowerLimit)
+          }
+          case SemanticDirection.INCOMING => {
+            // TODO: in next pr
+            ???
+          }
+        }
+      }
+    }
+  }
+
+  private def getOutGoingHopFromOne2Limit(
+      beginNodes: Iterator[LynxNode],
+      relationshipFilter: RelationshipFilter,
+      lowerLimit: Int
+    ): ArrayBuffer[GraphHop] = {
+    val outGoingPathUtils = new OutGoingPathUtils(this)
+    val outGoingHopUtils = new OutGoingHopUtils(outGoingPathUtils)
+
+    val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
+
+    val firstHop = GraphHop(
+      beginNodes
+        .flatMap(node =>
+          outGoingPathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples
+        )
+        .map(p => GraphPath(Seq(p)))
+        .toSeq
+    )
+
+    collected.append(firstHop)
+    var nextHop: GraphHop = null
+
+    // Iterator to reach lowerLimit.
+    var count = 1
+    while (count < lowerLimit) {
+      count += 1
+      nextHop = outGoingHopUtils.getNextOutGoingHop(firstHop, relationshipFilter)
+      collected.append(nextHop)
+    }
+    collected
+  }
 
   override def statistics: TuDBStatistics = tuDBStatistics
 

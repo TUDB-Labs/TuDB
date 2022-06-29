@@ -5,8 +5,7 @@ import org.opencypher.v9_0.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOI
 
 class GraphModelTest extends TestBase {
 
-  runOnDemoGraph(
-    """
+  runOnDemoGraph("""
       |Create
       |(a:person:leader{name:"bluejoe", age: 40, gender:"male"}),
       |(b:person{name:"Alice", age: 30, gender:"female"}),
@@ -20,25 +19,44 @@ class GraphModelTest extends TestBase {
 
   @Test
   def testGraphModel(): Unit = {
-    var rs = model.paths(NodeFilter(Seq.empty, Map.empty), RelationshipFilter(Seq.empty, Map.empty), NodeFilter(Seq.empty, Map.empty), OUTGOING, Some(0), Some(0))
+    var rs = model.paths(
+      NodeFilter(Seq.empty, Map.empty),
+      RelationshipFilter(Seq.empty, Map.empty),
+      NodeFilter(Seq.empty, Map.empty),
+      OUTGOING,
+      Some(0),
+      Some(0)
+    )
     Assert.assertEquals(4, rs.size)
-    rs.foreach {
-      item =>
-        val PathTriple(startNode, rel, endNode, _) = item.head
-        Assert.assertEquals(rel.startNodeId, startNode.id)
-        Assert.assertEquals(rel.endNodeId, endNode.id)
+    rs.foreach { item =>
+      val PathTriple(startNode, rel, endNode, _) = item.head
+      Assert.assertEquals(rel.startNodeId, startNode.id)
+      Assert.assertEquals(rel.endNodeId, endNode.id)
     }
 
-    rs = model.paths(NodeFilter(Seq.empty, Map.empty), RelationshipFilter(Seq.empty, Map.empty), NodeFilter(Seq.empty, Map.empty), INCOMING, Some(0), Some(0))
+    rs = model.paths(
+      NodeFilter(Seq.empty, Map.empty),
+      RelationshipFilter(Seq.empty, Map.empty),
+      NodeFilter(Seq.empty, Map.empty),
+      INCOMING,
+      Some(0),
+      Some(0)
+    )
     Assert.assertEquals(4, rs.size)
-    rs.foreach {
-      item =>
-        val PathTriple(startNode, rel, endNode, _) = item.head
-        Assert.assertEquals(rel.startNodeId, endNode.id)
-        Assert.assertEquals(rel.endNodeId, startNode.id)
+    rs.foreach { item =>
+      val PathTriple(startNode, rel, endNode, _) = item.head
+      Assert.assertEquals(rel.startNodeId, endNode.id)
+      Assert.assertEquals(rel.endNodeId, startNode.id)
     }
 
-    rs = model.paths(NodeFilter(Seq.empty, Map.empty), RelationshipFilter(Seq.empty, Map.empty), NodeFilter(Seq.empty, Map.empty), BOTH, Some(0), Some(0))
+    rs = model.paths(
+      NodeFilter(Seq.empty, Map.empty),
+      RelationshipFilter(Seq.empty, Map.empty),
+      NodeFilter(Seq.empty, Map.empty),
+      BOTH,
+      Some(0),
+      Some(0)
+    )
     Assert.assertEquals(8, rs.size)
   }
 }

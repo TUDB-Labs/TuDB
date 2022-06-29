@@ -45,6 +45,93 @@ class GraphFacadeTest {
     db.cypher("match (n) detach delete n")
   }
 
+  private def initOutGoingExample(): Unit = {
+    db.cypher("create (n:person{nid: 1})")
+    db.cypher("create (n:person{nid: 2})")
+    db.cypher("create (n:person{nid: 3})")
+    db.cypher("create (n:person{nid: 4})")
+    db.cypher("create (n:person{nid: 5})")
+    db.cypher("create (n:person{nid: 6})")
+    db.cypher("create (n:person{nid: 7})")
+    db.cypher("create (n:person{nid: 8})")
+    db.cypher("create (n:person{nid: 9})")
+    db.cypher("create (n:person{nid: 1, name:'a'})")
+    db.cypher("create (n:person{nid: 11})")
+
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:2})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:3})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 1})
+                |match (m:person{nid:4})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 2})
+                |match (m:person{nid:5})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 2})
+                |match (m:person{nid:6})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 6})
+                |match (m:person{nid:7})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+    db.cypher("""
+                |match (n:person{nid: 3})
+                |match (m:person{nid: 9})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+
+    db.cypher("""
+                |match (n:person{nid: 1, name:'a'})
+                |match (m:person{nid:11})
+                |create (n)-[r:XXX]->(m)
+                |""".stripMargin)
+  }
+  @Test
+  def testOutPath(): Unit = {
+    initOutGoingExample()
+    val res1 = db.cypher("match (n:person)-[r:XXX*0..3]->(m:person) return r").records()
+    // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    Assert.assertEquals(24, res1.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res2 = db.cypher("match (n:person)-[r:XXX*1..3]->(m:person) return r").records()
+    Assert.assertEquals(13, res2.size)
+
+    // 4 hop2 + 1 hop3
+    val res3 = db.cypher("match (n:person)-[r:XXX*2..3]->(m:person) return r").records()
+    Assert.assertEquals(5, res3.size)
+
+    // 11 nodes
+    val res4 = db.cypher("match (n:person)-[r:XXX*0]->(m:person) return r").records()
+    Assert.assertEquals(11, res4.size)
+
+    // 4 hop2
+    val res5 = db.cypher("match (n:person)-[r:XXX*2]->(m:person) return r").records()
+    Assert.assertEquals(4, res5.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res6 = db.cypher("match (n:person)-[r:XXX*..3]->(m:person) return r").records()
+    Assert.assertEquals(13, res6.size)
+
+    // 8 hop1 + 4 hop2 + 1 hop3
+    val res7 = db.cypher("match (n:person)-[r:XXX*1..]->(m:person) return r").records()
+    Assert.assertEquals(13, res7.size)
+  }
+
   @Test
   def testDetachDelete(): Unit = {
     db.cypher("create (n:person1)-[r: KNOWS]->(b:person1)")
