@@ -30,6 +30,21 @@ object CypherExample {
     shutdownServer()
   }
 
+  /**
+   *
+   * @param dbPath
+   * @param port
+   * @param indexUrl
+   *  index engine url
+    # has four implement
+    # tudb://index?type=memory    tudb://index?type=elasticsearch&ip=xx&port=xx    tudb://index?type=rocksdb
+    # tudb://index?type=dummy
+    # memory  use hashmap storage index data
+    # elasticsearch   use  elasticsearch storage index data,ip and port is es service address
+    # rocksdb use rocksdb storage index data
+    # dummy is empty implement ,  use this engine where no  index is used
+   * @return
+   */
   def startServer(dbPath: String, port: Int, indexUrl: String = "tudb://index?type=dummy"): TuDBServer = {
     FileUtils.deleteDirectory(new File(dbPath))
     val serverContext = new TuDBServerContext()
