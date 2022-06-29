@@ -24,7 +24,7 @@ class GraphModelTest extends TestBase {
     Assert.assertEquals(4, rs.size)
     rs.foreach {
       item =>
-        val PathTriple(startNode, rel, endNode, _) = item
+        val PathTriple(startNode, rel, endNode, _) = item.head
         Assert.assertEquals(rel.startNodeId, startNode.id)
         Assert.assertEquals(rel.endNodeId, endNode.id)
     }
@@ -33,7 +33,7 @@ class GraphModelTest extends TestBase {
     Assert.assertEquals(4, rs.size)
     rs.foreach {
       item =>
-        val PathTriple(startNode, rel, endNode, _) = item
+        val PathTriple(startNode, rel, endNode, _) = item.head
         Assert.assertEquals(rel.startNodeId, endNode.id)
         Assert.assertEquals(rel.endNodeId, startNode.id)
     }
