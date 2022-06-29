@@ -172,6 +172,7 @@ class GraphFacadeTest {
     initOutGoingExample()
     val res1 = db.cypher("match (n:person)-[r:XXX*0..3]->(m:person) return r").records()
     // 11 node + 8 hop1 + 4 hop2 + 1 hop3
+    val list=res1.toList
     Assert.assertEquals(24, res1.size)
 
     // 8 hop1 + 4 hop2 + 1 hop3
