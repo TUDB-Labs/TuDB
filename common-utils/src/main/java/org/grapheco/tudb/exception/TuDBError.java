@@ -6,7 +6,7 @@ package org.grapheco.tudb.exception;
  * @author : johnny
  * @date : 2022/6/23
  **/
-public enum TuDBErrorCode {
+public enum TuDBError {
 
     /**
      * ========================
@@ -65,7 +65,7 @@ public enum TuDBErrorCode {
      * @param code
      * @param description
      */
-    TuDBErrorCode(String code, String description) {
+    TuDBError(String code, String description) {
         this.code = code;
         this.description = description;
     }

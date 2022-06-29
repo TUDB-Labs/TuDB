@@ -1,7 +1,7 @@
 package org.grapheco.tudb.ldbc.performance
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.tudb.exception.{ClientException, TuDBErrorCode}
+import org.grapheco.tudb.exception.{ClientException, TuDBError}
 import org.grapheco.tudb.ldbc.performance.Tools.printTimeCalculateResult
 import org.grapheco.tudb.store.relationship.{RelationshipStoreAPI, StoredRelationshipWithProperty}
 
@@ -42,7 +42,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyL
         val rId = relationshipStore.getRelationIdsByRelationType(tId.get).next()
         val r = relationshipStore.getRelationById(rId)
         testInRelationData.append(r.get)
-      } else throw new ClientException(TuDBErrorCode.CLIENT_ERROR, s"no such relation type: $rType")
+      } else throw new ClientException(TuDBError.CLIENT_ERROR, s"no such relation type: $rType")
     })
     testInRelationData.toArray
   }

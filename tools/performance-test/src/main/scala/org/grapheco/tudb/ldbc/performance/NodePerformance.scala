@@ -1,7 +1,7 @@
 package org.grapheco.tudb.ldbc.performance
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.tudb.exception.{ClientException, TuDBErrorCode}
+import org.grapheco.tudb.exception.{ClientException, TuDBError}
 import org.grapheco.tudb.ldbc.performance.Tools.printTimeCalculateResult
 import org.grapheco.tudb.store.node.{NodeStoreAPI, StoredNodeWithProperty}
 
@@ -56,7 +56,7 @@ class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean)
       val labelId = nodeStore.getLabelId(label)
       if (labelId.isDefined) {
         nodeStore.getNodesByLabel(labelId.get).next()
-      } else throw new ClientException(TuDBErrorCode.CLIENT_ERROR,s"no such label: $label")
+      } else throw new ClientException(TuDBError.CLIENT_ERROR,s"no such label: $label")
     })
     nodes
   }

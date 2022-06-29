@@ -1,6 +1,6 @@
 package org.grapheco.tudb.importer
 
-import org.grapheco.tudb.exception.{ClientException, TuDBErrorCode}
+import org.grapheco.tudb.exception.{ClientException, TuDBError}
 
 import java.io.File
 
@@ -51,37 +51,37 @@ case class ImportCmd(args: Array[String]) {
   val nodeDBPath: String = {
     val path = _getArgByName("nodeDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "nodeDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "nodeDBPath is blank.")
     path
   }
   val nodeLabelDBPath: String = {
     val path = _getArgByName("nodeLabelDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "nodeLabelDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "nodeLabelDBPath is blank.")
     path
   }
   val relationDBPath: String = {
     val path = _getArgByName("relationDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "relationDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "relationDBPath is blank.")
     path
   }
   val inRelationDBPath: String = {
     val path = _getArgByName("inRelationDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "inRelationDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "inRelationDBPath is blank.")
     path
   }
   val outRelationDBPath: String = {
     val path = _getArgByName("outRelationDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "outRelationDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "outRelationDBPath is blank.")
     path
   }
   val relationTypeDBPath: String = {
     val path = _getArgByName("relationTypeDBPath")
     if (advancdeMode && path == "")
-      throw new ClientException(TuDBErrorCode.CLIENT_ERROR, "relationTypeDBPath is blank.")
+      throw new ClientException(TuDBError.CLIENT_ERROR, "relationTypeDBPath is blank.")
     path
   }
 

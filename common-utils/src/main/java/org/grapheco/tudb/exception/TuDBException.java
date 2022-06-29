@@ -15,7 +15,7 @@ public class TuDBException extends RuntimeException {
     /**
      * error code
      */
-    private TuDBErrorCode code;
+    private TuDBError code;
 
     /**
      * default construction method
@@ -23,7 +23,7 @@ public class TuDBException extends RuntimeException {
      * @param code
      * @param message
      */
-    public TuDBException(TuDBErrorCode code, String message) {
+    public TuDBException(TuDBError code, String message) {
         super(message);
         this.code = code;
     }
@@ -34,12 +34,12 @@ public class TuDBException extends RuntimeException {
      * @param message
      * @param throwable
      */
-    public TuDBException(TuDBErrorCode code, String message, Throwable throwable) {
+    public TuDBException(TuDBError code, String message, Throwable throwable) {
         super(message, throwable);
         this.code = code;
     }
 
-    public TuDBErrorCode getCode() {
+    public TuDBError getCode() {
         return code;
     }
 }

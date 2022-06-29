@@ -1,7 +1,7 @@
 package org.grapheco.tudb.store.storage
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.tudb.exception.{StorageException, TuDBErrorCode}
+import org.grapheco.tudb.exception.{StorageException, TuDBError}
 import org.rocksdb._
 
 import java.io.{BufferedInputStream, File, FileInputStream}
@@ -74,7 +74,7 @@ class RocksDBConfigBuilder(rocksFile: File) extends LazyLogging {
             case "ZSTD_COMPRESSION"   => CompressionType.ZSTD_COMPRESSION
             case s =>
               throw new StorageException(
-                TuDBErrorCode.STORAGE_ERROR,
+                TuDBError.STORAGE_ERROR,
                 s"not support $s config settings"
               )
           }
@@ -194,7 +194,7 @@ class RocksDBConfigBuilder(rocksFile: File) extends LazyLogging {
       }
 
       case k => {
-        throw new StorageException(TuDBErrorCode.STORAGE_ERROR, s"not support $k config setting")
+        throw new StorageException(TuDBError.STORAGE_ERROR, s"not support $k config setting")
       }
     }
     tableConfig.setFilterPolicy(new BloomFilter(bloomFilterBits, false))

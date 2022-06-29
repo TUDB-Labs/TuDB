@@ -1,7 +1,7 @@
 /** Copyright (c) 2022 PandaDB * */
 package org.grapheco.tudb.store.index
 
-import org.grapheco.tudb.exception.{TuDBErrorCode, TuDBException}
+import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
@@ -23,7 +23,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
     logger.info(f"start Rocks db:${params}")
     val path = params.getOrElse("path", null)
     if (path == null) {
-      throw new TuDBException(TuDBErrorCode.STORAGE_ERROR, f"Rocksdb path is null")
+      throw new TuDBException(TuDBError.STORAGE_ERROR, f"Rocksdb path is null")
     }
     db = RocksDBStorage.getDB(path, rocksdbConfigPath = "performance")
   }

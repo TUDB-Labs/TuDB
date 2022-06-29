@@ -11,21 +11,21 @@ package org.grapheco.tudb.exception;
  **/
 public class ClientException extends TuDBException {
     /**
-     *
+     * constructor with code and message
      * @param code
      * @param message
      */
-    public ClientException(TuDBErrorCode code, String message) {
+    public ClientException(TuDBError code, String message) {
         super(code, message);
     }
 
     /**
-     *
+     * constructor with code and message and throwable
      * @param code
      * @param message
      * @param throwable
      */
-    public ClientException(TuDBErrorCode code, String message, Throwable throwable) {
+    public ClientException(TuDBError code, String message, Throwable throwable) {
         super(code, message, throwable);
     }
 }

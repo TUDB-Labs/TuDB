@@ -11,20 +11,21 @@ package org.grapheco.tudb.exception;
  **/
 public class StorageException extends TuDBException {
     /**
+     * constructor with code and message
      * @param code
      * @param message
      */
-    public StorageException(TuDBErrorCode code, String message) {
+    public StorageException(TuDBError code, String message) {
         super(code, message);
     }
 
     /**
-     *
+     * constructor with code and message and throwable
      * @param code
      * @param message
      * @param throwable
      */
-    public StorageException(TuDBErrorCode code, String message, Throwable throwable) {
+    public StorageException(TuDBError code, String message, Throwable throwable) {
         super(code, message, throwable);
     }
 }

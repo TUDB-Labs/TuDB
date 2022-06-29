@@ -18,4 +18,5 @@ message QueryRequest {
 
 message QueryResponse {
   bytes resultInBytes = 1;
+  string message = 2;
 }

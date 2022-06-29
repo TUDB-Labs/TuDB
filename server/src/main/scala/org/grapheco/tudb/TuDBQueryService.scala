@@ -44,6 +44,7 @@ class TuDBQueryService(dbPath: String, indexUri: String)
             )
           val resp: QueryResponse = QueryResponse
             .newBuilder()
+            .setMessage("OK")
             .setResultInBytes(ByteString.copyFrom(rowInBytes))
             .build()
           responseObserver.onNext(resp)
@@ -59,15 +60,14 @@ class TuDBQueryService(dbPath: String, indexUri: String)
       case e: Throwable =>
         errorMessage = systemExceptionProcess(e)
     } finally {
-      if (StringUtils.isEmpty(errorMessage)) {
+      if (!StringUtils.isEmpty(errorMessage)) {
         responseObserver.onNext(
           QueryResponse
             .newBuilder()
-            .setResultInBytes(ByteString.copyFrom(errorMessage.getBytes()))
+            .setMessage(errorMessage)
             .build()
         )
       }
-
       responseObserver.onCompleted()
     }
 
