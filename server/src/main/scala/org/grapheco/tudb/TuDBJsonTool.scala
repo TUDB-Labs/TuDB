@@ -21,16 +21,12 @@ object TuDBJsonTool {
     .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true)
     // 设置 java.util.Date 类型序列化格式
     .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
-  def getJson(node: TuNode): String = {
-    """{"id":""" + node.id + ""","label":""" + objectMapper.writeValueAsString(
-      node.labels
-    ) + ""","properties":""" + objectMapper.writeValueAsString(node.properties) + """}"""
-  }
 
   implicit class AnyRefAddMethod[A <: AnyRef](bean: A) {
 
     def toJson(): String = {
       bean match {
+        case node: TuNode                 => getJson(node)
         case relationship: TuRelationship => getJson(relationship)
         case subPath: PathTriple          => getJson(subPath)
         case path: LynxPath               => getJson(path)
@@ -46,10 +42,16 @@ object TuDBJsonTool {
 
   }
 
+  def getJson(node: TuNode): String = {
+    """{"identity":""" + node.id.value + ""","labels":""" + objectMapper.writeValueAsString(
+      node.labels
+    ) + ""","properties":""" + objectMapper.writeValueAsString(node.properties.map(kv=>kv._1->kv._2.value)) + """}"""
+  }
+
   def getJson(relationship: TuRelationship): String = {
     """{"identity":""" + relationship.id + ""","start":""" + relationship.startId + ""","end":""" +
       relationship.endId + ""","type":""" + relationship.relationType.get.value +
-      ""","properties":""" + objectMapper.writeValueAsString(relationship.properties) + """}"""
+      ""","properties":""" + objectMapper.writeValueAsString(relationship.properties.map(kv=>kv._1->kv._2.value)) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
     """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
