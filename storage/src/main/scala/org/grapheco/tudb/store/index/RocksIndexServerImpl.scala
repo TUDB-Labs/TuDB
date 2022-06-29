@@ -1,11 +1,10 @@
 /** Copyright (c) 2022 PandaDB * */
 package org.grapheco.tudb.store.index
 
-import org.grapheco.tudb.exception.TuDBException
+import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
-import org.rocksdb.{BlockBasedTableConfig, BloomFilter, CompactionStyle, CompressionType, LRUCache, Options, RocksDB, WriteOptions}
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import scala.collection.mutable
 
 /** @author: huagnlin
@@ -24,7 +23,7 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
     logger.info(f"start Rocks db:${params}")
     val path = params.getOrElse("path", null)
     if (path == null) {
-      throw new TuDBException(f"Rocksdb path is null")
+      throw new TuDBException(TuDBError.STORAGE_ERROR, f"Rocksdb path is null")
     }
     db = RocksDBStorage.getDB(path, rocksdbConfigPath = "performance")
   }
@@ -137,11 +136,11 @@ class RocksIndexServerImpl(params: Map[String, String]) extends IndexServer(para
 
   override val indexName: String = "rocksdb"
 
-  /**
-   * check   need rebuild index or not
-   *
-   * @param lastIndex last time use index
-   * @return
-   */
-  override def needRebuildIndex(lastIndex: String): Boolean = if (lastIndex==indexName) false else true
+  /** check   need rebuild index or not
+    *
+    * @param lastIndex last time use index
+    * @return
+    */
+  override def needRebuildIndex(lastIndex: String): Boolean =
+    if (lastIndex == indexName) false else true
 }

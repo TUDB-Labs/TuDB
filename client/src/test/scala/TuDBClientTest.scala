@@ -4,9 +4,10 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
 import org.grapheco.tudb.client.TuDBClient
+import org.grapheco.tudb.network.Query
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.{TuDBServer, TuInstanceContext, TuDBServerContext}
-import org.junit.{After, AfterClass, Assert, Before, BeforeClass, Test}
+import org.grapheco.tudb.{TuDBServer, TuDBServerContext, TuInstanceContext}
+import org.junit.{AfterClass, Assert, BeforeClass, Test}
 
 import java.io.File
 
@@ -130,6 +131,18 @@ class TuDBClientTest {
 
     client.query("match (n) detach delete n")
     client.shutdown()
+  }
+
+  @Test
+  def testCypherException(): Unit = {
+    val client: TuDBClient = new TuDBClient("127.0.0.1", testConnectionPort)
+    val request: Query.QueryRequest =
+      Query.QueryRequest.newBuilder().setStatement("321321321321").build()
+    val response = client.blockingStub.query(request)
+    if (response.hasNext) {
+      val message = response.next().getMessage
+      Assert.assertTrue(message.startsWith("Invalid input"))
+    }
   }
 
 }

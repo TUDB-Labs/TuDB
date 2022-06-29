@@ -1,7 +1,7 @@
 package org.grapheco.tudb.ldbc.performance
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.tudb.exception.TuDBException
+import org.grapheco.tudb.exception.{ClientException, TuDBError}
 import org.grapheco.tudb.ldbc.performance.Tools.printTimeCalculateResult
 import org.grapheco.tudb.store.relationship.{RelationshipStoreAPI, StoredRelationshipWithProperty}
 
@@ -12,8 +12,7 @@ import scala.collection.mutable.ArrayBuffer
   * @author: LiamGao
   * @create: 2022-03-24 17:51
   */
-class RelationPerformance(relationshipStore: RelationshipStoreAPI)
-    extends LazyLogging {
+class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyLogging {
   private var startTime: Long = _
   private val costArray: ArrayBuffer[Long] = ArrayBuffer.empty
 
@@ -43,14 +42,14 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI)
         val rId = relationshipStore.getRelationIdsByRelationType(tId.get).next()
         val r = relationshipStore.getRelationById(rId)
         testInRelationData.append(r.get)
-      } else throw new TuDBException(s"no such relation type: $rType")
+      } else throw new ClientException(TuDBError.CLIENT_ERROR, s"no such relation type: $rType")
     })
     testInRelationData.toArray
   }
 
   private def getRelationByIdTest(
       data: Array[StoredRelationshipWithProperty]
-  ): Unit = {
+    ): Unit = {
     data.foreach(r => {
       testTemplate(() => relationshipStore.getRelationById(r.id).get)
     })
@@ -60,7 +59,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI)
   }
   private def findInRelationTest(
       data: Array[StoredRelationshipWithProperty]
-  ): Unit = {
+    ): Unit = {
     data.foreach(r => {
       testTemplate(() => {
         val res = relationshipStore
@@ -75,7 +74,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI)
   }
   private def updateRelationTest(
       data: Array[StoredRelationshipWithProperty]
-  ): Unit = {
+    ): Unit = {
     data.foreach(r => {
       testTemplate(() =>
         relationshipStore.relationSetProperty(
@@ -99,7 +98,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI)
 
   private def addAndDeleteRelation(
       data: Array[StoredRelationshipWithProperty]
-  ): Unit = {
+    ): Unit = {
     data.foreach(r => {
       testTemplate(() => relationshipStore.deleteRelation(r.id))
     })

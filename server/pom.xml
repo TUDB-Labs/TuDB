@@ -68,6 +68,10 @@
             <version>2.13.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>lynx-rpc</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

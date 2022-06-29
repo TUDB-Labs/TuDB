@@ -67,7 +67,7 @@ public class LogUtil {
      * @param format
      * @param args
      */
-    public static final void error(Logger logger, Exception e, String format, Object... args) {
+    public static final void error(Logger logger, Throwable e, String format, Object... args) {
         logger.error(String.format(format, args), e);
     }
 

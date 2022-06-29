@@ -9,8 +9,8 @@
     <packaging>pom</packaging>
     <version>0.1.0-SNAPSHOT</version>
     <modules>
-        <module>lynx</module>
         <module>common-utils</module>
+        <module>lynx</module>
         <module>storage</module>
         <module>server</module>
         <module>query-engine</module>
@@ -133,6 +133,12 @@
                 <groupId>org.grapheco</groupId>
                 <artifactId>lynx-rpc</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.grapheco</groupId>
+                        <artifactId>lynx</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>

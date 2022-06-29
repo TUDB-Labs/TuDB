@@ -19,10 +19,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.grapheco</groupId>
-            <artifactId>lynx-rpc</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>annotations-api</artifactId>
             <!-- Generated has @Retention(SOURCE), so not needed at runtime -->
@@ -62,6 +58,18 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opencypher</groupId>
+            <artifactId>front-end-9.0</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opencypher</groupId>
+            <artifactId>tck-api_2.12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
     </dependencies>
 
