@@ -39,6 +39,18 @@ class JsonTest {
     Assert.assertTrue(
       json2 == """{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}"""
     )
+    val list_data = List(node, relation)
+    val json3 = list_data.toJson()
+    println(json3)
+    Assert.assertTrue(
+      json3 == """[{"identity":1,"labels":["name"],"properties":{"name":"sd"}},{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}]"""
+    )
+    val map_data = Map("a" -> node, "b" -> relation)
+    val json4 = map_data.toJson()
+    println(json4)
+    Assert.assertTrue(
+      json4 == """{"a" -> {"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b" -> {"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
+    )
   }
 
   @Before
