@@ -7,11 +7,11 @@ import org.grapheco.tudb.store.meta.TypeManager.PropertyId
 import scala.concurrent.Future
 
 /**
- * @Author: Airzihao
- * @Description:
- * @Date: Created at 17:19 2022/4/24
- * @Modified By:
- */
+  * @Author: Airzihao
+  * @Description:
+  * @Date: Created at 17:19 2022/4/24
+  * @Modified By:
+  */
 trait PropertyIndexStore {
 
   def isIndexed(propertyId: PropertyId): Boolean = ???
@@ -21,8 +21,10 @@ trait PropertyIndexStore {
 
   def getIdsByProp(propertyId: PropertyId, propertyValue: LynxValue): Iterator[Long] = ???
 
-  def greaterThan[T <: Comparable[T]](propertyId: PropertyId, propertyValue: T): Iterator[Long] = ???
-  def smallerThan[T <: Comparable[T]](propertyId: PropertyId, propertyValue: T): Iterator[Long] = ???
+  def greaterThan[T <: Comparable[T]](propertyId: PropertyId, propertyValue: T): Iterator[Long] =
+    ???
+  def smallerThan[T <: Comparable[T]](propertyId: PropertyId, propertyValue: T): Iterator[Long] =
+    ???
 
   def contains(propertyId: PropertyId, propertyValue: LynxString): Iterator[Long] = ???
   def startWith(propertyId: PropertyId, propertyValue: LynxString): Iterator[Long] = ???

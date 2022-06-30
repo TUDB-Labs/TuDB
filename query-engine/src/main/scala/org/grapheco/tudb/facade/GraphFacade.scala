@@ -536,11 +536,7 @@ class GraphFacade(
       .map(LynxPropertyKey)
       .getOrElse(LynxPropertyKey("unknown"))
 
-  private def addNode(
-      id: Option[Long],
-      labels: Seq[String],
-      nodeProps: Map[String, Any]
-    ): Long = {
+  private def addNode(id: Option[Long], labels: Seq[String], nodeProps: Map[String, Any]): Long = {
     val nodeId = id.getOrElse(nodeStoreAPI.newNodeId())
     val labelIds = labels.map(nodeStoreAPI.addLabel).toArray
     val props: Map[Int, Any] =
@@ -560,8 +556,9 @@ class GraphFacade(
     ): Long = {
     val rid = id.getOrElse(relationStore.newRelationId())
     val typeId = relationStore.addRelationType(label)
-    val props = relProps.map { case (key, value) =>
-      (relationStore.addPropertyKey(key), value)
+    val props = relProps.map {
+      case (key, value) =>
+        (relationStore.addPropertyKey(key), value)
     }
     //    val rel = new StoredRelationshipWithProperty(rid, from, to, labelId, props)
     relationStore.addRelationship(rid, from, to, typeId, props)
@@ -574,8 +571,9 @@ class GraphFacade(
     TuNode(
       node.id,
       node.labelIds.map(mapLynxNodeLabel).toSeq,
-      node.properties.toSeq.map { case (keyId, value) =>
-        (mapLynxPropKeyOfNodes(keyId).value, LynxValue(value))
+      node.properties.toSeq.map {
+        case (keyId, value) =>
+          (mapLynxPropKeyOfNodes(keyId).value, LynxValue(value))
       }
     )
   }
@@ -586,8 +584,9 @@ class GraphFacade(
       rel.from,
       rel.to,
       relationStore.getRelationTypeName(rel.typeId).map(LynxRelationshipType),
-      rel.properties.toSeq.map { case (keyId, value) =>
-        (mapLynxPropKeyOfRelationships(keyId).value, LynxValue(value))
+      rel.properties.toSeq.map {
+        case (keyId, value) =>
+          (mapLynxPropKeyOfRelationships(keyId).value, LynxValue(value))
       }
     )
   }
@@ -695,13 +694,14 @@ class GraphFacade(
         relationshipsInput: Seq[(String, RelationshipInput)],
         onCreated: (Seq[(String, LynxNode)], Seq[(String, LynxRelationship)]) => T
       ): T = {
-      val nodesMap: Map[String, TuNode] = nodesInput.map { case (valueName, input) =>
-        valueName ->
-          TuNode(
-            nodeStoreAPI.newNodeId(),
-            input.labels,
-            input.props.map(kv => (kv._1.value, kv._2))
-          )
+      val nodesMap: Map[String, TuNode] = nodesInput.map {
+        case (valueName, input) =>
+          valueName ->
+            TuNode(
+              nodeStoreAPI.newNodeId(),
+              input.labels,
+              input.props.map(kv => (kv._1.value, kv._2))
+            )
       }.toMap
 
       def localNodeRef(ref: NodeInputRef): LynxNodeId = ref match {
@@ -710,14 +710,15 @@ class GraphFacade(
       }
 
       val relationshipsMap: Map[String, TuRelationship] =
-        relationshipsInput.map { case (valueName, input) =>
-          valueName -> TuRelationship(
-            relationStore.newRelationId(),
-            localNodeRef(input.startNodeRef).value,
-            localNodeRef(input.endNodeRef).value,
-            input.types.headOption,
-            input.props.map(kv => (kv._1.value, kv._2))
-          )
+        relationshipsInput.map {
+          case (valueName, input) =>
+            valueName -> TuRelationship(
+              relationStore.newRelationId(),
+              localNodeRef(input.startNodeRef).value,
+              localNodeRef(input.endNodeRef).value,
+              input.types.headOption,
+              input.props.map(kv => (kv._1.value, kv._2))
+            )
         }.toMap
 
       nodesMap.foreach { node =>
@@ -752,12 +753,13 @@ class GraphFacade(
         data: Array[(LynxPropertyKey, Any)],
         cleanExistProperties: Boolean
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
-      data.foreach { case (key, value) =>
-        nodeStoreAPI.nodeSetProperty(
-          id.toLynxInteger.value,
-          nodePropNameToId(key.value).get,
-          value
-        )
+      data.foreach {
+        case (key, value) =>
+          nodeStoreAPI.nodeSetProperty(
+            id.toLynxInteger.value,
+            nodePropNameToId(key.value).get,
+            value
+          )
       }
       nodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
     }
@@ -779,12 +781,13 @@ class GraphFacade(
         relationshipIds: Iterator[LynxId],
         data: Array[(LynxPropertyKey, Any)]
       ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
-      data.foreach { case (key, value) =>
-        relationStore.relationSetProperty(
-          id.toLynxInteger.value,
-          relPropNameToId(key.value).get,
-          value
-        )
+      data.foreach {
+        case (key, value) =>
+          relationStore.relationSetProperty(
+            id.toLynxInteger.value,
+            relPropNameToId(key.value).get,
+            value
+          )
       }
       relationStore.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
@@ -855,10 +858,8 @@ class GraphFacade(
 
   private val runner: CypherRunner = new CypherRunner(this)
 
-  def cypher(
-      query: String,
-      param: Map[String, Any] = Map.empty[String, Any]
-    ): LynxResult = runner.run(query, param)
+  def cypher(query: String, param: Map[String, Any] = Map.empty[String, Any]): LynxResult =
+    runner.run(query, param)
 
   def close(): Unit = {
     nodeStoreAPI.close()

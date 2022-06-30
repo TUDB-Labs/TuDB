@@ -16,10 +16,7 @@ class HopUtils(pathUtils: PathUtils) {
     * @param relationshipFilter filter
     * @return next hop paths
     */
-  def getNextOutGoingHop(
-      start: GraphHop,
-      relationshipFilter: RelationshipFilter
-    ): GraphHop = {
+  def getNextOutGoingHop(start: GraphHop, relationshipFilter: RelationshipFilter): GraphHop = {
 
     // Save single hop's paths.
     val nextHop: ArrayBuffer[GraphPath] = ArrayBuffer.empty
@@ -48,10 +45,7 @@ class HopUtils(pathUtils: PathUtils) {
     GraphHop(nextHop)
   }
 
-  def getNextInComingHop(
-      start: GraphHop,
-      relationshipFilter: RelationshipFilter
-    ): GraphHop = {
+  def getNextInComingHop(start: GraphHop, relationshipFilter: RelationshipFilter): GraphHop = {
     // save single hop's paths
     val nextHop: ArrayBuffer[GraphPath] = ArrayBuffer.empty
 
@@ -69,10 +63,7 @@ class HopUtils(pathUtils: PathUtils) {
   }
 
   // INCOMING transfer to OUTGOING, then each next both-hop we only need to use the last path's endNode to expand
-  def getNextBothHop(
-      start: GraphHop,
-      relationshipFilter: RelationshipFilter
-    ): GraphHop = {
+  def getNextBothHop(start: GraphHop, relationshipFilter: RelationshipFilter): GraphHop = {
     val nextHop: ArrayBuffer[GraphPath] = ArrayBuffer.empty
 
     start.paths.foreach(thisPath => {

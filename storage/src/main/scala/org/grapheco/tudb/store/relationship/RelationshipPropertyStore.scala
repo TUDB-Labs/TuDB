@@ -17,7 +17,7 @@ class RelationshipPropertyStore(db: KeyValueDB) {
       toId: Long,
       typeId: Int,
       props: Map[Int, Any]
-  ): Unit = {
+    ): Unit = {
     val keyBytes: Array[Byte] =
       RelationshipSerializer.encodeRelationshipKey(relationshipId)
     val relationshipInBytes: Array[Byte] = RelationshipSerializer
@@ -39,9 +39,7 @@ class RelationshipPropertyStore(db: KeyValueDB) {
   def delete(relationshipId: RelationshipId): Unit =
     db.delete(RelationshipSerializer.encodeRelationshipKey(relationshipId))
 
-  def get(
-      relationshipId: RelationshipId
-  ): Option[StoredRelationshipWithProperty] = {
+  def get(relationshipId: RelationshipId): Option[StoredRelationshipWithProperty] = {
     val keyBytes = RelationshipSerializer.encodeRelationshipKey(relationshipId)
     val res = db.get(keyBytes)
     if (res != null)

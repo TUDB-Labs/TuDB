@@ -11,7 +11,7 @@ import java.time.{Duration, Instant, LocalDate, LocalDateTime, LocalTime, Offset
 import java.time.format.DateTimeFormatter
 
 case class LynxTemporalParseException(msg: String) extends LynxException {
-    override def getMessage: String = msg
+  override def getMessage: String = msg
 }
 
 trait LynxTemporalParser {
@@ -20,7 +20,7 @@ trait LynxTemporalParser {
   def parse(v: LynxValue): LynxTemporalValue = {
     v match {
       case x: LynxString => parse(v.value.asInstanceOf[String])
-      case x: LynxMap => parse(x.value.mapValues(_.value))
+      case x: LynxMap    => parse(x.value.mapValues(_.value))
     }
   }
 
@@ -60,7 +60,10 @@ trait LynxTemporalParser {
     (year, month, day)
   }
 
-  def parseHourMinuteSecond(map: Map[String, Any], requiredHasDay: Boolean = true): (Int, Int, Int) = {
+  def parseHourMinuteSecond(
+      map: Map[String, Any],
+      requiredHasDay: Boolean = true
+    ): (Int, Int, Int) = {
     if (map.contains("hour") && requiredHasDay) {
       assureContains(map, "day")
     }
@@ -83,7 +86,8 @@ trait LynxTemporalParser {
   }
 
   def parseNanoOfSecond(map: Map[String, Any], requiredHasSecond: Boolean = true): Int = {
-    if (requiredHasSecond && (map.contains("millisecond") || map.contains("microsecond") || map.contains("nanosecond"))) {
+    if (requiredHasSecond && (map.contains("millisecond") || map.contains("microsecond") || map
+          .contains("nanosecond"))) {
       assureContains(map, "second")
     }
 
@@ -94,8 +98,7 @@ trait LynxTemporalParser {
 
     if (map.contains("millisecond")) {
       assureBetween(microsecond, 0, 999, "microsecond")
-    }
-    else {
+    } else {
       assureBetween(millisecond, 0, 999999, "microsecond")
     }
 
@@ -103,15 +106,13 @@ trait LynxTemporalParser {
 
     if (map.contains("microsecond")) {
       assureBetween(nanosecond, 0, 999, "nanosecond")
-    }
-    else if(map.contains("millisecond")) {
+    } else if (map.contains("millisecond")) {
       assureBetween(nanosecond, 0, 999999, "nanosecond")
-    }
-    else {
+    } else {
       assureBetween(nanosecond, 0, 999999999, "nanosecond")
     }
 
-    val nanoOfSecond =  millisecond*1000*1000 + microsecond*1000 + nanosecond
+    val nanoOfSecond = millisecond * 1000 * 1000 + microsecond * 1000 + nanosecond
     nanoOfSecond
   }
 
@@ -159,8 +160,7 @@ trait LynxTemporalParser {
   def parseZone(map: Map[String, Any]): ZoneId = {
     if (map.contains("timezone")) {
       parseZone(map("timezone").asInstanceOf[String])
-    }
-    else {
+    } else {
       throw LynxTemporalParseException("map must contains 'timezone'")
     }
   }
@@ -168,14 +168,11 @@ trait LynxTemporalParser {
   def parseZone(zone: String): ZoneId = {
     if (zone == null || zone.isEmpty) {
       null
-    }
-    else if ("Z".equalsIgnoreCase(zone)) {
+    } else if ("Z".equalsIgnoreCase(zone)) {
       ZoneOffset.UTC
-    }
-    else if (zone.startsWith("+") || zone.startsWith("-")) { // zone offset
+    } else if (zone.startsWith("+") || zone.startsWith("-")) { // zone offset
       ZoneOffset.of(zone)
-    }
-    else { // zone id
+    } else { // zone id
       ZoneId.of(zone)
     }
   }
@@ -186,11 +183,9 @@ object LynxDateUtil extends LynxTemporalParser {
     var v: LocalDate = null
     if (dateStr.contains('-')) {
       v = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    }
-    else if (dateStr.contains('/')) {
+    } else if (dateStr.contains('/')) {
       v = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"))
-    }
-    else {
+    } else {
       v = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"))
     }
 
@@ -222,31 +217,28 @@ object LynxDateUtil extends LynxTemporalParser {
       throw LynxTemporalParseException("At least one temporal unit must be specified")
     }
     var v: LocalDate = null
-    if (map.contains("timezone")){
+    if (map.contains("timezone")) {
       if (map.size == 1) {
         v = LocalDate.now(parseZone(map("timezone").asInstanceOf[String]))
-      }
-      else {
+      } else {
         throw LynxTemporalParseException("Cannot assign time zone if also assigning other fields")
       }
-    }
-    else if (map.contains("year")) {
+    } else if (map.contains("year")) {
       val (year, month, day) = parseYearMonthDay(map)
       v = LocalDate.of(year, month, day)
-    }
-    else throw LynxTemporalParseException("parse date from map: map not contains (year, month, day) ")
+    } else
+      throw LynxTemporalParseException("parse date from map: map not contains (year, month, day) ")
     of(v)
   }
 
 }
 
-
-object LynxDateTimeUtil extends LynxTemporalParser{
+object LynxDateTimeUtil extends LynxTemporalParser {
   def parse(zonedDateTimeStr: String): LynxDateTime = {
-    try{
+    try {
       val v = ZonedDateTime.parse(zonedDateTimeStr)
       LynxDateTime(v)
-    }catch  {
+    } catch {
       case _ => throw new Exception("DateTimeParseException")
     }
   }
@@ -259,9 +251,18 @@ object LynxDateTimeUtil extends LynxTemporalParser{
     LynxDateTime(zonedDateTime)
   }
 
-  def of(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int,
-         nanosecond: Int, timezone: String): LynxDateTime = {
-    val v = ZonedDateTime.of(year, month, day, hour, minute, second, nanosecond, parseZone(timezone))
+  def of(
+      year: Int,
+      month: Int,
+      day: Int,
+      hour: Int,
+      minute: Int,
+      second: Int,
+      nanosecond: Int,
+      timezone: String
+    ): LynxDateTime = {
+    val v =
+      ZonedDateTime.of(year, month, day, hour, minute, second, nanosecond, parseZone(timezone))
     LynxDateTime(v)
   }
 
@@ -273,10 +274,9 @@ object LynxDateTimeUtil extends LynxTemporalParser{
     val zoneId = parseZone(map.getOrElse("timezone", "Z").asInstanceOf[String])
     if (map.size == 1 && map.contains("timezone")) {
       v = ZonedDateTime.now(zoneId)
-    }
-    else {
+    } else {
       val (year, month, day) = parseYearMonthDay(map)
-      val (hour, minute, second) = parseHourMinuteSecond(map,true)
+      val (hour, minute, second) = parseHourMinuteSecond(map, true)
       val nanoOfSecond = parseNanoOfSecond(map)
       v = ZonedDateTime.of(year, month, day, hour, minute, second, nanoOfSecond, zoneId)
     }
@@ -298,8 +298,15 @@ object LynxLocalDateTimeUtil extends LynxTemporalParser {
     LynxLocalDateTime(localDateTime)
   }
 
-  def of(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int,
-         nanosecond: Int): LynxLocalDateTime = {
+  def of(
+      year: Int,
+      month: Int,
+      day: Int,
+      hour: Int,
+      minute: Int,
+      second: Int,
+      nanosecond: Int
+    ): LynxLocalDateTime = {
     val v = LocalDateTime.of(year, month, day, hour, minute, second, nanosecond)
     LynxLocalDateTime(v)
   }
@@ -309,21 +316,19 @@ object LynxLocalDateTimeUtil extends LynxTemporalParser {
       throw LynxTemporalParseException("At least one temporal unit must be specified")
     }
     var v: LocalDateTime = null
-    if (map.contains("timezone")){
+    if (map.contains("timezone")) {
       if (map.size == 1) {
         v = LocalDateTime.now(parseZone(map("timezone").asInstanceOf[String]))
-      }
-      else {
+      } else {
         throw LynxTemporalParseException("Cannot assign time zone if also assigning other fields")
       }
-    }
-    else if (map.contains("year")) {
+    } else if (map.contains("year")) {
       val (year, month, day) = parseYearMonthDay(map)
-      val (hour, minute, second) = parseHourMinuteSecond(map,true)
+      val (hour, minute, second) = parseHourMinuteSecond(map, true)
       val nanoOfSecond = parseNanoOfSecond(map)
       v = LocalDateTime.of(year, month, day, hour, minute, second, nanoOfSecond)
-    }
-    else throw LynxTemporalParseException("parse date from map: map not contains (year, month, day) ")
+    } else
+      throw LynxTemporalParseException("parse date from map: map not contains (year, month, day) ")
 
     of(v)
   }
@@ -343,7 +348,7 @@ object LynxTimeUtil extends LynxTemporalParser {
     LynxTime(offsetTime)
   }
 
-  def of (hour: Int, minute: Int, second: Int, nanosOfSecond: Int, offset: ZoneOffset): LynxTime = {
+  def of(hour: Int, minute: Int, second: Int, nanosOfSecond: Int, offset: ZoneOffset): LynxTime = {
     val v = OffsetTime.of(hour, minute, second, nanosOfSecond, offset)
     LynxTime(v)
   }
@@ -363,9 +368,8 @@ object LynxTimeUtil extends LynxTemporalParser {
 
     if (map.size == 1 && map.contains("timezone")) {
       v = OffsetTime.now(zoneOffset)
-    }
-    else {
-      val (hour, minute, second) = parseHourMinuteSecond(map,false)
+    } else {
+      val (hour, minute, second) = parseHourMinuteSecond(map, false)
       val nanoOfSecond = parseNanoOfSecond(map, true)
       v = OffsetTime.of(hour, minute, second, nanoOfSecond, zoneOffset)
     }
@@ -373,7 +377,6 @@ object LynxTimeUtil extends LynxTemporalParser {
     of(v)
   }
 }
-
 
 object LynxLocalTimeUtil extends LynxTemporalParser {
   def parse(localTimeStr: String): LynxLocalTime = {
@@ -399,20 +402,20 @@ object LynxLocalTimeUtil extends LynxTemporalParser {
       throw LynxTemporalParseException("At least one temporal unit must be specified")
     }
     var v: LocalTime = null
-    if (map.contains("timezone")){
+    if (map.contains("timezone")) {
       if (map.size == 1) {
         v = LocalTime.now(parseZone(map("timezone").asInstanceOf[String]))
-      }
-      else {
+      } else {
         throw LynxTemporalParseException("Cannot assign time zone if also assigning other fields")
       }
-    }
-    else if (map.contains("hour")) {
-      val (hour, minute, second) = parseHourMinuteSecond(map,false)
+    } else if (map.contains("hour")) {
+      val (hour, minute, second) = parseHourMinuteSecond(map, false)
       val nanoOfSecond = parseNanoOfSecond(map)
-      v = LocalTime.of( hour, minute, second, nanoOfSecond)
-    }
-    else throw LynxTemporalParseException("parse date from map: map not contains (hour, minute, second) ")
+      v = LocalTime.of(hour, minute, second, nanoOfSecond)
+    } else
+      throw LynxTemporalParseException(
+        "parse date from map: map not contains (hour, minute, second) "
+      )
 
     of(v)
   }
@@ -429,36 +432,36 @@ object LynxDurationUtil {
       throw LynxTemporalParseException("At least one temporal unit must be specified")
     }
     var seconds: Double = 0
-    if (map.contains("timezone")){
+    if (map.contains("timezone")) {
       throw LynxTemporalParseException("Cannot assign time zone to duration")
     }
-    if (map.contains("years")){
-      seconds+=map("years")*365*24*60*60
+    if (map.contains("years")) {
+      seconds += map("years") * 365 * 24 * 60 * 60
     }
-    if (map.contains("months")){
-      seconds+=map("months")*30*24*60*60//TODO check if neo4j does the same
+    if (map.contains("months")) {
+      seconds += map("months") * 30 * 24 * 60 * 60 //TODO check if neo4j does the same
     }
-    if (map.contains("days")){
-      seconds+=map("days")*24*60*60
+    if (map.contains("days")) {
+      seconds += map("days") * 24 * 60 * 60
     }
-    if (map.contains("hours")){
-      seconds+=map("hours")*60*60
+    if (map.contains("hours")) {
+      seconds += map("hours") * 60 * 60
     }
-    if (map.contains("minutes")){
-      seconds+=map("minutes")*60
+    if (map.contains("minutes")) {
+      seconds += map("minutes") * 60
     }
-    if (map.contains("seconds")){
-      seconds+=map("seconds")
+    if (map.contains("seconds")) {
+      seconds += map("seconds")
     }
     var nanos = seconds * 1000 * 1000 * 1000
-    if (map.contains("milliseconds")){
-      nanos+=map("milliseconds") * 1000 * 1000
+    if (map.contains("milliseconds")) {
+      nanos += map("milliseconds") * 1000 * 1000
     }
-    if (map.contains("microseconds")){
-      nanos+=map("milliseconds") * 1000
+    if (map.contains("microseconds")) {
+      nanos += map("milliseconds") * 1000
     }
-    if (map.contains("nanoseconds")){
-      nanos+=map("nanoseconds")
+    if (map.contains("nanoseconds")) {
+      nanos += map("nanoseconds")
     }
     LynxDuration(Duration.ofNanos(nanos.longValue()))
   }

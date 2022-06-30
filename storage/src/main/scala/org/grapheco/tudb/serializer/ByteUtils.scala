@@ -126,10 +126,7 @@ object ByteUtils {
   def booleanToBytes(b: Boolean): Array[Byte] =
     Array[Byte](if (b) 1.toByte else 0.toByte)
 
-  def stringToBytes(
-      str: String,
-      charset: Charset = StandardCharsets.UTF_8
-  ): Array[Byte] = {
+  def stringToBytes(str: String, charset: Charset = StandardCharsets.UTF_8): Array[Byte] = {
     str.getBytes(charset)
   }
 
@@ -138,7 +135,7 @@ object ByteUtils {
       offset: Int = 0,
       length: Int = 0,
       charset: Charset = StandardCharsets.UTF_8
-  ): String = {
+    ): String = {
     if (length > 0) new String(bytes, offset, length, charset)
     else new String(bytes, offset, bytes.length, charset)
   }

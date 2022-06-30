@@ -3,8 +3,6 @@ package org.grapheco.tudb.test.index
 import org.grapheco.tudb.store.index.{EmptyIndexServerImpl, IndexFactory, IndexServer, MemoryIndexServerImpl, RocksIndexServerImpl}
 import org.junit._
 import org.junit.runners.MethodSorters
-
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class IndexServerTest {
 
@@ -55,7 +53,7 @@ class IndexServerTest {
   test index engine impl
    */
   def testEngineImpl(impl: IndexServer): Unit = {
-    val (propertyKey,nodeId)=("property_key_value",1)
+    val (propertyKey, nodeId) = ("property_key_value", 1)
     impl.addIndex(propertyKey, nodeId)
     Assert.assertTrue(impl.getIndexByKey(propertyKey).contains(nodeId))
     Assert.assertFalse(impl.getIndexByKey(propertyKey).contains(2))
@@ -63,17 +61,10 @@ class IndexServerTest {
     Assert.assertFalse(impl.getIndexByKey(propertyKey).contains(nodeId))
     Assert.assertTrue(impl.getIndexByKey(propertyKey).isEmpty)
   }
-
-
   @Before
-  def cleanUp(): Unit = {
-
-  }
+  def cleanUp(): Unit = {}
 
   @After
-  def close(): Unit = {
-
-  }
-
+  def close(): Unit = {}
 
 }

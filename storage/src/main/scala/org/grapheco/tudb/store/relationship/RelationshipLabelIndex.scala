@@ -8,7 +8,6 @@ import org.grapheco.tudb.store.storage.KeyValueDB
   * @Date: Created at 12:42 下午 2022/2/4
   * @Modified By:
   */
-
 class RelationshipLabelIndex(db: KeyValueDB) {
 
   def set(labelId: Int, relId: Long): Unit = {

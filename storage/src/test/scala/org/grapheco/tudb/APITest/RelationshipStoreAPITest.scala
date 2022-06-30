@@ -19,7 +19,6 @@ import java.io.File
   * @Date: Created at 10:07 上午 2022/2/5
   * @Modified By:
   */
-
 object RelationshipStoreAPITest {
   val outputRoot: String =
     s"${TestUtils.getModuleRootPath}/testOutput/relationshipStoreTest"
@@ -87,9 +86,7 @@ class RelationshipStoreAPITest {
     nodeStoreAPI.allNodes().foreach(node => nodeStoreAPI.deleteNode(node.id))
     relationshipStoreAPI
       .allRelations()
-      .foreach(relationship =>
-        relationshipStoreAPI.deleteRelation(relationship.id)
-      )
+      .foreach(relationship => relationshipStoreAPI.deleteRelation(relationship.id))
     Assert.assertFalse(nodeStoreAPI.allNodes().hasNext)
     Assert.assertFalse(relationshipStoreAPI.allRelations().hasNext)
   }

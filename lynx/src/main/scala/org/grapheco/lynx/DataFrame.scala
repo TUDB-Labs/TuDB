@@ -153,8 +153,9 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
     )(ctx: ExpressionContext
     ): DataFrame = {
     val schema1 = df.schema
-    val schema2 = columns.map { case (name, expression) =>
-      name -> expressionEvaluator.typeOf(expression, schema1.toMap)
+    val schema2 = columns.map {
+      case (name, expression) =>
+        name -> expressionEvaluator.typeOf(expression, schema1.toMap)
     }
 
     val colNames = schema1.map { case (name, lynxType) => name }
@@ -200,12 +201,13 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
             ) // #trans to: (groupingValue: Seq[LynxValue] -> recordsCtx: Seq[ExpressionContext])
             .map {
               case (
-                    groupingValue,
-                    recordsCtx
+                  groupingValue,
+                  recordsCtx
                   ) => // #aggragate: (groupingValues & aggregationValues): Seq[LynxValue]
                 groupingValue ++ {
-                  aggregations.map { case (name, expr) =>
-                    expressionEvaluator.aggregateEval(expr)(recordsCtx)
+                  aggregations.map {
+                    case (name, expr) =>
+                      expressionEvaluator.aggregateEval(expr)(recordsCtx)
                   }
                 }
             }
@@ -214,8 +216,9 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
           val allRecordsCtx = df.records.map { record =>
             ctx.withVars(columnsName.zip(record).toMap)
           }.toSeq
-          Iterator(aggregations.map { case (name, expr) =>
-            expressionEvaluator.aggregateEval(expr)(allRecordsCtx)
+          Iterator(aggregations.map {
+            case (name, expr) =>
+              expressionEvaluator.aggregateEval(expr)(allRecordsCtx)
           })
         }
       }

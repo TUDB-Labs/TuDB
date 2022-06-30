@@ -6,12 +6,12 @@ import org.opencypher.v9_0.util.symbols.CTDuration
 import java.time.Duration
 
 /**
- * @ClassName LynxDuration
- * @Description TODO
- * @Author huchuan
- * @Date 2022/4/1
- * @Version 0.1
- */
+  * @ClassName LynxDuration
+  * @Description TODO
+  * @Author huchuan
+  * @Date 2022/4/1
+  * @Version 0.1
+  */
 case class LynxDuration(duration: Duration) extends LynxTemporalValue {
   def value: Duration = duration
 
@@ -39,14 +39,15 @@ case class LynxDuration(duration: Duration) extends LynxTemporalValue {
     if (hours != 0) buf.append(hours).append('H')
     if (minutes != 0) buf.append(minutes).append('M')
     if (secs == 0 && nanos == 0 && buf.length > 2) return buf.toString
-    if (secs < 0 && nanos > 0) if (secs == -1) buf.append("-0")
-    else buf.append(secs + 1)
+    if (secs < 0 && nanos > 0)
+      if (secs == -1) buf.append("-0")
+      else buf.append(secs + 1)
     else buf.append(secs)
     if (nanos > 0) {
       val pos = buf.length
       if (secs < 0) buf.append(2 * 1000000000L - nanos)
       else buf.append(nanos + 1000000000L)
-      while ( {
+      while ({
         buf.charAt(buf.length - 1) == '0'
       }) buf.setLength(buf.length - 1)
       buf.setCharAt(pos, '.')

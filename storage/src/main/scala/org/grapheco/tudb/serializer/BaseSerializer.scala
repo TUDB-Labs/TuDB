@@ -252,10 +252,7 @@ trait BaseSerializer {
     propsMap
   }
 
-  def decodeArray[T](
-      byteBuf: ByteBuf,
-      propType: SerializerDataType.Value
-  ): Array[_] = {
+  def decodeArray[T](byteBuf: ByteBuf, propType: SerializerDataType.Value): Array[_] = {
     val length = byteBuf.readInt()
     propType match {
       case SerializerDataType.ARRAY_STRING =>

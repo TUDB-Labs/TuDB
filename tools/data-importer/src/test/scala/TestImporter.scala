@@ -54,7 +54,13 @@ class TestImporter {
       .getResource("relationships/comment_hasCreator_person2.csv")
       .getPath
     script = script ++
-      Array(commentDataPath1, commentDataPath2, personDataPath, relationDataPath1, relationDataPath2)
+      Array(
+        commentDataPath1,
+        commentDataPath2,
+        personDataPath,
+        relationDataPath1,
+        relationDataPath2
+      )
 
     TuImporter.main(script)
 
@@ -69,7 +75,7 @@ class TestImporter {
       "default",
       nodeMetaDB,
       "tudb://index?type=dummy",
-    _dbPath
+      _dbPath
     )
     Assert.assertEquals(862, nodeStore.allNodes().size)
     Assert.assertEquals(862, statisticDB.nodeCount)

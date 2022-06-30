@@ -17,15 +17,13 @@ trait AbstractNodeSerializer extends BaseSerializer {
 
   def encodeNodeProperties(props: Map[Int, Any]): Array[Byte]
 
-  def encodeNodeWithProperties(
-      storedNodeWithProperty: StoredNodeWithProperty
-  ): Array[Byte]
+  def encodeNodeWithProperties(storedNodeWithProperty: StoredNodeWithProperty): Array[Byte]
 
   def encodeNodeWithProperties(
       id: Long,
       labelIDs: Array[Int],
       properties: Map[Int, Any]
-  ): Array[Byte]
+    ): Array[Byte]
 
   def decodeNodeWithProperties(bytes: Array[Byte]): StoredNodeWithProperty
 

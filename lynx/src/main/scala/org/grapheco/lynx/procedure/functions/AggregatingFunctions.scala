@@ -42,18 +42,28 @@ class AggregatingFunctions {
       dropNull.foreach { v =>
         if (v.isInstanceOf[LynxNumber] || v.isInstanceOf[LynxDuration]) {
           if (v.isInstanceOf[LynxNumber] == firstIsNum.get) {
-            if (firstIsNum.get) { numSum += v.asInstanceOf[LynxNumber].number.doubleValue() }
-            else { durSum = durSum.plus(v.asInstanceOf[LynxDuration].duration) }
-          } else { throw LynxProcedureException("avg() cannot mix number and duration") }
+            if (firstIsNum.get) {
+              numSum += v.asInstanceOf[LynxNumber].number.doubleValue()
+            } else {
+              durSum = durSum.plus(v.asInstanceOf[LynxDuration].duration)
+            }
+          } else {
+            throw LynxProcedureException("avg() cannot mix number and duration")
+          }
         } else {
           throw LynxProcedureException(
             s"avg() can only handle numerical values, duration, and null. Got ${v}"
           )
         }
       }
-      if (firstIsNum.get) { LynxFloat(numSum / dropNull.length) }
-      else { LynxDuration(durSum.dividedBy(dropNull.length)) }
-    } else { LynxNull }
+      if (firstIsNum.get) {
+        LynxFloat(numSum / dropNull.length)
+      } else {
+        LynxDuration(durSum.dividedBy(dropNull.length))
+      }
+    } else {
+      LynxNull
+    }
   }
 
   /** Returns a list containing the values returned by an expression.
@@ -128,9 +138,14 @@ class AggregatingFunctions {
       dropNull.foreach { v =>
         if (v.isInstanceOf[LynxNumber] || v.isInstanceOf[LynxDuration]) {
           if (v.isInstanceOf[LynxNumber] == firstIsNum.get) {
-            if (firstIsNum.get) { numSum += v.asInstanceOf[LynxNumber].number.doubleValue() }
-            else { durSum = durSum.plus(v.asInstanceOf[LynxDuration].duration) }
-          } else { throw LynxProcedureException("sum() cannot mix number and duration") }
+            if (firstIsNum.get) {
+              numSum += v.asInstanceOf[LynxNumber].number.doubleValue()
+            } else {
+              durSum = durSum.plus(v.asInstanceOf[LynxDuration].duration)
+            }
+          } else {
+            throw LynxProcedureException("sum() cannot mix number and duration")
+          }
         } else {
           throw LynxProcedureException(
             s"sum() can only handle numerical values, duration, and null. Got ${v}"
@@ -138,6 +153,8 @@ class AggregatingFunctions {
         }
       }
       if (firstIsNum.get) LynxFloat(numSum) else LynxDuration(durSum)
-    } else { LynxNull }
+    } else {
+      LynxNull
+    }
   }
 }

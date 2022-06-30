@@ -23,8 +23,7 @@ case class GlobalArgs(
     inRelationDB: KeyValueDB,
     outRelationDB: KeyValueDB,
     relationTypeDB: KeyValueDB,
-    statistics: TuDBStatistics
-)
+    statistics: TuDBStatistics)
 
 case class ImporterStatics() {
   private val globalNodeCount: AtomicLong = new AtomicLong(0)

@@ -14,7 +14,7 @@ import org.grapheco.lynx.types.time.LynxDate
   */
 abstract class IndexServer(params: Map[String, String]) extends LazyLogging {
   /*
-    * @param indexName: index name
+   * @param indexName: index name
    */
   val indexName: String
   init(params)
@@ -58,10 +58,10 @@ abstract class IndexServer(params: Map[String, String]) extends LazyLogging {
   def close(): Unit
 
   /**
-   * check  need rebuild index or not when system start
-   * @param lastIndex last time use index
-   * @return
-   */
+    * check  need rebuild index or not when system start
+    * @param lastIndex last time use index
+    * @return
+    */
   def needRebuildIndex(lastIndex: String): Boolean
 
   /** encode tudb Key to string

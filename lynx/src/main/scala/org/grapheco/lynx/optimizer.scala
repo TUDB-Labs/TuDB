@@ -41,16 +41,16 @@ class DefaultPhysicalPlanOptimizer(runnerContext: CypherRunnerContext)
 object RemoveNullProject extends PhysicalPlanOptimizerRule {
 
   override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan,
-    { case pnode: PPTNode =>
-      pnode.children match {
-        case Seq(p @ PPTProject(ri)) if ri.items.forall {
-              case AliasedReturnItem(expression, variable) => expression == variable
-            } =>
-          pnode.withChildren(pnode.children.filterNot(_ eq p) ++ p.children)
+    plan, {
+      case pnode: PPTNode =>
+        pnode.children match {
+          case Seq(p @ PPTProject(ri)) if ri.items.forall {
+                case AliasedReturnItem(expression, variable) => expression == variable
+              } =>
+            pnode.withChildren(pnode.children.filterNot(_ eq p) ++ p.children)
 
-        case _ => pnode
-      }
+          case _ => pnode
+        }
     }
   )
 }
@@ -64,8 +64,7 @@ object RemoveNullProject extends PhysicalPlanOptimizerRule {
   */
 object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan,
-    {
+    plan, {
       case pnode: PPTNode => {
         pnode.children match {
           case Seq(pf @ PPTFilter(exprs)) => {
@@ -146,11 +145,12 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
 
     extractParamsFromFilterExpression(expression, labelMap, propItems, regexPattern, notPushDown)
 
-    propItems.foreach { case (name, exprs) =>
-      exprs.size match {
-        case 0 => {}
-        case _ => {
-          propertyMap += name -> Option(MapExpression(List(exprs: _*))(InputPosition(0, 0, 0)))
+    propItems.foreach {
+      case (name, exprs) =>
+        exprs.size match {
+          case 0 => {}
+          case _ => {
+            propertyMap += name -> Option(MapExpression(List(exprs: _*))(InputPosition(0, 0, 0)))
 //            if (regexPattern.isEmpty) propertyMap += name -> Option(MapExpression(List(exprs: _*))(InputPosition(0, 0, 0)))
 //            else {
 //              val regexSet: Set[Expression] = regexPattern(name).toSet
@@ -158,8 +158,8 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
 //
 //              propertyMap += name -> Option(Ands(mpSet ++ regexSet)(InputPosition(0, 0, 0)))
 //            }
+          }
         }
-      }
     }
 
     (labelMap.toMap, propertyMap.toMap, notPushDown)
@@ -606,15 +606,15 @@ object JoinReferenceRule extends PhysicalPlanOptimizerRule {
   }
 
   override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan,
-    { case pnode: PPTNode =>
-      pnode.children match {
-        case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
-          val res1 = joinRecursion(pj, ppc, isSingleMatch)
-          pnode.withChildren(Seq(res1))
+    plan, {
+      case pnode: PPTNode =>
+        pnode.children match {
+          case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
+            val res1 = joinRecursion(pj, ppc, isSingleMatch)
+            pnode.withChildren(Seq(res1))
+          }
+          case _ => pnode
         }
-        case _ => pnode
-      }
     }
   )
 }
@@ -625,8 +625,7 @@ object JoinReferenceRule extends PhysicalPlanOptimizerRule {
 object JoinTableSizeEstimateRule extends PhysicalPlanOptimizerRule {
 
   override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan,
-    {
+    plan, {
       case pnode: PPTNode => {
         pnode.children match {
           case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
@@ -723,10 +722,8 @@ object JoinTableSizeEstimateRule extends PhysicalPlanOptimizerRule {
       case _ => t2
     }
 
-    if (
-      (table1.isInstanceOf[PPTNodeScan] || table1.isInstanceOf[PPTRelationshipScan])
-      && (table2.isInstanceOf[PPTNodeScan] || table2.isInstanceOf[PPTRelationshipScan])
-    ) {
+    if ((table1.isInstanceOf[PPTNodeScan] || table1.isInstanceOf[PPTRelationshipScan])
+        && (table2.isInstanceOf[PPTNodeScan] || table2.isInstanceOf[PPTRelationshipScan])) {
       estimateTableSize(parent, table1, table2, ppc)
     } else
       PPTJoin(parent.filterExpr, parent.isSingleMatch, parent.bigTableIndex)(table1, table2, ppc)

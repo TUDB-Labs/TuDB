@@ -16,8 +16,7 @@ case class StoredRelationship(
     from: Long,
     to: Long,
     typeId: Int,
-    sourceBytes: Array[Byte] = Array.emptyByteArray
-) {
+    sourceBytes: Array[Byte] = Array.emptyByteArray) {
   lazy val properties: Map[Int, Any] = Map.empty
 }
 
@@ -26,16 +25,10 @@ class StoredRelationshipWithProperty(
     override val from: Long,
     override val to: Long,
     override val typeId: Int,
-    override val sourceBytes: Array[Byte]
-) extends StoredRelationship(id, from, to, typeId, sourceBytes) {
+    override val sourceBytes: Array[Byte])
+  extends StoredRelationship(id, from, to, typeId, sourceBytes) {
 
-  def this(
-      id: Long,
-      from: Long,
-      to: Long,
-      typeId: Int,
-      props: Map[Int, Any]
-  ) = {
+  def this(id: Long, from: Long, to: Long, typeId: Int, props: Map[Int, Any]) = {
     this(
       id,
       from,
@@ -63,8 +56,8 @@ case class TuRelationship(
     startId: Long,
     endId: Long,
     relationType: Option[LynxRelationshipType],
-    props: Seq[(String, LynxValue)]
-) extends LynxRelationship {
+    props: Seq[(String, LynxValue)])
+  extends LynxRelationship {
   lazy val properties = props.toMap
   override val id: LynxId = LynxRelationshipId(_id)
   override val startNodeId: LynxId = LynxNodeId(startId)

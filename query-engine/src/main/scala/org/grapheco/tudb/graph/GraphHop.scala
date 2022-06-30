@@ -4,7 +4,6 @@ package org.grapheco.tudb.graph
   * @createDate:2022/6/28
   * @description:
   */
-
 /** @param paths this hop's all paths
   *
   *    example:

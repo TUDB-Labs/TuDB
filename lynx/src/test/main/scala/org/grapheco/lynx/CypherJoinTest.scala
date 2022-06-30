@@ -5,8 +5,7 @@ import org.junit.{Assert, Test}
 
 class CypherJoinTest extends TestBase {
 
-  runOnDemoGraph(
-    """
+  runOnDemoGraph("""
       |Create
       |(a:person:leader{name:"bluejoe", age: 40, gender:"male"}),
       |(b:person{name:"Alice", age: 30, gender:"female"}),
