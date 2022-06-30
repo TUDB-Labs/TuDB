@@ -3,6 +3,6 @@ repos:
       rev: v0.3.3
       hooks:
         -   id: maven
-            args: ['clean compile']
+            args: ['clean compile --file pom.xml']
 # TODO: Fix all issues in https://github.com/TUDB-Labs/TuDB/issues/99
 #        -   id: maven-checkstyle
