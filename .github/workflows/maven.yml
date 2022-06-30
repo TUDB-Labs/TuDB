@@ -20,5 +20,9 @@ jobs:
         java-version: '8'
         distribution: 'temurin'
         cache: maven
+    - name: Check for scalafmt conformance
+      uses: openlawteam/scalafmt-ci@v2
+      with:
+        args: '--list'
     - name: Build with Maven
       run: mvn -B clean install test --file pom.xml
