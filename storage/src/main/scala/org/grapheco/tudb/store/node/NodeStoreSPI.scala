@@ -3,23 +3,24 @@ package org.grapheco.tudb.store.node
 import com.typesafe.scalalogging.LazyLogging
 
 /** @Author: Airzihao
- * @Description:
- * @Date: Created at 9:57 下午 2022/1/25
- * @Modified By:
- */
+  * @Description:
+  * @Date: Created at 9:57 下午 2022/1/25
+  * @Modified By:
+  */
 trait NodeStoreSPI extends LazyLogging {
+
   /**
-   * filter property query node id by index engine
-   * @param propertyKey
-   * @param propertyValue
-   * @return
-   */
+    * filter property query node id by index engine
+    * @param propertyKey
+    * @param propertyValue
+    * @return
+    */
   def getNodeIdByProperty(propertyKey: Int, propertyValue: Any): Set[Long]
 
   /**
-   * report whether the index engine is enable for the storage
-   * @return bool
-   */
+    * report whether the index engine is enable for the storage
+    * @return bool
+    */
   def hasIndex(): Boolean
 
   def refreshMeta(): Unit
@@ -42,11 +43,7 @@ trait NodeStoreSPI extends LazyLogging {
 
   def nodeRemoveLabel(nodeId: Long, labelId: Int): Unit;
 
-  def nodeSetProperty(
-      nodeId: Long,
-      propertyKeyId: Int,
-      propertyValue: Any
-  ): Unit;
+  def nodeSetProperty(nodeId: Long, propertyKeyId: Int, propertyValue: Any): Unit;
 
   def nodeRemoveProperty(nodeId: Long, propertyKeyId: Int): Any;
 
@@ -70,10 +67,7 @@ trait NodeStoreSPI extends LazyLogging {
 
   def getNodeById(nodeId: Long, label: Int): Option[StoredNodeWithProperty]
 
-  def getNodeById(
-      nodeId: Long,
-      label: Option[Int]
-  ): Option[StoredNodeWithProperty]
+  def getNodeById(nodeId: Long, label: Option[Int]): Option[StoredNodeWithProperty]
 
   def getNodesByLabel(labelId: Int): Iterator[StoredNodeWithProperty];
   def getNodesByLabels(labelIds: Seq[Int]): Iterator[StoredNodeWithProperty]

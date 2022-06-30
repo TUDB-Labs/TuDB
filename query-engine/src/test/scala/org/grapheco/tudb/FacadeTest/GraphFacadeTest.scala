@@ -18,7 +18,6 @@ import java.io.File
   * @Date 2022/3/25
   * @Version 0.1
   */
-
 object GraphFacadeTest {
 
   val outputPath: String = s"${TestUtils.getModuleRootPath}/facadeTest"

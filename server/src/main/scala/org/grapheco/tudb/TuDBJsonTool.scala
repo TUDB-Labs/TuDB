@@ -45,7 +45,7 @@ object TuDBJsonTool {
       case path: LynxPath               => getJson(path)
       case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
-        "{" + m.map(kv => (toJson(kv._1)+":"+toJson(kv._2))).mkString(",") + "}"
+        "{" + m.map(kv => (toJson(kv._1) + ":" + toJson(kv._2))).mkString(",") + "}"
       case v: Any => objectMapper.writeValueAsString(v)
     }
   }
@@ -62,14 +62,14 @@ object TuDBJsonTool {
     """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
       relationship.endId + ""","type":"""" + relationship.relationType.get.value +
       """","properties":""" + objectMapper.writeValueAsString(
-        relationship.properties.map(kv => kv._1 -> kv._2.value)
-      ) + """}"""
+      relationship.properties.map(kv => kv._1 -> kv._2.value)
+    ) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
     """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
       getJson(subPath.endNode.asInstanceOf[TuNode]) + ""","relationship":""" + getJson(
-        subPath.storedRelation.asInstanceOf[TuRelationship]
-      ) + """}"""
+      subPath.storedRelation.asInstanceOf[TuRelationship]
+    ) + """}"""
   }
 
   def getJson(path: LynxPath): String = {

@@ -20,7 +20,7 @@ object GraphDatabaseBuilder extends StrictLogging {
       dataPath: String,
       indexUri: String,
       rocksdbConfPath: String = "default"
-  ): GraphFacade = {
+    ): GraphFacade = {
     val file = new File(dataPath)
     if (!file.exists()) {
       file.mkdirs()

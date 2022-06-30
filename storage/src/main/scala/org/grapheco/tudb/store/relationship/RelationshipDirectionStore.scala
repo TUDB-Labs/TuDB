@@ -21,7 +21,6 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
     * type(1Byte),nodeId(8Bytes),relationLabel(4Bytes),category(8Bytes),fromNodeId(8Bytes)-->relationValue(id, properties)
     * ------------------------
     */
-
   def getKey(relation: StoredRelationship): Array[Byte] =
     if (DIRECTION == IN)
       RelationshipSerializer.encodeDirectedRelationshipKey(
@@ -84,8 +83,7 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
     new NodeIdIterator(db, prefix)
   }
 
-  class NodeIdIterator(db: KeyValueDB, prefix: Array[Byte])
-      extends Iterator[Long] {
+  class NodeIdIterator(db: KeyValueDB, prefix: Array[Byte]) extends Iterator[Long] {
     val iter = db.newIterator()
     iter.seek(prefix)
 
@@ -110,8 +108,7 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
     new RelationIdIterator(db, prefix)
   }
 
-  class RelationIdIterator(db: KeyValueDB, prefix: Array[Byte])
-      extends Iterator[Long] {
+  class RelationIdIterator(db: KeyValueDB, prefix: Array[Byte]) extends Iterator[Long] {
     val iter = db.newIterator()
     iter.seek(prefix)
 
@@ -130,10 +127,7 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
     new RelationshipIterator(db, prefix)
   }
 
-  def getRelations(
-      nodeId: Long,
-      edgeType: Int
-  ): Iterator[StoredRelationship] = {
+  def getRelations(nodeId: Long, edgeType: Int): Iterator[StoredRelationship] = {
     val prefix =
       RelationshipSerializer.encodeRelationshipPrefix(nodeId, edgeType)
     new RelationshipIterator(db, prefix)
@@ -143,7 +137,7 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
       firstNodeId: Long,
       edgeType: Int,
       secondNodeId: Long
-  ): Option[StoredRelationship] = {
+    ): Option[StoredRelationship] = {
     val key = RelationshipSerializer.encodeDirectedRelationshipKey(
       firstNodeId,
       edgeType,
@@ -160,7 +154,7 @@ class RelationshipDirectionStore(db: KeyValueDB, DIRECTION: Direction) {
   }
 
   class RelationshipIterator(db: KeyValueDB, prefix: Array[Byte])
-      extends Iterator[StoredRelationship] {
+    extends Iterator[StoredRelationship] {
     val iter = db.newIterator()
     iter.seek(prefix)
 

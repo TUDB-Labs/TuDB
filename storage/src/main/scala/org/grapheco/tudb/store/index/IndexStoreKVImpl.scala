@@ -5,28 +5,28 @@ import org.grapheco.tudb.store.storage.KeyValueDB
 import org.rocksdb.{WriteBatch, WriteOptions}
 
 /**
- * @Author: Airzihao
- * @Description:
- * @Date: Created at 17:07 2022/4/24
- * @Modified By:
- */
-
+  * @Author: Airzihao
+  * @Description:
+  * @Date: Created at 17:07 2022/4/24
+  * @Modified By:
+  */
 // This Class is used to natively build property index.
 // It's heavy and expensive.
 // We had better discard the native index function.
-class IndexStoreKVImpl(db: KeyValueDB){
+class IndexStoreKVImpl(db: KeyValueDB) {
 
-  type IndexId   = Int
-  type NodeId    = Long
+  type IndexId = Int
+  type NodeId = Long
+
   /**
-   * Single Column Index:
-   * ╔══════════════════════════════════════════╗
-   * ║                   key                    ║
-   * ╠═════════╦══════════╦══════════╦══════════╣
-   * ║ indexId ║ typeCode ║  value   ║  nodeId  ║
-   * ╚═════════╩══════════╩══════════╩══════════╝
-   */
-  def set(indexId: IndexId, typeCode:Byte, value: Array[Byte], nodeId: NodeId): Unit = {
+    * Single Column Index:
+    * ╔══════════════════════════════════════════╗
+    * ║                   key                    ║
+    * ╠═════════╦══════════╦══════════╦══════════╣
+    * ║ indexId ║ typeCode ║  value   ║  nodeId  ║
+    * ╚═════════╩══════════╩══════════╩══════════╝
+    */
+  def set(indexId: IndexId, typeCode: Byte, value: Array[Byte], nodeId: NodeId): Unit = {
     db.put(KeyConverter.toIndexKey(indexId, typeCode, value, nodeId), Array.emptyByteArray)
   }
 
@@ -54,12 +54,7 @@ class IndexStoreKVImpl(db: KeyValueDB){
     db.write(writeOpt, batch)
   }
 
-  def delete(
-      indexId: IndexId,
-      typeCode: Byte,
-      value: Array[Byte],
-      nodeId: NodeId
-  ): Unit = {
+  def delete(indexId: IndexId, typeCode: Byte, value: Array[Byte], nodeId: NodeId): Unit = {
     db.delete(KeyConverter.toIndexKey(indexId, typeCode, value, nodeId))
   }
 
@@ -82,7 +77,7 @@ class IndexStoreKVImpl(db: KeyValueDB){
       nodeId: NodeId,
       newTypeCode: Byte,
       newValue: Array[Byte]
-  ): Unit = {
+    ): Unit = {
     delete(indexId, typeCode, value, nodeId)
     set(indexId, newTypeCode, newValue, nodeId)
   }

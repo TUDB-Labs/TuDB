@@ -9,25 +9,33 @@ import org.junit.{Assert, Before, Test}
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * @program: lynx
- * @description:
- * @author: LiamGao
- * @create: 2022-02-28 18:04
- */
-class J_Create extends TestBase{
+  * @program: lynx
+  * @description:
+  * @author: LiamGao
+  * @create: 2022-02-28 18:04
+  */
+class J_Create extends TestBase {
   val nodesInput = ArrayBuffer[(String, NodeInput)]()
   val relationsInput = ArrayBuffer[(String, RelationshipInput)]()
 
-  val n1 = TestNode(TestId(1), Seq(LynxNodeLabel("Person")), Map(LynxPropertyKey("name")-> LynxValue("A")))
-  val n2 = TestNode(TestId(2), Seq(LynxNodeLabel("Person")), Map(LynxPropertyKey("name")-> LynxValue("B")))
-
-
+  val n1 = TestNode(
+    TestId(1),
+    Seq(LynxNodeLabel("Person")),
+    Map(LynxPropertyKey("name") -> LynxValue("A"))
+  )
+  val n2 = TestNode(
+    TestId(2),
+    Seq(LynxNodeLabel("Person")),
+    Map(LynxPropertyKey("name") -> LynxValue("B"))
+  )
   @Before
-  def init(): Unit ={
+  def init(): Unit = {
     nodesInput.append(("n1", NodeInput(n1.labels, n1.props.toSeq)))
     nodesInput.append(("n2", NodeInput(n2.labels, n2.props.toSeq)))
 
-    model.write.createElements(nodesInput, relationsInput,
+    model.write.createElements(
+      nodesInput,
+      relationsInput,
       (nodesCreated: Seq[(String, LynxNode)], relsCreated: Seq[(String, LynxRelationship)]) => {
         nodesCreated.toMap ++ relsCreated
       }
@@ -35,10 +43,9 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def createSingleNode(): Unit ={
+  def createSingleNode(): Unit = {
     val num = nodesInput.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |create (n)
         |""".stripMargin)
 
@@ -46,10 +53,9 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def createMultipleNodes(): Unit ={
+  def createMultipleNodes(): Unit = {
     val num = nodesInput.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |CREATE (n), (m)
         |""".stripMargin)
 
@@ -57,41 +63,37 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def CreateANodeWithALabel(): Unit ={
+  def CreateANodeWithALabel(): Unit = {
     val num = nodesInput.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |CREATE (n:Person)
         |""".stripMargin)
     Assert.assertEquals(num + 1, all_nodes.length)
   }
 
   @Test
-  def CreateNodeWithMultipleLabel(): Unit ={
+  def CreateNodeWithMultipleLabel(): Unit = {
     val num = nodesInput.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |CREATE (n:Person:Swedish)
         |""".stripMargin)
     Assert.assertEquals(num + 1, all_nodes.length)
   }
 
   @Test
-  def CreateNodeAndAddLabelsAndProperty(): Unit ={
+  def CreateNodeAndAddLabelsAndProperty(): Unit = {
     val num = nodesInput.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |CREATE (n:Person {name: 'Andy', title: 'Developer'})
         |""".stripMargin)
     Assert.assertEquals(num + 1, all_nodes.length)
   }
 
   @Test
-  def returnCreatedNode(): Unit ={
+  def returnCreatedNode(): Unit = {
     val num = nodesInput.length
 
-    val res = runOnDemoGraph(
-      """
+    val res = runOnDemoGraph("""
         |CREATE (a {name: 'Andy'})
         |RETURN a.name
         |""".stripMargin).records().toArray
@@ -100,9 +102,8 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def createRelationshipBetweenTwoNodes(): Unit ={
-    val res = runOnDemoGraph(
-      """
+  def createRelationshipBetweenTwoNodes(): Unit = {
+    val res = runOnDemoGraph("""
         |MATCH
         |  (a:Person),
         |  (b:Person)
@@ -115,9 +116,8 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def createRelationshipAndSetProperty(): Unit ={
-    val res = runOnDemoGraph(
-      """
+  def createRelationshipAndSetProperty(): Unit = {
+    val res = runOnDemoGraph("""
         |MATCH
         |  (a:Person),
         |  (b:Person)
@@ -131,14 +131,15 @@ class J_Create extends TestBase{
   }
 
   @Test
-  def createFullPath(): Unit ={
+  def createFullPath(): Unit = {
     val numNode = nodesInput.length
     val numRels = relationsInput.length
     val res = runOnDemoGraph(
       """
         |CREATE p = (andy {name:'Andy'})-[:WORKS_AT]->(neo)<-[:WORKS_AT]-(michael {name: 'Michael'})
         |RETURN p
-        |""".stripMargin).records().toArray
+        |""".stripMargin
+    ).records().toArray
     Assert.assertEquals(numNode + 3, all_nodes.length)
     Assert.assertEquals(numRels + 2, all_rels.length)
   }

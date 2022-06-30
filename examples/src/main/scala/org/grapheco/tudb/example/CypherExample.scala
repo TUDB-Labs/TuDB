@@ -18,7 +18,7 @@ object CypherExample {
   var client: TuDBClient = _
   def main(args: Array[String]): Unit = {
     val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
-    server=startServer(dbPath,port)
+    server = startServer(dbPath, port)
     startClient()
 
     createNode()
@@ -31,11 +31,11 @@ object CypherExample {
   }
 
   /**
-   *
-   * @param dbPath
-   * @param port
-   * @param indexUrl
-   *  index engine url
+    *
+    * @param dbPath
+    * @param port
+    * @param indexUrl
+    *  index engine url
     # has four implement
     # tudb://index?type=memory    tudb://index?type=elasticsearch&ip=xx&port=xx    tudb://index?type=rocksdb
     # tudb://index?type=dummy
@@ -43,9 +43,13 @@ object CypherExample {
     # elasticsearch   use  elasticsearch storage index data,ip and port is es service address
     # rocksdb use rocksdb storage index data
     # dummy is empty implement ,  use this engine where no  index is used
-   * @return
-   */
-  def startServer(dbPath: String, port: Int, indexUrl: String = "tudb://index?type=dummy"): TuDBServer = {
+    * @return
+    */
+  def startServer(
+      dbPath: String,
+      port: Int,
+      indexUrl: String = "tudb://index?type=dummy"
+    ): TuDBServer = {
     FileUtils.deleteDirectory(new File(dbPath))
     val serverContext = new TuDBServerContext()
     serverContext.setPort(port)

@@ -16,7 +16,6 @@ import java.io.File
   * @Date: Created at 16:55 2022/4/1
   * @Modified By:
   */
-
 object TuDBClientTest {
   val testConnectionPort = 7600
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"

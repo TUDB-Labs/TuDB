@@ -5,11 +5,9 @@ import org.grapheco.lynx.types.NameParser._
 import org.junit.{Assert, Test}
 import org.junit.function.ThrowingRunnable
 
-
 class CypherDeleteTest extends TestBase {
 
-  runOnDemoGraph(
-    """
+  runOnDemoGraph("""
       |Create
       |(a:Person{name:"Andy", age: 36}),
       |(b:Person{name:"UNKNOWN"}),
@@ -29,18 +27,25 @@ class CypherDeleteTest extends TestBase {
   }
   @Test
   def testDeleteDetachNode(): Unit = {
-    var res = runOnDemoGraph("match (n) return count(n)").records().next()("count(n)").asInstanceOf[LynxValue].value
+    var res = runOnDemoGraph("match (n) return count(n)")
+      .records()
+      .next()("count(n)")
+      .asInstanceOf[LynxValue]
+      .value
     Assert.assertEquals(4L, res)
     runOnDemoGraph("MATCH (n) Detach Delete n")
-    res = runOnDemoGraph("match (n) return count(n)").records().next()("count(n)").asInstanceOf[LynxValue].value
+    res = runOnDemoGraph("match (n) return count(n)")
+      .records()
+      .next()("count(n)")
+      .asInstanceOf[LynxValue]
+      .value
     Assert.assertEquals(0L, res)
   }
 
   @Test
-  def deleteSingleNode(): Unit ={
+  def deleteSingleNode(): Unit = {
     val num = all_nodes.length
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |MATCH (n:Person {name: 'UNKNOWN'})
         |DELETE n
         |""".stripMargin)
@@ -49,9 +54,8 @@ class CypherDeleteTest extends TestBase {
   }
 
   @Test
-  def deleteAllNodesAndRelationships(): Unit ={
-    runOnDemoGraph(
-      """
+  def deleteAllNodesAndRelationships(): Unit = {
+    runOnDemoGraph("""
         |MATCH (n)
         |DETACH DELETE n
         |""".stripMargin)
@@ -61,11 +65,10 @@ class CypherDeleteTest extends TestBase {
   }
 
   @Test
-  def deleteANodeWithAllItsRelationships(): Unit ={
+  def deleteANodeWithAllItsRelationships(): Unit = {
     val num = all_nodes.length
 
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |DETACH DELETE n
         |""".stripMargin)
@@ -75,11 +78,10 @@ class CypherDeleteTest extends TestBase {
   }
 
   @Test
-  def deleteRelationshipsOnly(): Unit ={
+  def deleteRelationshipsOnly(): Unit = {
     val num = all_nodes.length
 
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})-[r:KNOWS]->()
         |DELETE r
         |""".stripMargin)
@@ -89,12 +91,11 @@ class CypherDeleteTest extends TestBase {
   }
 
   @Test
-  def deleteNodesAndRelationships(): Unit ={
+  def deleteNodesAndRelationships(): Unit = {
     val nodeNum = all_nodes.length
     val relNum = all_rels.length
 
-    runOnDemoGraph(
-      """
+    runOnDemoGraph("""
         |MATCH ({name: 'Andy'})-[r:KNOWS]->(n {name: 'Timothy'})
         |DETACH DELETE n, r
         |""".stripMargin)

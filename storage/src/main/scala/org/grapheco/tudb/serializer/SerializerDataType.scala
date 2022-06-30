@@ -5,7 +5,6 @@ package org.grapheco.tudb.serializer
   * @Date: Created at 16:15 2021/4/25
   * @Modified By:
   */
-
 object SerializerDataType extends Enumeration {
   type DataType = Value
 

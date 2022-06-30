@@ -5,12 +5,12 @@ import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNull, LynxN
 import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CypherType}
 
 /**
- * @ClassName LynxList
- * @Description TODO
- * @Author huchuan
- * @Date 2022/4/1
- * @Version 0.1
- */
+  * @ClassName LynxList
+  * @Description TODO
+  * @Author huchuan
+  * @Date 2022/4/1
+  * @Version 0.1
+  */
 case class LynxList(v: List[LynxValue]) extends LynxCompositeValue {
   override def value: List[LynxValue] = v
 
@@ -31,13 +31,13 @@ case class LynxList(v: List[LynxValue]) extends LynxCompositeValue {
     def typeLevel(lynxValue: LynxValue): Int = lynxValue match {
       case _: LynxNumber => NUMERIC
       case _: LynxString => STRING
-      case _: LynxList => LIST
-      case _ => 0
+      case _: LynxList   => LIST
+      case _             => 0
     }
 
     def parseNumber(number: LynxNumber): Double = number match {
       case LynxInteger(i) => i.toDouble
-      case LynxFloat(d) => d
+      case LynxFloat(d)   => d
     }
 
     override def compare(x: LynxValue, y: LynxValue): Int = {
@@ -45,7 +45,7 @@ case class LynxList(v: List[LynxValue]) extends LynxCompositeValue {
       val y_level = typeLevel(y)
       if (x_level == y_level) {
         (x, y) match {
-          case (x: LynxNumber, y: LynxNumber) => parseNumber(x).compare(parseNumber(y))
+          case (x: LynxNumber, y: LynxNumber)         => parseNumber(x).compare(parseNumber(y))
           case (LynxString(str_x), LynxString(str_y)) => str_x.compare(str_y)
           case (LynxList(list_x), LynxList(list_y)) => {
             val iter_x = list_x.iterator
@@ -55,8 +55,8 @@ case class LynxList(v: List[LynxValue]) extends LynxCompositeValue {
               if (elementCompared != 0) return elementCompared
             }
             (iter_x.hasNext, iter_y.hasNext) match {
-              case (true, false) => 1
-              case (false, true) => -1
+              case (true, false)  => 1
+              case (false, true)  => -1
               case (false, false) => 0
             }
           }

@@ -44,8 +44,9 @@ trait AbstractPPTNode extends PPTNode {
   def eval(expr: Expression)(implicit ec: ExpressionContext): LynxValue =
     expressionEvaluator.eval(expr)
 
-  def typeOf(expr: Expression): LynxType = plannerContext.runnerContext.expressionEvaluator
-    .typeOf(expr, plannerContext.parameterTypes.toMap)
+  def typeOf(expr: Expression): LynxType =
+    plannerContext.runnerContext.expressionEvaluator
+      .typeOf(expr, plannerContext.parameterTypes.toMap)
 
   def typeOf(expr: Expression, definedVarTypes: Map[String, LynxType]): LynxType =
     expressionEvaluator.typeOf(expr, definedVarTypes)
@@ -70,9 +71,9 @@ class DefaultPhysicalPlanner(runnerContext: CypherRunnerContext) extends Physica
     implicit val runnerContext: CypherRunnerContext = plannerContext.runnerContext
     logicalPlan match {
       case LPTProcedureCall(
-            procedureNamespace: Namespace,
-            procedureName: ProcedureName,
-            declaredArguments: Option[Seq[Expression]]
+          procedureNamespace: Namespace,
+          procedureName: ProcedureName,
+          declaredArguments: Option[Seq[Expression]]
           ) =>
         PPTProcedureCall(
           procedureNamespace: Namespace,
@@ -681,7 +682,9 @@ case class PPTProcedureCall(
     val argsType = args.map(_.lynxType)
     if (procedure.checkArgumentsType(argsType)) {
       DataFrame(procedure.outputs, () => Iterator(Seq(procedure.call(args))))
-    } else { throw WrongArgumentException(name, procedure.inputs.map(_._2), argsType) }
+    } else {
+      throw WrongArgumentException(name, procedure.inputs.map(_._2), argsType)
+    }
   }
 }
 
@@ -916,10 +919,8 @@ case class PPTMerge(
               val mergedNodesAndRels = mutable.Map[String, Seq[LynxValue]]()
 
               val forceToCreate = {
-                if (
-                  anotherDf.isInstanceOf[PPTExpandPath] || anotherDf
-                    .isInstanceOf[PPTRelationshipScan]
-                ) true
+                if (anotherDf.isInstanceOf[PPTExpandPath] || anotherDf
+                      .isInstanceOf[PPTRelationshipScan]) true
                 else false
               }
 
@@ -1049,9 +1050,7 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
         val (varLastNode, schema, ops) = build(leftChain, definedVars)
         (
           varRightNode,
-          schema ++ Seq(varRelation -> CTRelationship) ++ (if (
-                                                             !definedVars.contains(varRightNode)
-                                                           ) {
+          schema ++ Seq(varRelation -> CTRelationship) ++ (if (!definedVars.contains(varRightNode)) {
                                                              Seq(varRightNode -> CTNode)
                                                            } else {
                                                              Seq.empty
@@ -1095,29 +1094,31 @@ case class PPTCreate(
 
         ops.foreach(_ match {
           case CreateNode(
-                varName: String,
-                labels: Seq[LabelName],
-                properties: Option[Expression]
+              varName: String,
+              labels: Seq[LabelName],
+              properties: Option[Expression]
               ) =>
             if (!ctxMap.contains(varName) && nodesInput.find(_._1 == varName).isEmpty) {
               nodesInput += varName -> NodeInput(
                 labels.map(_.name).map(LynxNodeLabel),
                 properties
-                  .map { case MapExpression(items) =>
-                    items.map({ case (k, v) =>
-                      LynxPropertyKey(k.name) -> eval(v)(ec.withVars(ctxMap))
-                    })
+                  .map {
+                    case MapExpression(items) =>
+                      items.map({
+                        case (k, v) =>
+                          LynxPropertyKey(k.name) -> eval(v)(ec.withVars(ctxMap))
+                      })
                   }
                   .getOrElse(Seq.empty)
               )
             }
 
           case CreateRelationship(
-                varName: String,
-                types: Seq[RelTypeName],
-                properties: Option[Expression],
-                varNameLeftNode: String,
-                varNameRightNode: String
+              varName: String,
+              types: Seq[RelTypeName],
+              properties: Option[Expression],
+              varNameLeftNode: String,
+              varNameRightNode: String
               ) =>
             def nodeInputRef(varname: String): NodeInputRef = {
               ctxMap
@@ -1131,10 +1132,12 @@ case class PPTCreate(
             relsInput += varName -> RelationshipInput(
               types.map(_.name).map(LynxRelationshipType),
               properties
-                .map { case MapExpression(items) =>
-                  items.map({ case (k, v) =>
-                    LynxPropertyKey(k.name) -> eval(v)(ec.withVars(ctxMap))
-                  })
+                .map {
+                  case MapExpression(items) =>
+                    items.map({
+                      case (k, v) =>
+                        LynxPropertyKey(k.name) -> eval(v)(ec.withVars(ctxMap))
+                    })
                 }
                 .getOrElse(Seq.empty[(LynxPropertyKey, LynxValue)]),
               nodeInputRef(varNameLeftNode),
@@ -1490,7 +1493,9 @@ case class PPTUnwind(
             val rsl = (expressionEvaluator.eval(expression)(recordCtx) match {
               case list: LynxList     => list.value
               case element: LynxValue => List(element)
-            }) map { element => record :+ element }
+            }) map { element =>
+              record :+ element
+            }
             rsl
           }
       )
@@ -1503,8 +1508,8 @@ case class PPTUnwind(
       DataFrame(
         schema,
         () =>
-          eval(expression)(ctx.expressionContext).asInstanceOf[LynxList].value.toIterator map (lv =>
-            Seq(lv)
+          eval(expression)(ctx.expressionContext).asInstanceOf[LynxList].value.toIterator map (
+              lv => Seq(lv)
           )
       )
     }

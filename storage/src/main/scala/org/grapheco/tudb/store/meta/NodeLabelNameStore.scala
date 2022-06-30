@@ -13,8 +13,7 @@ class NodeLabelNameStore(kvDB: KeyValueDB) extends NameStore {
   override val db: KeyValueDB = kvDB
   override val key2ByteArrayFunc: Int => Array[Byte] =
     MetaDataSerializer.encodeNodeLabelKey
-  override val keyPrefixFunc: () => Array[Byte] = () =>
-    Array(KeyType.NodeLabel.id.toByte)
+  override val keyPrefixFunc: () => Array[Byte] = () => Array(KeyType.NodeLabel.id.toByte)
   override val initInt: Int = 100000
   loadAll()
 }

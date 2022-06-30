@@ -7,9 +7,8 @@ import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, Ly
 import org.junit.function.ThrowingRunnable
 import org.junit.{Assert, Test}
 
-class OptimizerTest extends TestBase  {
-  runOnDemoGraph(
-    """
+class OptimizerTest extends TestBase {
+  runOnDemoGraph("""
       |Create
       |(a:person:leader{name:"bluejoe", age: 40, gender:"male"}),
       |(b:person{name:"Alice", age: 30, gender:"female"}),

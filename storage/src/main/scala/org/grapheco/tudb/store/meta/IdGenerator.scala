@@ -59,5 +59,4 @@ class IdGenerator(val db: KeyValueDB, val sequenceSize: Int) {
   }
 }
 
-class LowerIdSetException(id: Long)
-    extends RuntimeException(s"lower id set: $id") {}
+class LowerIdSetException(id: Long) extends RuntimeException(s"lower id set: $id") {}
