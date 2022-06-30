@@ -3,20 +3,19 @@ package org.grapheco.lynx.procedure.functions
 import org.grapheco.lynx.func.LynxProcedure
 import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNumber}
 
-/**
- * @ClassName NumericFunctions
- * @Description These functions all operate on numerical expressions only,
- * and will return an error if used on any other values.
- * @Author huchuan
- * @Date 2022/4/20
- * @Version 0.1
- */
+/** @ClassName NumericFunctions
+  * @Description These functions all operate on numerical expressions only,
+  * and will return an error if used on any other values.
+  * @Author huchuan
+  * @Date 2022/4/20
+  * @Version 0.1
+  */
 class NumericFunctions {
   @LynxProcedure(name = "abs")
   def abs(x: LynxNumber): LynxNumber = {
     x match {
       case i: LynxInteger => LynxInteger(math.abs(i.value))
-      case d: LynxFloat => LynxFloat(math.abs(d.value))
+      case d: LynxFloat   => LynxFloat(math.abs(d.value))
     }
   }
 
