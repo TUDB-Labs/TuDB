@@ -9,12 +9,13 @@ trait CallableProcedure {
 
   def call(args: Seq[LynxValue]): LynxValue
 
-  def signature(name: String) = s"$name(${inputs.map(x => Seq(x._1, x._2).mkString(":")).mkString(",")})"
+  def signature(name: String) =
+    s"$name(${inputs.map(x => Seq(x._1, x._2).mkString(":")).mkString(",")})"
 
   def checkArgumentsNumber(actualNumber: Int): Boolean = actualNumber == inputs.size
 
   def checkArgumentsType(actualArgumentsType: Seq[LynxType]): Boolean = {
     actualArgumentsType.size == inputs.size &&
-      inputs.map(_._2).zip(actualArgumentsType).forall{ case (except, actual) => except == actual}
+    inputs.map(_._2).zip(actualArgumentsType).forall { case (except, actual) => except == actual }
   }
 }

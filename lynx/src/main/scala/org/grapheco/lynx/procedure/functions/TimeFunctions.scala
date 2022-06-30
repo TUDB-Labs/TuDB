@@ -1,4 +1,4 @@
- package org.grapheco.lynx.procedure.functions
+package org.grapheco.lynx.procedure.functions
 
 import org.grapheco.lynx.func.LynxProcedure
 import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
@@ -72,13 +72,15 @@ class TimeFunctions {
     LynxLocalTimeUtil.now()
   }
 
-  @LynxProcedure(name="duration")
+  @LynxProcedure(name = "duration")
   def duration(input: LynxValue): LynxDuration = {
     input match {
       case LynxString(v) => LynxDurationUtil.parse(v)
-      case LynxMap(v) => LynxDurationUtil.parse(v.asInstanceOf[Map[String, LynxNumber]].mapValues(_.number.doubleValue()))
+      case LynxMap(v) =>
+        LynxDurationUtil.parse(
+          v.asInstanceOf[Map[String, LynxNumber]].mapValues(_.number.doubleValue())
+        )
     }
   }
 
 }
-
