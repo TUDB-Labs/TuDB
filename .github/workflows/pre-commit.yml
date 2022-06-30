@@ -16,4 +16,5 @@ jobs:
           python-version: '3.11.0-beta.3'
         env:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
+          RUNNER_TOOL_CACHE: /opt/hostedtoolcache
       - uses: pre-commit/action@v3.0.0
