@@ -111,7 +111,9 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
     notPushDown.size match {
       case 0 => (Seq(res), true)
       case 1 => (Seq(PPTFilter(notPushDown.head)(res, ppc)), true)
-      case 2 => {
+      // 2, WHERE a >= b AND c < d
+      // 3, WHERE 6 >= a >= 3 AND c in [4, 5]
+      case 2 | 3 => {
         val expr = Ands(Set(notPushDown: _*))(InputPosition(0, 0, 0))
         (Seq(PPTFilter(expr)(res, ppc)), true)
       }
