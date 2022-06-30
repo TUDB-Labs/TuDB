@@ -17,4 +17,43 @@ jobs:
         env:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
           RUNNER_TOOL_CACHE: /opt/hostedtoolcache
+      - uses: DamianReeves/write-file-action
+        with:
+          path: ${{ env.home}}/.m2/settings.xml
+          contents: |
+            <settings>
+              <servers>
+                  <server>
+                      <id>maven-public</id>
+                      <username>admin</username>
+                      <password>qohpof-vigkag-5hastA</password>
+                  </server>
+                  <server>
+                      <id>maven-snapshot</id>
+                      <username>admin</username>
+                      <password>qohpof-vigkag-5hastA</password>
+                  </server>
+              </servers>
+              <mirrors>
+                  <mirror>
+                      <id>alimaven</id>
+                      <mirrorOf>central</mirrorOf>
+                      <name>aliyun maven</name>
+                      <url>https://maven.aliyun.com/repository/public/</url>
+                  </mirror>
+                  <mirror>
+                      <id>maven-public</id>
+                      <mirrorOf>*</mirrorOf>
+                      <name>pandadb public</name>
+                      <url>http://123.57.165.135:30100/repository/maven-public</url>
+                  </mirror>
+                  <mirror>
+                      <id>maven-snapshot</id>
+                      <mirrorOf>*</mirrorOf>
+                      <name>pandadb snapshot</name>
+                      <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
+                  </mirror>
+              </mirrors>
+          </settings>
+          write-mode: append
       - uses: pre-commit/action@v3.0.0
