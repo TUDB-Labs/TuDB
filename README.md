@@ -40,4 +40,4 @@ We provide multiple channels to connect you to the community of the TuDB develop
 Please refer to the [Configuration Guide](docs/Configuration.md) in the online documentation for an overview on how to configure TuDB.
 
 ## Contributing
-Please review the [Contribution Guide](docs/Contributing_Details.md) for information on how to get started contributing to the project.
+Please review the [Contributing Guide](CONTRIBUTING.md) for information on how to get started contributing to the project.
