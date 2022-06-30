@@ -3,14 +3,13 @@ package org.grapheco.lynx.procedure.functions
 import org.grapheco.lynx.func.LynxProcedure
 import org.grapheco.lynx.types.property.LynxNumber
 
-/**
- * @ClassName LogarithmicFunctions
- * @Description These functions all operate on numerical expressions only,
- * and will return an error if used on any other values.
- * @Author huchuan
- * @Date 2022/4/20
- * @Version 0.1
- */
+/** @ClassName LogarithmicFunctions
+  * @Description These functions all operate on numerical expressions only,
+  * and will return an error if used on any other values.
+  * @Author huchuan
+  * @Date 2022/4/20
+  * @Version 0.1
+  */
 class LogarithmicFunctions {
   @LynxProcedure(name = "e")
   def e(): Double = {
