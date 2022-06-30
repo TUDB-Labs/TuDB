@@ -23,8 +23,8 @@ class NodeStoreAPI(
     nodeLabelConfigPath: String,
     metaDB: KeyValueDB,
     indexUri: String,
-    dbPath: String
-) extends NodeStoreSPI {
+    dbPath: String)
+  extends NodeStoreSPI {
 
   private val nodeDB =
     RocksDBStorage.getDB(nodeDBPath, rocksdbConfigPath = nodeDBConfigPath)
@@ -54,7 +54,7 @@ class NodeStoreAPI(
       rocksdbCfgPath: String = "default",
       metaDB: KeyValueDB,
       indexUri: String
-  ) {
+    ) {
     this(
       s"${dbPath}/${DBNameMap.nodeDB}",
       rocksdbCfgPath,
