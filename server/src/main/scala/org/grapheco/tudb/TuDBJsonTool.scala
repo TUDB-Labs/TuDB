@@ -43,9 +43,9 @@ object TuDBJsonTool {
       case relationship: TuRelationship => getJson(relationship)
       case subPath: PathTriple          => getJson(subPath)
       case path: LynxPath               => getJson(path)
-      case seq: Seq[Any]                => "["+seq.map(toJson).mkString(",")+"]"
+      case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
-        "{"+m.map(kv => (toJson(kv._1), toJson(kv._2))).mkString(",")+"}"
+        "{" + m.map(kv => (toJson(kv._1), toJson(kv._2))).mkString(",") + "}"
       case v: Any => objectMapper.writeValueAsString(v)
     }
   }
