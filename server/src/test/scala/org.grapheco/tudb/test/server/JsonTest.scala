@@ -49,7 +49,7 @@ class JsonTest {
     val json4 = map_data.toJson()
     println(json4)
     Assert.assertTrue(
-      json4 == """{"a" -> {"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b" -> {"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
+      json4 == """{"a":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
     )
   }
 
