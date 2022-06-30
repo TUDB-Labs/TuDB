@@ -96,5 +96,6 @@ node_modules
 
 # For the Storage test
 storage/test/
+src/test/
 data.zip
 testSpace

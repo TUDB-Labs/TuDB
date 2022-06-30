@@ -1,9 +1,6 @@
 package org.grapheco.tudb.client
 
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.buffer.ByteBuf
-import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer}
-import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
 
@@ -21,40 +18,32 @@ class TuDBClient(host: String, port: Int) {
     NettyChannelBuilder.forAddress(host, port).usePlaintext().build();
   val blockingStub = TuQueryServiceGrpc.newBlockingStub(channel)
 
-  def query(stat: String): Iterator[Map[String, LynxValue]] = {
+  def query(stat: String): String = {
     val request: Query.QueryRequest =
       Query.QueryRequest.newBuilder().setStatement(stat).build()
-    val response: Iterator[Query.QueryResponse] =
+    val response = {
       blockingStub.query(request).asScala
-    val byteBuf: ByteBuf = LynxByteBufFactory.getByteBuf
-    val lynxValueDeserializer: LynxValueDeserializer = new LynxValueDeserializer
+    }
     if (!response.hasNext) {
-      Iterator()
+      "Empty"
     } else {
-      response.map(resp =>
-        lynxValueDeserializer
-          .decodeLynxValue(
-            byteBuf.writeBytes(resp.getResultInBytes.toByteArray)
-          )
-          .asInstanceOf[LynxMap]
-          .value
-      )
+      response.next.getResult
     }
   }
 
   def getStatistics(): List[LynxMap] = {
-    val request: Query.QueryRequest =
-      Query.QueryRequest.newBuilder().setStatement("").build()
-    val response: Iterator[Query.QueryResponse] =
-      blockingStub.queryStatistics(request).asScala
-    val byteBuf: ByteBuf = LynxByteBufFactory.getByteBuf
-    val lynxValueDeserializer: LynxValueDeserializer = new LynxValueDeserializer
-    val resultInBytes: Array[Byte] =
-      response.next().getResultInBytes.toByteArray
-    lynxValueDeserializer
-      .decodeLynxValue(byteBuf.writeBytes(resultInBytes))
-      .value
-      .asInstanceOf[List[LynxMap]]
+//    val request: Query.QueryRequest =
+//      Query.QueryRequest.newBuilder().setStatement("").build()
+//    val response: Iterator[Query.QueryResponse] =
+//      blockingStub.queryStatistics(request).asScala
+//    val byteBuffer = Unpooled.buffer()
+//    val resultInBytes: Array[Byte] =
+//      response.next().getResultInBytes.toByteArray
+//    lynxValueDeserializer
+//      .decodeLynxValue(byteBuf.writeBytes(resultInBytes))
+//      .value
+//      .asInstanceOf[List[LynxMap]]
+    null
   }
 
   def shutdown(): Unit = {
