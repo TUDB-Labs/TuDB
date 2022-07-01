@@ -1,10 +1,11 @@
 /** Copyright (c) 2022 PandaDB * */
 package org.grapheco.tudb.test.server
 
+import org.grapheco.lynx.PathTriple
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.LynxString
+import org.grapheco.lynx.types.property.{LynxPath, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxRelationshipType}
-import org.grapheco.tudb.graph.{TuNode, TuRelationship}
+import org.grapheco.tudb.graph.{GraphHop, GraphPath, TuNode, TuRelationship}
 import org.junit._
 import org.junit.runners.MethodSorters
 
@@ -27,6 +28,7 @@ class JsonTest {
     val json = node.toJson()
     println(json)
     Assert.assertTrue(json == """{"identity":1,"labels":["name"],"properties":{"name":"sd"}}""")
+
     val relation = TuRelationship(
       5L,
       1L,
@@ -51,6 +53,60 @@ class JsonTest {
     Assert.assertTrue(
       json4 == """{"a" -> {"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b" -> {"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
     )
+
+//    val json9 = node.toJson()
+//    println(json9)
+//
+//    val node5 = TuNode(
+//      1L,
+//      List[LynxNodeLabel](LynxNodeLabel("name1")),
+//      List[(String, LynxValue)](("name") -> LynxString("sg"))
+//    )
+//
+//    val json5 = node5.toJson()
+//    println(json5)
+//
+//    val hop=GraphPath(List(PathTriple(node,relation,node3)))
+//    val json10 = hop.toJson()
+//    println(s"${hop.length}${hop.startNode()}${hop.endNode()}-------------------------$json10")
+//
+//    val twoHop=GraphPath(Seq(PathTriple(node,relation,node3),PathTriple(node3,relation,node5)))
+//    val json7 = twoHop.toJson()
+//    println(json7)
+//
+//    val hop2=  PathTriple(node,relation,node3)
+//    val json6 = hop2.toJson()
+//    println(json6)
+//
+    /**
+     *  one-hop test
+     */
+    val node3 = TuNode(
+      2L,
+      List[LynxNodeLabel](LynxNodeLabel("name")),
+      List[(String, LynxValue)](("name") -> LynxString("sf"))
+    )
+    val oneHop = LynxPath(Seq(PathTriple(node, relation, node3)))
+    val json5 = oneHop.toJson()
+    println(json5)
+    Assert.assertTrue(
+      json5 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":1}"""
+    )
+
+    /**
+     *
+     * two-hop test
+     */
+    val node4 = TuNode(3L,List[LynxNodeLabel](LynxNodeLabel("name")),List[(String,LynxValue)]("name" -> LynxValue("sg")))
+    val twoHop = LynxPath(Seq[PathTriple](PathTriple(node,relation,node4),PathTriple(node3,relation,node4)))
+    val json6=twoHop.toJson()
+    println(json6)
+    Assert.assertTrue {
+      json6 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":2}"""
+    }
+
+
+
   }
 
   @Before

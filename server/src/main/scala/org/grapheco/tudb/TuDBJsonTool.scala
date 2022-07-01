@@ -73,12 +73,11 @@ object TuDBJsonTool {
   }
 
   def getJson(path: LynxPath): String = {
-
     """{"start":""" + getJson(path.startNode().asInstanceOf[TuNode]) + ""","end":""" + getJson(
       path.endNode().asInstanceOf[TuNode]
     ) +
       ""","segments":[""" + path.path.map(v => getJson(v)).mkString(",") +
-      """]}"""
+      s"""],"length":${path.path.length}}"""
   }
 
 }
