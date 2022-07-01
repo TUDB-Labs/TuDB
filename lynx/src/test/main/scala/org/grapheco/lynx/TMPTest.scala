@@ -38,7 +38,7 @@ class TMPTest extends TestBase {
                       |UNWIND [5, 2000] AS w
                       |  MATCH (comp:Organisation {id: w[0]})
                       |  CREATE (p)-[:WORKS_AT {workFrom: w[1]}]->(comp)""".stripMargin)
-    // TODO 可能没创建起 也可能没查出来
+    // TODO Maybe it wasn't created, maybe it wasn't found
     runOnDemoGraph("match (n)-[r]->(m) return r").show()
     Thread.sleep(1000*1000)
 
