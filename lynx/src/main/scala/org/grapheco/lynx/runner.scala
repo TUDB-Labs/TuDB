@@ -32,7 +32,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     classOf[PredicateFunctions],
     classOf[ScalarFunctions],
     classOf[StringFunctions],
-    //    classOf[TimeFunctions],
+    classOf[TimeFunctions],
     classOf[TrigonometricFunctions]
   )
   protected lazy val expressionEvaluator: ExpressionEvaluator =

@@ -37,7 +37,7 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
           annotation.name(),
           inputs,
           outputs,
-          args => types.wrap(method.invoke(host, args: _*))
+          args => types.wrap(method.invoke(host, args))
         )
       }
     }
