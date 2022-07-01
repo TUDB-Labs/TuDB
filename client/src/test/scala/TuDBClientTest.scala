@@ -1,7 +1,4 @@
 import TuDBClientTest.testConnectionPort
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.client.json.Json
-import io.grpc.internal.JsonUtil
 import org.apache.commons.io.FileUtils
 import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.network.Query
@@ -57,10 +54,8 @@ class TuDBClientTest {
     val stat1 = "Create (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END);"
     val stat2 =
       "Match p = (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END) return id(n1), r1, id(n2), r2, id(n3);"
-    val result1 = client.query(stat1)
-    println(result1)
-    val mapper = new ObjectMapper
-    val mapping = mapper.readValue(result1,Seq.getClass)
+//    val result1 = client.query(stat1)
+//    println(result1)
     val result = client.query(stat2)
     println(result)
 //    val id1 = result.get("id(n1)").get.asInstanceOf[LynxInteger].value
@@ -75,7 +70,7 @@ class TuDBClientTest {
 //    Assert.assertEquals(id2, r2.startNodeId.toLynxInteger.value)
 //    Assert.assertEquals(id3, r2.endNodeId.toLynxInteger.value)
 
-    client.query("match (n) detach delete n")
+//    client.query("match (n) detach delete n")
     client.shutdown()
   }
 
@@ -120,21 +115,21 @@ class TuDBClientTest {
 
   @Test
   def testStatistics(): Unit = {
-//    val client = new TuDBClient("127.0.0.1", testConnectionPort)
-//
-//    client.query("create (n:person1)-[r:KNOW]->(m:person2)")
-//    client.query("create (n:person3)-[r:KNOW]->(m:person2)")
-//    val statistics = client.getStatistics()
-//    val nodeStat = statistics.head.value
+    val client = new TuDBClient("127.0.0.1", testConnectionPort)
+
+    client.query("create (n:person1)-[r:KNOW]->(m:person2)")
+    client.query("create (n:person3)-[r:KNOW]->(m:person2)")
+    val statistics = client.getStatistics()
+    val nodeStat = statistics.get("v")
 //    val relStat = statistics.last.value
 //
 //    Assert.assertEquals(1L, nodeStat("person1").value)
 //    Assert.assertEquals(2L, nodeStat("person2").value)
 //    Assert.assertEquals(1L, nodeStat("person3").value)
 //    Assert.assertEquals(2L, relStat("KNOW").value)
-//
-//    client.query("match (n) detach delete n")
-//    client.shutdown()
+
+    client.query("match (n) detach delete n")
+    client.shutdown()
   }
 
   @Test

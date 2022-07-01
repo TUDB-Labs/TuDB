@@ -3,6 +3,7 @@ package org.grapheco.tudb
 import io.grpc.stub.StreamObserver
 import org.apache.commons.lang3.StringUtils
 import org.grapheco.lynx.LynxException
+import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
 import org.grapheco.tudb.common.utils.LogUtil
 import org.grapheco.tudb.exception.TuDBException
@@ -103,22 +104,19 @@ class TuDBQueryService(dbPath: String, indexUri: String)
       request: Query.QueryRequest,
       responseObserver: StreamObserver[QueryResponse]
     ): Unit = {
-//    val lynxValueSerializer: LynxValueSerializer = new LynxValueSerializer
-//    val byteBuf: ByteBuf = LynxByteBufFactory.getByteBuf
-//    val nodeCountByLabel: LynxMap = db.statistics.getNodeCountByLabel()
-//    val relationshipCountByType: LynxMap =
-//      db.statistics.getRelationshipCountByType()
-//    val statisticsList: LynxList = LynxList(
-//      List(nodeCountByLabel, relationshipCountByType)
-//    )
-//    val bytes: Array[Byte] = LynxByteBufFactory.exportBuf(
-//      lynxValueSerializer.encodeLynxValue(byteBuf, statisticsList)
-//    )
-//    val resp: QueryResponse = QueryResponse
-//      .newBuilder()
-//      .setResultInBytes(ByteString.copyFrom(bytes))
-//      .build()
-//    responseObserver.onNext(resp)
-//    responseObserver.onCompleted()
+    val nodeCountByLabel: LynxMap = db.statistics.getNodeCountByLabel()
+    val relationshipCountByType: LynxMap =
+      db.statistics.getRelationshipCountByType()
+    val statisticsList: LynxList = LynxList(
+      List(nodeCountByLabel, relationshipCountByType)
+    )
+    val statisticsJson = statisticsList.toJson()
+    val resp: QueryResponse = QueryResponse
+      .newBuilder()
+      .setMessage("OK")
+      .setResult(statisticsJson)
+      .build()
+    responseObserver.onNext(resp)
+    responseObserver.onCompleted()
   }
 }
