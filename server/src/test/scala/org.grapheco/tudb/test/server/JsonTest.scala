@@ -54,33 +54,8 @@ class JsonTest {
       json4 == """{"a" -> {"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b" -> {"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
     )
 
-//    val json9 = node.toJson()
-//    println(json9)
-//
-//    val node5 = TuNode(
-//      1L,
-//      List[LynxNodeLabel](LynxNodeLabel("name1")),
-//      List[(String, LynxValue)](("name") -> LynxString("sg"))
-//    )
-//
-//    val json5 = node5.toJson()
-//    println(json5)
-//
-//    val hop=GraphPath(List(PathTriple(node,relation,node3)))
-//    val json10 = hop.toJson()
-//    println(s"${hop.length}${hop.startNode()}${hop.endNode()}-------------------------$json10")
-//
-//    val twoHop=GraphPath(Seq(PathTriple(node,relation,node3),PathTriple(node3,relation,node5)))
-//    val json7 = twoHop.toJson()
-//    println(json7)
-//
-//    val hop2=  PathTriple(node,relation,node3)
-//    val json6 = hop2.toJson()
-//    println(json6)
-//
-    /**
-     *  one-hop test
-     */
+    /**  one-hop test
+      */
     val node3 = TuNode(
       2L,
       List[LynxNodeLabel](LynxNodeLabel("name")),
@@ -93,20 +68,42 @@ class JsonTest {
       json5 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":1}"""
     )
 
-    /**
-     *
-     * two-hop test
-     */
-    val node4 = TuNode(3L,List[LynxNodeLabel](LynxNodeLabel("name")),List[(String,LynxValue)]("name" -> LynxValue("sg")))
-    val twoHop = LynxPath(Seq[PathTriple](PathTriple(node,relation,node4),PathTriple(node3,relation,node4)))
-    val json6=twoHop.toJson()
+    /** two-hop test
+      */
+    val node4 = TuNode(
+      3L,
+      List[LynxNodeLabel](LynxNodeLabel("name")),
+      List[(String, LynxValue)]("name" -> LynxValue("sg"))
+    )
+    val twoHop = LynxPath(
+      Seq[PathTriple](PathTriple(node, relation, node3), PathTriple(node3, relation, node4))
+    )
+    val json6 = twoHop.toJson()
     println(json6)
     Assert.assertTrue {
-      json6 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":2}"""
+      json6 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":2}"""
     }
 
-
-
+    /**
+     *three-hop test
+     */
+    val node5 = TuNode(
+      4L,
+      List[LynxNodeLabel](LynxNodeLabel("name")),
+      List[(String, LynxValue)]("name" -> LynxValue("sh"))
+    )
+    val threeHop = LynxPath(
+      Seq[PathTriple](
+        PathTriple(node, relation, node3),
+        PathTriple(node3, relation, node4),
+        PathTriple(node4, relation, node5)
+      )
+    )
+    val json7 = threeHop.toJson()
+    println(json7)
+    Assert.assertTrue {
+      json7 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":4,"labels":["name"],"properties":{"name":"sh"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"end":{"identity":4,"labels":["name"],"properties":{"name":"sh"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":3}"""
+    }
   }
 
   @Before
