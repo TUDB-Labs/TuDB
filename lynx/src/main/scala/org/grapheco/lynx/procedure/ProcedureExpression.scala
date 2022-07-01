@@ -17,7 +17,7 @@ case class ProcedureExpression(
   extends Expression
   with LazyLogging {
   val procedure: CallableProcedure = runnerContext.procedureRegistry
-    .getProcedure(funcInov.namespace.parts, funcInov.functionName.name, funcInov.args.size)
+    .getProcedure(funcInov.namespace.parts, funcInov.functionName.name)
     .getOrElse(throw ProcedureUnregisteredException(funcInov.name))
   val args: Seq[Expression] = funcInov.args
   val aggregating: Boolean = funcInov.containsAggregate

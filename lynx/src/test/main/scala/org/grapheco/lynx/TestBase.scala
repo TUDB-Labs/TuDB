@@ -279,7 +279,6 @@ class TestBase extends LazyLogging {
 
     procedures.register(
       "test.authors",
-      0,
       new CallableProcedure {
         override val inputs: Seq[(String, LynxType)] = Seq()
         override val outputs: Seq[(String, LynxType)] = Seq("name" -> CTString)
@@ -291,7 +290,6 @@ class TestBase extends LazyLogging {
 
     procedures.register(
       "toInterger",
-      1,
       new CallableProcedure {
         override val inputs: Seq[(String, LynxType)] = Seq("text" -> CTString)
         override val outputs: Seq[(String, LynxType)] = Seq("number" -> CTInteger)
