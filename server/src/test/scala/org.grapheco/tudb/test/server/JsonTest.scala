@@ -1,4 +1,4 @@
-/** Copyright (c) 2022 PandaDB * */
+/** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.test.server
 
 import org.grapheco.lynx.types.LynxValue

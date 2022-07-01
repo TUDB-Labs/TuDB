@@ -69,7 +69,7 @@ object CypherExample {
   def stopClient() = client.shutdown()
 
   def createNode(): Unit = {
-    client.query("create (n:DataBase{name:'PandaDB'})")
+    client.query("create (n:DataBase{name:'TuDB'})")
     client.query("create (n: Company{name:'TUDB'})")
   }
   def queryNode(): Unit = {
@@ -85,7 +85,7 @@ object CypherExample {
 
   def createRelation(): Unit = {
     client.query("""
-        |match (n:DataBase{name:'PandaDB'})
+        |match (n:DataBase{name:'TuDB'})
         |match (c: Company{name:'TUDB'})
         |create (n)-[r: belongTo{year: 2022}]->(c)
         |""".stripMargin)

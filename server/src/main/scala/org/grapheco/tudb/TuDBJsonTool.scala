@@ -1,4 +1,4 @@
-/** Copyright (c) 2022 PandaDB * */
+/** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb
 
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
   *
   * use case:
   *
-  * import org.grapheco.tudb.TuDB.TuDBJsonTool.AnyRefAddMethod
+  * import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
   *
   * val mapString=Map("a"->1,"b"->2).toJson()
   * val nodeString=Node("a").toJson()
