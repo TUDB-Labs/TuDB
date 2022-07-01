@@ -64,8 +64,6 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
     )
   }
 
-  override def getProcedure(
-      prefix: List[String],
-      name: String,
-    ): Option[CallableProcedure] = procedures.get((prefix :+ name).mkString("."))
+  override def getProcedure(prefix: List[String], name: String): Option[CallableProcedure] =
+    procedures.get((prefix :+ name).mkString("."))
 }
