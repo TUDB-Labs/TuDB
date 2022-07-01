@@ -1,9 +1,11 @@
 /** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.test.server
 
+import org.grapheco.lynx.LynxResult
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxString
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxRelationshipType}
+import org.grapheco.lynx.util.FormatUtils
 import org.grapheco.tudb.graph.{TuNode, TuRelationship}
 import org.junit._
 import org.junit.runners.MethodSorters
@@ -50,6 +52,23 @@ class JsonTest {
     println(json4)
     Assert.assertTrue(
       json4 == """{"a":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
+    )
+
+    val resutlData= new LynxResult {
+      override def show(limit: Int): Unit =println(limit)
+
+      override def cache(): LynxResult = this
+
+      override def columns(): Seq[String] = List("a", "b")
+
+      override def records(): Iterator[Map[String, LynxValue]] =
+        Iterator(Map("a" -> LynxString("1"), "b" -> LynxString("2")))
+
+    }
+    val json5 = resutlData.toJson()
+    println(json5)
+    Assert.assertTrue(
+      json5 == """[[{"keys": ["a"],"length": 1,"_fields":["1"]},{"keys": ["b"],"length": 1,"_fields":["2"]}]]"""
     )
   }
 

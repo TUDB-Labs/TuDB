@@ -2,8 +2,10 @@
 package org.grapheco.tudb
 
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
+import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.{LynxResult, PathTriple}
-import org.grapheco.lynx.types.property.LynxPath
+import org.grapheco.lynx.types.property.{LynxNumber, LynxPath, LynxString}
+import org.grapheco.lynx.types.time.LynxTemporalValue
 import org.grapheco.tudb.graph.{TuNode, TuRelationship}
 
 import java.text.SimpleDateFormat
@@ -44,6 +46,11 @@ object TuDBJsonTool {
       case subPath: PathTriple          => getJson(subPath)
       case path: LynxPath               => getJson(path)
       case result: LynxResult           => getJson(result)
+      case str: LynxString              => '"' + str.value + '"'
+      case number: LynxNumber           => number.value.toString
+      case time: LynxTemporalValue      => '"' + time.value.toString + '"'
+      case list: LynxList               => toJson(list.value)
+      case map: LynxMap                 => toJson(map.value)
       case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
         "{" + m.map(kv => (toJson(kv._1) + ":" + toJson(kv._2))).mkString(",") + "}"
@@ -61,8 +68,8 @@ object TuDBJsonTool {
 
   def getJson(relationship: TuRelationship): String = {
     """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
-      relationship.endId + ""","type":"""" + relationship.relationType.get.value +
-      """","properties":""" + objectMapper.writeValueAsString(
+      relationship.endId + ""","type":""" + toJson(relationship.relationType.get.value) +
+      ""","properties":""" + objectMapper.writeValueAsString(
       relationship.properties.map(kv => kv._1 -> kv._2.value)
     ) + """}"""
   }
@@ -85,20 +92,7 @@ object TuDBJsonTool {
     "[" + result
       .records()
       .map { record =>
-        "[" + record
-          .map { kv =>
-            f"""|
-        |  {
-         |    "keys": [
-         |      ${kv._1}
-         |    ],
-         |    "length": 1,
-         |    "_fields": [
-         |      ${toJson(kv._2)}
-         |    ]
-         |  }
-         |""".stripMargin
-          }
+        "[" + record.map { kv =>f"""{"keys": [${toJson(kv._1)}],"length": 1,"_fields":[${toJson(kv._2)}]}"""}
           .mkString(",") + "]"
       }
       .mkString(",") + "]"
