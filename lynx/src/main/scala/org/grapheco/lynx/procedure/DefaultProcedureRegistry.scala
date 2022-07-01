@@ -16,7 +16,7 @@ import scala.collection.mutable
 class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
   extends ProcedureRegistry
   with LazyLogging {
-  val procedures = mutable.Map[(String, Int), CallableProcedure]()
+  val procedures = mutable.Map[String, CallableProcedure]()
 
   classes.foreach(registerAnnotatedClass)
 
@@ -43,8 +43,8 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
     }
   }
 
-  def register(name: String, argsLength: Int, procedure: CallableProcedure): Unit = {
-    procedures((name, argsLength)) = procedure
+  def register(name: String, procedure: CallableProcedure): Unit = {
+    procedures(name) = procedure
     logger.debug(s"registered procedure: ${procedure.signature(name)}")
   }
 
@@ -56,7 +56,6 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
     ): Unit = {
     register(
       name,
-      inputs0.size,
       new CallableProcedure() {
         override val inputs: Seq[(String, LynxType)] = inputs0
         override val outputs: Seq[(String, LynxType)] = outputs0
@@ -68,6 +67,5 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
   override def getProcedure(
       prefix: List[String],
       name: String,
-      argsLength: Int
-    ): Option[CallableProcedure] = procedures.get(((prefix :+ name).mkString("."), argsLength))
+    ): Option[CallableProcedure] = procedures.get((prefix :+ name).mkString("."))
 }

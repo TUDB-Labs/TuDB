@@ -668,7 +668,7 @@ case class PPTProcedureCall(
   val ProcedureName(name: String) = procedureName
   val arguments = declaredArguments.getOrElse(Seq.empty)
   val procedure = procedureRegistry
-    .getProcedure(parts, name, arguments.size)
+    .getProcedure(parts, name)
     .getOrElse { throw UnknownProcedureException(parts, name) }
 
   override val schema: Seq[(String, LynxType)] = procedure.outputs
