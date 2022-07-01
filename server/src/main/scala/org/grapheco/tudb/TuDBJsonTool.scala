@@ -2,7 +2,7 @@
 package org.grapheco.tudb
 
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
-import org.grapheco.lynx.PathTriple
+import org.grapheco.lynx.{LynxResult, PathTriple}
 import org.grapheco.lynx.types.property.LynxPath
 import org.grapheco.tudb.graph.{TuNode, TuRelationship}
 
@@ -43,6 +43,7 @@ object TuDBJsonTool {
       case relationship: TuRelationship => getJson(relationship)
       case subPath: PathTriple          => getJson(subPath)
       case path: LynxPath               => getJson(path)
+      case result: LynxResult           => getJson(result)
       case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
         "{" + m.map(kv => (toJson(kv._1) + ":" + toJson(kv._2))).mkString(",") + "}"
@@ -78,7 +79,29 @@ object TuDBJsonTool {
       path.endNode().asInstanceOf[TuNode]
     ) +
       ""","segments":[""" + path.path.map(v => getJson(v)).mkString(",") +
-      """]}"""
+      """],"length":""" + path.path.length + """}"""
+  }
+  def getJson(result: LynxResult): String = {
+    "[" + result
+      .records()
+      .map { record =>
+        "[" + record
+          .map { kv =>
+            f"""|
+        |  {
+         |    "keys": [
+         |      ${kv._1}
+         |    ],
+         |    "length": 1,
+         |    "_fields": [
+         |      ${toJson(kv._2)}
+         |    ]
+         |  }
+         |""".stripMargin
+          }
+          .mkString(",") + "]"
+      }
+      .mkString(",") + "]"
   }
 
 }
