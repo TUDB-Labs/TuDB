@@ -54,8 +54,8 @@ class JsonTest {
       json4 == """{"a":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
     )
 
-    val resutlData= new LynxResult {
-      override def show(limit: Int): Unit =println(limit)
+    val resutlData = new LynxResult {
+      override def show(limit: Int): Unit = println(limit)
 
       override def cache(): LynxResult = this
 

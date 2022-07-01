@@ -92,7 +92,10 @@ object TuDBJsonTool {
     "[" + result
       .records()
       .map { record =>
-        "[" + record.map { kv =>f"""{"keys": [${toJson(kv._1)}],"length": 1,"_fields":[${toJson(kv._2)}]}"""}
+        "[" + record
+          .map { kv =>
+            f"""{"keys": [${toJson(kv._1)}],"length": 1,"_fields":[${toJson(kv._2)}]}"""
+          }
           .mkString(",") + "]"
       }
       .mkString(",") + "]"
