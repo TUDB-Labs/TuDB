@@ -1,5 +1,5 @@
 import org.apache.commons.io.FileUtils
-import org.grapheco.tudb.TuInstanceContext
+import org.grapheco.tudb.TuDBInstanceContext
 import org.grapheco.tudb.importer.TuImporter
 import org.grapheco.tudb.store.meta.{DBNameMap, TuDBStatistics}
 import org.grapheco.tudb.store.node.NodeStoreAPI
@@ -25,7 +25,7 @@ class TestImporter {
   def init(): Unit = {
     val f = new File(_dbPath)
     if (f.exists()) FileUtils.deleteDirectory(f)
-    TuInstanceContext.setDataPath(_dbPath)
+    TuDBInstanceContext.setDataPath(_dbPath)
   }
 
   @After

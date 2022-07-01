@@ -2,7 +2,7 @@ package org.grapheco.tudb.APITest
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.tudb.APITest.RelationshipStoreAPITest.{nodeStoreAPI, relationshipStoreAPI}
-import org.grapheco.tudb.TuInstanceContext
+import org.grapheco.tudb.TuDBInstanceContext
 import org.grapheco.tudb.serializer.{NodeSerializer, RelationshipSerializer}
 import org.grapheco.tudb.store.meta.DBNameMap
 import org.grapheco.tudb.store.meta.TypeManager.TypeId
@@ -22,7 +22,7 @@ import java.io.File
 object RelationshipStoreAPITest {
   val outputRoot: String =
     s"${TestUtils.getModuleRootPath}/testOutput/relationshipStoreTest"
-  TuInstanceContext.setDataPath(outputRoot)
+  TuDBInstanceContext.setDataPath(outputRoot)
   val metaDB: KeyValueDB =
     RocksDBStorage.getDB(s"${outputRoot}/${DBNameMap.nodeMetaDB}")
   val nodeStoreAPI = new NodeStoreAPI(
