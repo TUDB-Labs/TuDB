@@ -35,7 +35,7 @@ class TuDBQueryService(dbPath: String, indexUri: String)
         responseObserver.onCompleted()
       } else {
         while (queryResultIter.hasNext) {
-          val value=queryResultIter.next()
+          val value = queryResultIter.next()
           val rowInBytes: Array[Byte] =
             LynxByteBufFactory.exportBuf(
               lynxValueSerializer.encodeLynxValue(
