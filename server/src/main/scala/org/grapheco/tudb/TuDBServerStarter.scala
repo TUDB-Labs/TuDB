@@ -40,12 +40,12 @@ object TuDBServerStarter {
   private def _initContext(): TuDBServerContext = {
     val conf = ConfigFactory.load
     val serverContext = new TuDBServerContext()
-    TuInstanceContext.setDataPath(conf.getString("datapath"))
-    TuInstanceContext.setPort(conf.getInt("port"))
-    TuInstanceContext.setIndexUri(conf.getString("index.uri"))
-    serverContext.setDataPath(TuInstanceContext.getDataPath)
-    serverContext.setPort(TuInstanceContext.getPort)
-    serverContext.setIndexUri(TuInstanceContext.getIndexUri)
+    TuDBInstanceContext.setDataPath(conf.getString("datapath"))
+    TuDBInstanceContext.setPort(conf.getInt("port"))
+    TuDBInstanceContext.setIndexUri(conf.getString("index.uri"))
+    serverContext.setDataPath(TuDBInstanceContext.getDataPath)
+    serverContext.setPort(TuDBInstanceContext.getPort)
+    serverContext.setIndexUri(TuDBInstanceContext.getIndexUri)
     serverContext
   }
 
