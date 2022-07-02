@@ -13,68 +13,60 @@ import java.util.regex.Pattern
 
 class TimeFunctions {
   @LynxProcedure(name = "lynx")
-  def lynx(): String = {
+  def lynx(args: Seq[LynxValue]): String = {
     "lynx-0.3"
   }
 
   @LynxProcedure(name = "power")
-  def power(x: LynxInteger, n: LynxInteger): Int = {
+  def power(args: Seq[LynxInteger]): Int = {
+    val x = args.head
+    val n = args.last
     math.pow(x.value, n.value).toInt
   }
 
   @LynxProcedure(name = "date")
-  def date(inputs: LynxValue): LynxDate = {
-    LynxDateUtil.parse(inputs).asInstanceOf[LynxDate]
-  }
-
-  @LynxProcedure(name = "date")
-  def date(): LynxDate = {
-    LynxDateUtil.now()
-  }
-
-  @LynxProcedure(name = "datetime")
-  def datetime(inputs: LynxValue): LynxDateTime = {
-    LynxDateTimeUtil.parse(inputs).asInstanceOf[LynxDateTime]
+  def date(args: Seq[LynxValue]): LynxDate = {
+    args.size match {
+      case 0 => LynxDateUtil.now()
+      case 1 => LynxDateUtil.parse(args.head).asInstanceOf[LynxDate]
+    }
   }
 
   @LynxProcedure(name = "datetime")
-  def datetime(): LynxDateTime = {
-    LynxDateTimeUtil.now()
+  def datetime(args: Seq[LynxValue]): LynxDateTime = {
+    args.size match {
+      case 0 => LynxDateTimeUtil.now()
+      case 1 => LynxDateTimeUtil.parse(args.head).asInstanceOf[LynxDateTime]
+    }
   }
 
   @LynxProcedure(name = "localdatetime")
-  def localDatetime(inputs: LynxValue): LynxLocalDateTime = {
-    LynxLocalDateTimeUtil.parse(inputs).asInstanceOf[LynxLocalDateTime]
-  }
-
-  @LynxProcedure(name = "localdatetime")
-  def localDatetime(): LynxLocalDateTime = {
-    LynxLocalDateTimeUtil.now()
-  }
-
-  @LynxProcedure(name = "time")
-  def time(inputs: LynxValue): LynxTime = {
-    LynxTimeUtil.parse(inputs).asInstanceOf[LynxTime]
+  def localDatetime(args: Seq[LynxValue]): LynxLocalDateTime = {
+    args.size match {
+      case 0 => LynxLocalDateTimeUtil.now()
+      case 1 => LynxLocalDateTimeUtil.parse(args.head).asInstanceOf[LynxLocalDateTime]
+    }
   }
 
   @LynxProcedure(name = "time")
-  def time(): LynxTime = {
-    LynxTimeUtil.now()
+  def time(args: Seq[LynxValue]): LynxTime = {
+    args.size match {
+      case 0 => LynxTimeUtil.now()
+      case 1 => LynxTimeUtil.parse(args.head).asInstanceOf[LynxTime]
+    }
   }
 
   @LynxProcedure(name = "localtime")
-  def localTime(inputs: LynxValue): LynxLocalTime = {
-    LynxLocalTimeUtil.parse(inputs).asInstanceOf[LynxLocalTime]
-  }
-
-  @LynxProcedure(name = "localtime")
-  def localTime(): LynxLocalTime = {
-    LynxLocalTimeUtil.now()
+  def localTime(args: Seq[LynxValue]): LynxLocalTime = {
+    args.size match {
+      case 0 => LynxLocalTimeUtil.now()
+      case 1 => LynxLocalTimeUtil.parse(args.head).asInstanceOf[LynxLocalTime]
+    }
   }
 
   @LynxProcedure(name = "duration")
-  def duration(input: LynxValue): LynxDuration = {
-    input match {
+  def duration(args: Seq[LynxValue]): LynxDuration = {
+    args.head match {
       case LynxString(v) => LynxDurationUtil.parse(v)
       case LynxMap(v) =>
         LynxDurationUtil.parse(
