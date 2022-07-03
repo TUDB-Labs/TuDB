@@ -117,7 +117,7 @@ object KeyConverter extends BaseSerializer {
       labelId: LabelId,
       props: Array[PropertyId],
       isFullText: Boolean
-  ): Array[Byte] = {
+    ): Array[Byte] = {
     val bytes = new Array[Byte](
       LABEL_ID_SIZE + PROPERTY_ID_SIZE * props.length + IS_FULLTEXT_SIZE
     )
@@ -131,17 +131,13 @@ object KeyConverter extends BaseSerializer {
     bytes
   }
 
-  def getIndexMetaFromKey(
-      keyBytes: Array[Byte]
-  ): (LabelId, Array[PropertyId], Boolean) = {
+  def getIndexMetaFromKey(keyBytes: Array[Byte]): (LabelId, Array[PropertyId], Boolean) = {
     if (keyBytes.length < LABEL_ID_SIZE + PROPERTY_ID_SIZE + IS_FULLTEXT_SIZE)
       return null
     (
       ByteUtils.getInt(keyBytes, 0),
       (0 until (keyBytes.length - LABEL_ID_SIZE - IS_FULLTEXT_SIZE) / PROPERTY_ID_SIZE).toArray
-        .map(i =>
-          ByteUtils.getInt(keyBytes, LABEL_ID_SIZE + PROPERTY_ID_SIZE * i)
-        ),
+        .map(i => ByteUtils.getInt(keyBytes, LABEL_ID_SIZE + PROPERTY_ID_SIZE * i)),
       ByteUtils.getBoolean(keyBytes, keyBytes.length - IS_FULLTEXT_SIZE)
     )
   }
@@ -157,7 +153,7 @@ object KeyConverter extends BaseSerializer {
       typeCode: Byte,
       value: Array[Byte],
       nodeId: NodeId
-  ): Array[Byte] = {
+    ): Array[Byte] = {
     val bytes = new Array[Byte](INDEX_ID_SIZE + NODE_ID_SIZE + 1 + value.length)
     ByteUtils.setInt(bytes, 0, indexId)
     ByteUtils.setByte(bytes, INDEX_ID_SIZE, typeCode)
@@ -167,11 +163,7 @@ object KeyConverter extends BaseSerializer {
     bytes
   }
 
-  def toIndexKey(
-      indexId: IndexId,
-      typeCode: Byte,
-      value: Array[Byte]
-  ): Array[Byte] = {
+  def toIndexKey(indexId: IndexId, typeCode: Byte, value: Array[Byte]): Array[Byte] = {
     val bytes = new Array[Byte](INDEX_ID_SIZE + 1 + value.length)
     ByteUtils.setInt(bytes, 0, indexId)
     ByteUtils.setByte(bytes, INDEX_ID_SIZE, typeCode)

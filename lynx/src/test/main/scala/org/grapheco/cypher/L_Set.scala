@@ -9,36 +9,98 @@ import org.junit.{Assert, Before, Test}
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * @program: lynx
- * @description:
- * @author: LiamGao
- * @create: 2022-02-28 18:16
- */
-class L_Set extends TestBase{
+  * @program: lynx
+  * @description:
+  * @author: LiamGao
+  * @create: 2022-02-28 18:16
+  */
+class L_Set extends TestBase {
   val nodesInput = ArrayBuffer[(String, NodeInput)]()
   val relationsInput = ArrayBuffer[(String, RelationshipInput)]()
 
-  val n1 = TestNode(TestId(1), Seq.empty, Map(LynxPropertyKey("name")-> LynxValue("Stefan")))
-  val n2 = TestNode(TestId(2), Seq.empty, Map(LynxPropertyKey("name")-> LynxValue("George")))
-  val n3 = TestNode(TestId(3), Seq(LynxNodeLabel("Swedish")), Map(LynxPropertyKey("name")-> LynxValue("Andy"), LynxPropertyKey("age")-> LynxValue(36), LynxPropertyKey("hungry")->LynxValue(true)))
-  val n4 = TestNode(TestId(4), Seq.empty, Map(LynxPropertyKey("name")-> LynxValue("Peter"), LynxPropertyKey("age")-> LynxValue(34)))
+  val n1 = TestNode(TestId(1), Seq.empty, Map(LynxPropertyKey("name") -> LynxValue("Stefan")))
+  val n2 = TestNode(TestId(2), Seq.empty, Map(LynxPropertyKey("name") -> LynxValue("George")))
+  val n3 = TestNode(
+    TestId(3),
+    Seq(LynxNodeLabel("Swedish")),
+    Map(
+      LynxPropertyKey("name") -> LynxValue("Andy"),
+      LynxPropertyKey("age") -> LynxValue(36),
+      LynxPropertyKey("hungry") -> LynxValue(true)
+    )
+  )
+  val n4 = TestNode(
+    TestId(4),
+    Seq.empty,
+    Map(LynxPropertyKey("name") -> LynxValue("Peter"), LynxPropertyKey("age") -> LynxValue(34))
+  )
 
-  val r1 = TestRelationship(TestId(1), TestId(1), TestId(3), Option(LynxRelationshipType("KNOWS")), Map.empty)
-  val r2 = TestRelationship(TestId(2), TestId(2), TestId(4), Option(LynxRelationshipType("KNOWS")), Map.empty)
-  val r3 = TestRelationship(TestId(3), TestId(3), TestId(4), Option(LynxRelationshipType("KNOWS")), Map.empty)
+  val r1 = TestRelationship(
+    TestId(1),
+    TestId(1),
+    TestId(3),
+    Option(LynxRelationshipType("KNOWS")),
+    Map.empty
+  )
+  val r2 = TestRelationship(
+    TestId(2),
+    TestId(2),
+    TestId(4),
+    Option(LynxRelationshipType("KNOWS")),
+    Map.empty
+  )
+  val r3 = TestRelationship(
+    TestId(3),
+    TestId(3),
+    TestId(4),
+    Option(LynxRelationshipType("KNOWS")),
+    Map.empty
+  )
 
   @Before
-  def init(): Unit ={
+  def init(): Unit = {
     nodesInput.append(("n1", NodeInput(n1.labels, n1.props.toSeq)))
     nodesInput.append(("n2", NodeInput(n2.labels, n2.props.toSeq)))
     nodesInput.append(("n3", NodeInput(n3.labels, n3.props.toSeq)))
     nodesInput.append(("n4", NodeInput(n4.labels, n4.props.toSeq)))
 
-    relationsInput.append(("r1", RelationshipInput(Seq(r1.relationType.get), Seq.empty, StoredNodeInputRef(r1.startNodeId), StoredNodeInputRef(r1.endNodeId))))
-    relationsInput.append(("r2", RelationshipInput(Seq(r2.relationType.get), r2.props.toSeq, StoredNodeInputRef(r2.startNodeId), StoredNodeInputRef(r2.endNodeId))))
-    relationsInput.append(("r3", RelationshipInput(Seq(r3.relationType.get), r3.props.toSeq, StoredNodeInputRef(r3.startNodeId), StoredNodeInputRef(r3.endNodeId))))
+    relationsInput.append(
+      (
+        "r1",
+        RelationshipInput(
+          Seq(r1.relationType.get),
+          Seq.empty,
+          StoredNodeInputRef(r1.startNodeId),
+          StoredNodeInputRef(r1.endNodeId)
+        )
+      )
+    )
+    relationsInput.append(
+      (
+        "r2",
+        RelationshipInput(
+          Seq(r2.relationType.get),
+          r2.props.toSeq,
+          StoredNodeInputRef(r2.startNodeId),
+          StoredNodeInputRef(r2.endNodeId)
+        )
+      )
+    )
+    relationsInput.append(
+      (
+        "r3",
+        RelationshipInput(
+          Seq(r3.relationType.get),
+          r3.props.toSeq,
+          StoredNodeInputRef(r3.startNodeId),
+          StoredNodeInputRef(r3.endNodeId)
+        )
+      )
+    )
 
-    model.write.createElements(nodesInput, relationsInput,
+    model.write.createElements(
+      nodesInput,
+      relationsInput,
       (nodesCreated: Seq[(String, LynxNode)], relsCreated: Seq[(String, LynxRelationship)]) => {
         nodesCreated.toMap ++ relsCreated
       }
@@ -46,9 +108,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def setAProperty1(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setAProperty1(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET n.surname = 'Taylor'
         |RETURN n.name, n.surname
@@ -60,9 +121,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def setAProperty2(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setAProperty2(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET (CASE WHEN n.age = 36 THEN n END).worksIn = 'Malmo'
         |RETURN n.name, n.worksIn
@@ -73,9 +133,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def setAProperty3(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setAProperty3(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET (CASE WHEN n.age = 55 THEN n END).worksIn = 'Malmo'
         |RETURN n.name, n.worksIn
@@ -86,9 +145,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def updateAProperty(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def updateAProperty(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET n.age = toString(n.age)
         |RETURN n.name, n.age
@@ -100,9 +158,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def removeAProperty(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def removeAProperty(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET n.name = null
         |RETURN n.name, n.age
@@ -114,9 +171,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def copyPropertiesBetweenNodesAndRelationships(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def copyPropertiesBetweenNodesAndRelationships(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH
         |  (at {name: 'Andy'}),
         |  (pn {name: 'Peter'})
@@ -133,9 +189,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def replaceAllPropertiesUsingAMap(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def replaceAllPropertiesUsingAMap(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (p {name: 'Peter'})
         |SET p = {name: 'Peter Smith', position: 'Entrepreneur'}
         |RETURN p.name, p.age, p.position
@@ -148,9 +203,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def removeAllPropertiesUsingAnEmptyMap(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def removeAllPropertiesUsingAnEmptyMap(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (p {name: 'Peter'})
         |SET p = {}
         |RETURN p.name, p.age
@@ -162,9 +216,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def mutateSpecificPropertiesUsingAMap1(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def mutateSpecificPropertiesUsingAMap1(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (p {name: 'Peter'})
         |SET p += {age: 38, hungry: true, position: 'Entrepreneur'}
         |RETURN p.name, p.age, p.hungry, p.position
@@ -178,9 +231,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def mutateSpecificPropertiesUsingAMap2(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def mutateSpecificPropertiesUsingAMap2(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (p {name: 'Peter'})
         |SET p += {}
         |RETURN p.name, p.age
@@ -192,9 +244,8 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def setMultiplePropertiesUsingOneSetClause(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setMultiplePropertiesUsingOneSetClause(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Andy'})
         |SET n.position = 'Developer', n.surname = 'Taylor'
         |""".stripMargin).records().toArray
@@ -204,22 +255,28 @@ class L_Set extends TestBase{
   }
 
   @Test
-  def setALabelOnANode(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setALabelOnANode(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'Stefan'})
         |SET n:German
         |RETURN n.name, labels(n) AS labels
         |""".stripMargin).records().toArray
     Assert.assertEquals(1, records.length)
     Assert.assertEquals("Stefan", records.head("n.name").asInstanceOf[LynxValue].value)
-    Assert.assertEquals(List("German"), records.head("labels").asInstanceOf[LynxValue].value.asInstanceOf[List[LynxValue]].map(f => f.value))
+    Assert.assertEquals(
+      List("German"),
+      records
+        .head("labels")
+        .asInstanceOf[LynxValue]
+        .value
+        .asInstanceOf[List[LynxValue]]
+        .map(f => f.value)
+    )
   }
 
   @Test
-  def setMultipleLabelsOnANode(): Unit ={
-    val records = runOnDemoGraph(
-      """
+  def setMultipleLabelsOnANode(): Unit = {
+    val records = runOnDemoGraph("""
         |MATCH (n {name: 'George'})
         |SET n:Swedish:Bossman
         |RETURN n.name, labels(n) AS labels
@@ -227,6 +284,14 @@ class L_Set extends TestBase{
 
     Assert.assertEquals(1, records.length)
     Assert.assertEquals("George", records.head("n.name").asInstanceOf[LynxValue].value)
-    Assert.assertEquals(List("Swedish", "Bossman"), records.head("labels").asInstanceOf[LynxValue].value.asInstanceOf[List[LynxValue]].map(f => f.value))
+    Assert.assertEquals(
+      List("Swedish", "Bossman"),
+      records
+        .head("labels")
+        .asInstanceOf[LynxValue]
+        .value
+        .asInstanceOf[List[LynxValue]]
+        .map(f => f.value)
+    )
   }
 }

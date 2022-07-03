@@ -33,7 +33,7 @@ trait SingleFileImporter extends LazyLogging {
   protected def _getPropMap(
       lineArr: Array[String],
       propHeadMap: Map[Int, (Int, String)]
-  ): Map[Int, Any] = {
+    ): Map[Int, Any] = {
     var propMap: Map[Int, Any] = Map[Int, Any]()
     propHeadMap.foreach(kv => {
       val index = kv._1
@@ -102,18 +102,12 @@ trait SingleFileImporter extends LazyLogging {
   def importData(): Unit = {
     val taskId: AtomicInteger = new AtomicInteger(0)
     val taskArray: Array[Future[Boolean]] =
-      new Array[Int](taskCount).map(item =>
-        Future { _importTask(taskId.getAndIncrement()) }
-      )
+      new Array[Int](taskCount).map(item => Future { _importTask(taskId.getAndIncrement()) })
     taskArray.foreach(task => { Await.result(task, Duration.Inf) })
     _commitInnerFileStatToGlobal()
   }
 
-  protected def _countMapAdd(
-      countMap: mutable.Map[Int, Long],
-      key: Int,
-      addBy: Long
-  ): Long = {
+  protected def _countMapAdd(countMap: mutable.Map[Int, Long], key: Int, addBy: Long): Long = {
     if (countMap.contains(key)) {
       val countBeforeAdd: Long = countMap.getOrElse(key, 0.toLong)
       val countAfterAdd: Long = countBeforeAdd + addBy

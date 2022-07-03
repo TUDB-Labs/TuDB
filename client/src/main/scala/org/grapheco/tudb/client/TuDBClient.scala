@@ -1,13 +1,11 @@
 package org.grapheco.tudb.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import org.grapheco.tudb.TuDBJsonTool.objectMapper
 import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
 
 import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters.asScalaIteratorConverter
-import scala.collection.mutable
 
 /** @Author: Airzihao
   * @Description:
@@ -38,14 +36,14 @@ class TuDBClient(host: String, port: Int) {
     }
   }
 
-  def getStatistics(): mutable.HashMap[Any, Any] = {
+  def getStatistics(): List[Any] = {
     val request: Query.QueryRequest =
       Query.QueryRequest.newBuilder().setStatement("").build()
     val response: Iterator[Query.QueryResponse] =
       blockingStub.queryStatistics(request).asScala
     val resultStr =
       response.next().getResult
-    objectMapper.readValue(resultStr, classOf[mutable.HashMap[Any, Any]])
+    objectMapper.readValue(resultStr, classOf[List[Any]])
   }
 
   def shutdown(): Unit = {

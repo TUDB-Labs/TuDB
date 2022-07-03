@@ -11,8 +11,7 @@ import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
   * @author: LiamGao
   * @create: 2022-03-24 16:53
   */
-class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean)
-    extends LazyLogging {
+class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean) extends LazyLogging {
   private var nodeMetaDB: KeyValueDB = _
   private var relationMetaDB: KeyValueDB = _
 
@@ -21,8 +20,7 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean)
 
   private def initDB(): Unit = {
     nodeMetaDB = RocksDBStorage.getDB(s"${dbPath}/${DBNameMap.nodeMetaDB}")
-    relationMetaDB =
-      RocksDBStorage.getDB(s"${dbPath}/${DBNameMap.relationMetaDB}")
+    relationMetaDB = RocksDBStorage.getDB(s"${dbPath}/${DBNameMap.relationMetaDB}")
 
     nodeStore = new NodeStoreAPI(
       s"${dbPath}/${DBNameMap.nodeDB}",

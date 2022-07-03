@@ -25,23 +25,14 @@ class TuDBQueryService(dbPath: String, indexUri: String)
     ): Unit = {
     try {
       val queryStat: String = request.getStatement
-      val queryResultIter = db.cypher(queryStat).records()
-
-      if (!queryResultIter.hasNext) {
-        val resp: QueryResponse = QueryResponse
-          .newBuilder()
-          .setMessage("EMPTY")
-          .build()
-        responseObserver.onNext(resp)
-      } else {
-        val resultJson = queryResultIter.toList.toJson()
+      val queryResult = db.cypher(queryStat)
         val resp: QueryResponse = QueryResponse
           .newBuilder()
           .setMessage("OK")
-          .setResult(resultJson)
+          .setResult(queryResult.toJson())
           .build()
         responseObserver.onNext(resp)
-      }
+
     } catch {
       case e: LynxException =>
         errorMessage = lynxExceptionProcess(e)

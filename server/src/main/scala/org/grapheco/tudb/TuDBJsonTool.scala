@@ -2,8 +2,10 @@
 package org.grapheco.tudb
 
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
-import org.grapheco.lynx.PathTriple
-import org.grapheco.lynx.types.property.LynxPath
+import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
+import org.grapheco.lynx.{LynxResult, PathTriple}
+import org.grapheco.lynx.types.property.{LynxNumber, LynxPath, LynxString}
+import org.grapheco.lynx.types.time.LynxTemporalValue
 import org.grapheco.tudb.graph.{TuNode, TuRelationship}
 
 import java.text.SimpleDateFormat
@@ -12,7 +14,7 @@ import java.text.SimpleDateFormat
   *
   * use case:
   *
-  * import org.grapheco.tudb.TuDB.TuDBJsonTool.AnyRefAddMethod
+  * import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
   *
   * val mapString=Map("a"->1,"b"->2).toJson()
   * val nodeString=Node("a").toJson()
@@ -43,9 +45,15 @@ object TuDBJsonTool {
       case relationship: TuRelationship => getJson(relationship)
       case subPath: PathTriple          => getJson(subPath)
       case path: LynxPath               => getJson(path)
+      case result: LynxResult           => getJson(result)
+      case str: LynxString              => '"' + str.value + '"'
+      case number: LynxNumber           => number.value.toString
+      case time: LynxTemporalValue      => '"' + time.value.toString + '"'
+      case list: LynxList               => toJson(list.value)
+      case map: LynxMap                 => toJson(map.value)
       case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
-        "{" + m.map(kv => (toJson(kv._1), toJson(kv._2))).mkString(",") + "}"
+        "{" + m.map(kv => (toJson(kv._1) + ":" + toJson(kv._2))).mkString(",") + "}"
       case v: Any => objectMapper.writeValueAsString(v)
     }
   }
@@ -60,16 +68,16 @@ object TuDBJsonTool {
 
   def getJson(relationship: TuRelationship): String = {
     """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
-      relationship.endId + ""","type":"""" + relationship.relationType.get.value +
-      """","properties":""" + objectMapper.writeValueAsString(
-        relationship.properties.map(kv => kv._1 -> kv._2.value)
-      ) + """}"""
+      relationship.endId + ""","type":""" + toJson(relationship.relationType.get.value) +
+      ""","properties":""" + objectMapper.writeValueAsString(
+      relationship.properties.map(kv => kv._1 -> kv._2.value)
+    ) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
     """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
       getJson(subPath.endNode.asInstanceOf[TuNode]) + ""","relationship":""" + getJson(
-        subPath.storedRelation.asInstanceOf[TuRelationship]
-      ) + """}"""
+      subPath.storedRelation.asInstanceOf[TuRelationship]
+    ) + """}"""
   }
 
   def getJson(path: LynxPath): String = {
@@ -78,7 +86,19 @@ object TuDBJsonTool {
       path.endNode().asInstanceOf[TuNode]
     ) +
       ""","segments":[""" + path.path.map(v => getJson(v)).mkString(",") +
-      """]}"""
+      """],"length":""" + path.path.length + """}"""
+  }
+  def getJson(result: LynxResult): String = {
+    "[" + result
+      .records()
+      .map { record =>
+        "[" + record
+          .map { kv =>
+            f"""{"keys": [${toJson(kv._1)}],"length": 1,"_fields":[${toJson(kv._2)}]}"""
+          }
+          .mkString(",") + "]"
+      }
+      .mkString(",") + "]"
   }
 
 }

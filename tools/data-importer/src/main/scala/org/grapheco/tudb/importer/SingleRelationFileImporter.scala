@@ -16,11 +16,8 @@ import scala.concurrent.{Await, Future}
   * @Date: Created in 21:18 2021/1/15
   * @Modified By:
   */
-class SingleRelationFileImporter(
-    file: File,
-    importCmd: ImportCmd,
-    globalArgs: GlobalArgs
-) extends SingleFileImporter {
+class SingleRelationFileImporter(file: File, importCmd: ImportCmd, globalArgs: GlobalArgs)
+  extends SingleFileImporter {
 
   override val csvFile: File = file
   override val cmd: ImportCmd = importCmd
@@ -46,13 +43,9 @@ class SingleRelationFileImporter(
   override val propHeadMap: Map[Int, (Int, String)] = {
     headLine.zipWithIndex
       .map(item => {
-        if (
-          item._2 == idIndex || item._2 == labelIndex || item._2 == fromIdIndex || item._2 == toIdIndex
-        ) {
-          if (
-            item._1.split(":")(0).length == 0 || item._1
-              .split(":")(0) == "REL_ID"
-          ) {
+        if (item._2 == idIndex || item._2 == labelIndex || item._2 == fromIdIndex || item._2 == toIdIndex) {
+          if (item._1.split(":")(0).length == 0 || item._1
+                .split(":")(0) == "REL_ID") {
             (-1, (-1, ""))
           } else {
             val pair = item._1.split(":")
@@ -169,9 +162,7 @@ class SingleRelationFileImporter(
       }
     }
 
-    innerTaskRelCountByType.foreach(kv =>
-      _countMapAdd(innerFileRelCountByType, kv._1, kv._2)
-    )
+    innerTaskRelCountByType.foreach(kv => _countMapAdd(innerFileRelCountByType, kv._1, kv._2))
     val f1: Future[Unit] = Future { relationDB.flush() }
     val f2: Future[Unit] = Future { inRelationDB.flush() }
     val f3: Future[Unit] = Future { outRelationDB.flush() }
@@ -194,9 +185,7 @@ class SingleRelationFileImporter(
   }
 
   override protected def _commitInnerFileStatToGlobal(): Boolean = {
-    innerFileRelCountByType.foreach(kv =>
-      globalArgs.importerStatics.relTypeCountAdd(kv._1, kv._2)
-    )
+    innerFileRelCountByType.foreach(kv => globalArgs.importerStatics.relTypeCountAdd(kv._1, kv._2))
     true
   }
 

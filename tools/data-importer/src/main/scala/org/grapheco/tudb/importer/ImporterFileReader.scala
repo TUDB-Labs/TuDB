@@ -9,7 +9,6 @@ import scala.collection.mutable.ListBuffer
   * @Date: Created at 16:39 2020/12/22
   * @Modified By:
   */
-
 trait ReaderMode {}
 case class WithHead() extends ReaderMode
 case class WithOutHead() extends ReaderMode
@@ -18,8 +17,7 @@ class ImporterFileReader(
     file: File,
     delimeter: String,
     batchSize: Int = 500000,
-    mode: ReaderMode = WithHead()
-) {
+    mode: ReaderMode = WithHead()) {
 
   val fileIter: Iterator[CSVLine] =
     this.synchronized(new CSVReader(file, delimeter).getAsCSVLines)

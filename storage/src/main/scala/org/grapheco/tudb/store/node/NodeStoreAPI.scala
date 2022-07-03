@@ -17,14 +17,14 @@ import scala.collection.mutable
   */
 // NodeStoreAPI is supplied for the Query Engine
 class NodeStoreAPI(
-                    nodeDBPath: String,
-                    nodeDBConfigPath: String,
-                    nodeLabelDBPath: String,
-                    nodeLabelConfigPath: String,
-                    metaDB: KeyValueDB,
-                    indexUri: String,
-                    dbPath:String,
-                  ) extends NodeStoreSPI {
+    nodeDBPath: String,
+    nodeDBConfigPath: String,
+    nodeLabelDBPath: String,
+    nodeLabelConfigPath: String,
+    metaDB: KeyValueDB,
+    indexUri: String,
+    dbPath: String)
+  extends NodeStoreSPI {
 
   private val nodeDB =
     RocksDBStorage.getDB(nodeDBPath, rocksdbConfigPath = nodeDBConfigPath)
@@ -45,16 +45,16 @@ class NodeStoreAPI(
 
   private val idGenerator = new IdGenerator(nodeLabelDB, 200)
   // this is the index engine instance
-  private val indexImpl=IndexFactory.newIndex(indexUri+"&path="+dbPath)
+  private val indexImpl = IndexFactory.newIndex(indexUri + "&path=" + dbPath)
 
   val NONE_LABEL_ID: Int = 0
 
   def this(
-            dbPath: String,
-            rocksdbCfgPath: String = "default",
-            metaDB: KeyValueDB,
-            indexUri: String ,
-          ) {
+      dbPath: String,
+      rocksdbCfgPath: String = "default",
+      metaDB: KeyValueDB,
+      indexUri: String
+    ) {
     this(
       s"${dbPath}/${DBNameMap.nodeDB}",
       rocksdbCfgPath,
@@ -67,71 +67,72 @@ class NodeStoreAPI(
   }
   //add all index
   logger.info("start add index")
-  var addCount=0
-  if (indexImpl.hasIndex() && needRebuildIndex()){
+  var addCount = 0
+  if (indexImpl.hasIndex() && needRebuildIndex()) {
     //generate index for all node    use memory to speedup
-    val cacheHashMap=new mutable.HashMap[String,mutable.HashSet[Long]]()
+    val cacheHashMap = new mutable.HashMap[String, mutable.HashSet[Long]]()
     allNodes().foreach { node =>
       node.properties.foreach { property =>
-        val key=indexImpl.encodeKey(property._1,property._2)
-        if (cacheHashMap.contains(key)){
+        val key = indexImpl.encodeKey(property._1, property._2)
+        if (cacheHashMap.contains(key)) {
           cacheHashMap(key).add(node.id)
-          if (cacheHashMap(key).size >=100000){ //batch add index TODO size can be config
-            indexImpl.batchAddIndex(key,cacheHashMap(key).toSet)
+          if (cacheHashMap(key).size >= 100000) { //batch add index TODO size can be config
+            indexImpl.batchAddIndex(key, cacheHashMap(key).toSet)
             cacheHashMap(key).clear()
           }
-        }else{
-          cacheHashMap(key)=new mutable.HashSet[Long]()
+        } else {
+          cacheHashMap(key) = new mutable.HashSet[Long]()
           cacheHashMap(key).add(node.id)
         }
-        addCount+=1
+        addCount += 1
       }
     }
-    cacheHashMap.foreach{//batch add index
-      case (key,value)=>
-        indexImpl.batchAddIndex(key,value.toSet)
+    cacheHashMap.foreach { //batch add index
+      case (key, value) =>
+        indexImpl.batchAddIndex(key, value.toSet)
     }
   }
-  metaDB.put(ConfigNameMap.indexNameStorageKey,indexImpl.indexName.getBytes)
+  metaDB.put(ConfigNameMap.indexNameStorageKey, indexImpl.indexName.getBytes)
   logger.info(f"load index ok,size:${addCount}")
 
   /**
-   *
-   * @return true if need rebuild index
-   */
-  def needRebuildIndex():Boolean={
+    *
+    * @return true if need rebuild index
+    */
+  def needRebuildIndex(): Boolean = {
     // check last time use index engine
-    val indexType=metaDB.get(ConfigNameMap.indexNameStorageKey)
-    if (indexType==null || indexType.length==0){
+    val indexType = metaDB.get(ConfigNameMap.indexNameStorageKey)
+    if (indexType == null || indexType.length == 0) {
       true
-    }else{
+    } else {
       indexImpl.needRebuildIndex(indexType.toString)
     }
 
   }
 
   def removePropertyIndexByNodeId(nodeId: Long): Unit = {
-    if (indexImpl.hasIndex()){
+    if (indexImpl.hasIndex()) {
       getNodeById(nodeId).foreach { node =>
         node.properties.foreach { property =>
-          indexImpl.removeIndex(indexImpl.encodeKey(property._1,property._2),node.id)
+          indexImpl.removeIndex(indexImpl.encodeKey(property._1, property._2), node.id)
         }
       }
     }
   }
+
   /**
-   * @see [[NodeStoreSPI.getNodeIdByProperty()]]
-   *  @return bool
-   */
-  def getNodeIdByProperty(propertyKey:Int,propertyValue: Any): Set[Long] = {
-    indexImpl.getIndexByKey(indexImpl.encodeKey(propertyKey,propertyValue))
+    * @see [[NodeStoreSPI.getNodeIdByProperty()]]
+    *  @return bool
+    */
+  def getNodeIdByProperty(propertyKey: Int, propertyValue: Any): Set[Long] = {
+    indexImpl.getIndexByKey(indexImpl.encodeKey(propertyKey, propertyValue))
   }
 
   /**
-   * @see [[NodeStoreSPI.hasIndex()]]
-   *  @return bool
-   */
-  def hasIndex():Boolean={
+    * @see [[NodeStoreSPI.hasIndex()]]
+    *  @return bool
+    */
+  def hasIndex(): Boolean = {
     indexImpl.hasIndex()
   }
 
@@ -172,10 +173,7 @@ class NodeStoreAPI(
     nodeLabelStore.get(nodeId).map(nodeStore.get(nodeId, _).get)
   }
 
-  override def getNodeById(
-      nodeId: Long,
-      label: Int
-  ): Option[StoredNodeWithProperty] =
+  override def getNodeById(nodeId: Long, label: Int): Option[StoredNodeWithProperty] =
     nodeStore.get(nodeId, label)
 
   override def getNodeLabelsById(nodeId: Long): Array[Int] =
@@ -223,43 +221,45 @@ class NodeStoreAPI(
         }
       }
 
-  override def nodeSetProperty(
-      nodeId: Long,
-      propertyKeyId: Int,
-      propertyValue: Any
-  ): Unit = {
+  override def nodeSetProperty(nodeId: Long, propertyKeyId: Int, propertyValue: Any): Unit = {
     getNodeById(nodeId)
-      .foreach { node => {
-        val nodeInBytes: Array[Byte] =
-          NodeSerializer.encodeNodeWithProperties(
-            node.id,
-            node.labelIds,
-            node.properties ++ Map(propertyKeyId -> propertyValue)
+      .foreach { node =>
+        {
+          val nodeInBytes: Array[Byte] =
+            NodeSerializer.encodeNodeWithProperties(
+              node.id,
+              node.labelIds,
+              node.properties ++ Map(propertyKeyId -> propertyValue)
+            )
+          nodeStore.set(
+            new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
           )
-        nodeStore.set(
-          new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
-        )
-        //add node id to index
-        indexImpl.addIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId)
-      }
+          //add node id to index
+          indexImpl.addIndex(indexImpl.encodeKey(propertyKeyId, propertyValue), nodeId)
+        }
       }
   }
 
   override def nodeRemoveProperty(nodeId: Long, propertyKeyId: Int): Any = {
     getNodeById(nodeId)
-      .foreach { node => {
-        val nodeInBytes: Array[Byte] =
-          NodeSerializer.encodeNodeWithProperties(
-            node.id,
-            node.labelIds,
-            node.properties - propertyKeyId
+      .foreach { node =>
+        {
+          val nodeInBytes: Array[Byte] =
+            NodeSerializer.encodeNodeWithProperties(
+              node.id,
+              node.labelIds,
+              node.properties - propertyKeyId
+            )
+          nodeStore.set(
+            new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
           )
-        nodeStore.set(
-          new StoredNodeWithProperty(node.id, node.labelIds, nodeInBytes)
-        )
-        //remove node id from index
-        node.properties.get(propertyKeyId).map(propertyValue => indexImpl.removeIndex(indexImpl.encodeKey(propertyKeyId,propertyValue), nodeId))
-      }
+          //remove node id from index
+          node.properties
+            .get(propertyKeyId)
+            .map(propertyValue =>
+              indexImpl.removeIndex(indexImpl.encodeKey(propertyKeyId, propertyValue), nodeId)
+            )
+        }
       }
   }
 
@@ -273,15 +273,11 @@ class NodeStoreAPI(
     }
     //add node id to index
     node.properties.foreach { property =>
-      indexImpl.addIndex(indexImpl.encodeKey(property._1,property._2), node.id)
+      indexImpl.addIndex(indexImpl.encodeKey(property._1, property._2), node.id)
     }
   }
 
-  override def addNode(
-      nodeId: NodeId,
-      labelIds: Array[Int],
-      props: Map[Int, Any]
-  ): Unit = {
+  override def addNode(nodeId: NodeId, labelIds: Array[Int], props: Map[Int, Any]): Unit = {
     addNode(new StoredNodeWithProperty(nodeId, labelIds, props))
   }
 
@@ -293,15 +289,10 @@ class NodeStoreAPI(
     nodeStore.getNodesByLabel(labelId)
 
   // Fixme: This func is slow, because it needs to finish all the search before return the final iter.
-  override def getNodesByLabels(
-      labelIds: Seq[Int]
-  ): Iterator[StoredNodeWithProperty] =
+  override def getNodesByLabels(labelIds: Seq[Int]): Iterator[StoredNodeWithProperty] =
     labelIds.flatMap(labelId => nodeStore.getNodesByLabel(labelId)).toIterator
 
-  override def getNodeById(
-      nodeId: Long,
-      label: Option[Int]
-  ): Option[StoredNodeWithProperty] =
+  override def getNodeById(nodeId: Long, label: Option[Int]): Option[StoredNodeWithProperty] =
     label.map(getNodeById(nodeId, _)).getOrElse(getNodeById(nodeId))
 
   override def getNodeIdsByLabel(labelId: Int): Iterator[Long] =
@@ -376,15 +367,11 @@ class NodeStoreAPI(
     NodeSerializer.decodeNodeLabelIds(bytes)
   }
 
-  override def serializePropertiesToBytes(
-      properties: Map[Int, Any]
-  ): Array[Byte] = {
+  override def serializePropertiesToBytes(properties: Map[Int, Any]): Array[Byte] = {
     NodeSerializer.encodeNodeProperties(properties)
   }
 
-  override def deserializeBytesToProperties(
-      bytes: Array[Byte]
-  ): Map[Int, Any] = {
+  override def deserializeBytesToProperties(bytes: Array[Byte]): Map[Int, Any] = {
     BaseSerializer.decodePropMap(bytes)
   }
 }

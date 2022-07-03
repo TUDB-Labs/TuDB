@@ -61,8 +61,7 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
         SemanticFeature.Cypher10Support,
         SemanticFeature.MultipleGraphs,
         SemanticFeature.WithInitialQuerySignature
-      )
-        .adds(BaseContains[SemanticState]) andThen
+      ).adds(BaseContains[SemanticState]) andThen
       AstRewriting(RewriterStepSequencer.newPlain, Never, getDegreeRewriting = false) andThen
       isolateAggregation andThen
       SemanticAnalysis(
@@ -83,8 +82,9 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
     override def description: String = "map functions to their procedure implementations"
 
     override def process(from: BaseState, ignored: BaseContext): BaseState = {
-      val rewriter = inSequence(bottomUp(Rewriter.lift { case func: FunctionInvocation =>
-        ProcedureExpression(func)(runnerContext)
+      val rewriter = inSequence(bottomUp(Rewriter.lift {
+        case func: FunctionInvocation =>
+          ProcedureExpression(func)(runnerContext)
       }))
       val newStatement = from.statement().endoRewrite(rewriter)
       from.withStatement(newStatement)

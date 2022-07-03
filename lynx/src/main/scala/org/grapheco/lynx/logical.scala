@@ -37,9 +37,9 @@ class DefaultLogicalPlanner(runnerContext: CypherRunnerContext) extends LogicalP
         LPTQueryPartTranslator(part).translate(None)
 
       case CreateUniquePropertyConstraint(
-            Variable(v1),
-            LabelName(l),
-            List(Property(Variable(v2), PropertyKeyName(p)))
+          Variable(v1),
+          LabelName(l),
+          List(Property(Variable(v2), PropertyKeyName(p)))
           ) =>
         throw UnknownASTNodeException(node)
 
@@ -295,28 +295,28 @@ case class LPTWithTranslator(w: With) extends LPTNodeTranslator {
   def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
     (w, in) match {
       case (
-            With(
-              distinct,
-              ReturnItems(includeExisting, items),
-              orderBy,
-              skip,
-              limit: Option[Limit],
-              where
-            ),
-            None
+          With(
+            distinct,
+            ReturnItems(includeExisting, items),
+            orderBy,
+            skip,
+            limit: Option[Limit],
+            where
+          ),
+          None
           ) =>
         LPTCreateUnit(items)
 
       case (
-            With(
-              distinct,
-              ri: ReturnItems,
-              orderBy,
-              skip: Option[Skip],
-              limit: Option[Limit],
-              where: Option[Where]
-            ),
-            Some(sin)
+          With(
+            distinct,
+            ri: ReturnItems,
+            orderBy,
+            skip: Option[Skip],
+            limit: Option[Limit],
+            where: Option[Where]
+          ),
+          Some(sin)
           ) =>
         PipedTranslators(
           Seq(

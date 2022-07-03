@@ -17,8 +17,8 @@ class RelationshipStoreAPI(
     outRelationConfigPath: String,
     relationLabelDBPath: String,
     relationLabelConfigPath: String,
-    metaDB: KeyValueDB
-) extends RelationStoreSPI {
+    metaDB: KeyValueDB)
+  extends RelationStoreSPI {
 
   private val relationDB =
     RocksDBStorage.getDB(relationDBPath, rocksdbConfigPath = relationConfigPath)
@@ -48,11 +48,7 @@ class RelationshipStoreAPI(
 
   private val relationIdGenerator = new IdGenerator(relationDB, 200)
 
-  def this(
-      dbPath: String,
-      rocksdbCfgPath: String = "default",
-      metaDB: KeyValueDB
-  ) {
+  def this(dbPath: String, rocksdbCfgPath: String = "default", metaDB: KeyValueDB) {
     this(
       s"${dbPath}/${DBNameMap.relationDB}",
       rocksdbCfgPath,
@@ -98,13 +94,10 @@ class RelationshipStoreAPI(
   override def addPropertyKey(keyName: String): Int =
     propertyName.getOrAddId(keyName)
 
-  override def getRelationById(
-      relId: Long
-  ): Option[StoredRelationshipWithProperty] = relationStore.get(relId)
+  override def getRelationById(relId: Long): Option[StoredRelationshipWithProperty] =
+    relationStore.get(relId)
 
-  override def getRelationIdsByRelationType(
-      relationTypeId: Int
-  ): Iterator[Long] =
+  override def getRelationIdsByRelationType(relationTypeId: Int): Iterator[Long] =
     relationLabelStore.getRelations(relationTypeId)
 
   //TODO: Enable to set multi props on once invoke.
@@ -112,7 +105,7 @@ class RelationshipStoreAPI(
       relationId: Long,
       propertyKeyId: Int,
       propertyValue: Any
-  ): Unit = {
+    ): Unit = {
     relationStore.get(relationId).foreach { rel =>
       relationStore.set(
         rel.id,
@@ -124,10 +117,7 @@ class RelationshipStoreAPI(
     }
   }
 
-  override def relationRemoveProperty(
-      relationId: Long,
-      propertyKeyId: Int
-  ): Any = {
+  override def relationRemoveProperty(relationId: Long, propertyKeyId: Int): Any = {
     relationStore.get(relationId).foreach { rel =>
       relationStore.set(
         rel.id,
@@ -142,19 +132,13 @@ class RelationshipStoreAPI(
   override def findToNodeIds(fromNodeId: Long): Iterator[Long] =
     outRelationStore.getNodeIds(fromNodeId)
 
-  override def findToNodeIds(
-      fromNodeId: Long,
-      relationType: Int
-  ): Iterator[Long] =
+  override def findToNodeIds(fromNodeId: Long, relationType: Int): Iterator[Long] =
     outRelationStore.getNodeIds(fromNodeId, relationType)
 
   override def findFromNodeIds(toNodeId: Long): Iterator[Long] =
     inRelationStore.getNodeIds(toNodeId)
 
-  override def findFromNodeIds(
-      toNodeId: Long,
-      relationType: Int
-  ): Iterator[Long] =
+  override def findFromNodeIds(toNodeId: Long, relationType: Int): Iterator[Long] =
     inRelationStore.getNodeIds(toNodeId, relationType)
 
   override def addRelation(relation: StoredRelationship): Unit = {
@@ -177,7 +161,7 @@ class RelationshipStoreAPI(
       toId: Long,
       typeId: Int,
       props: Map[Int, Any]
-  ): Unit = {
+    ): Unit = {
     addRelation(
       new StoredRelationshipWithProperty(
         relationshipId,
@@ -198,9 +182,7 @@ class RelationshipStoreAPI(
     }
   }
 
-  override def allRelations(
-      withProperty: Boolean = false
-  ): Iterator[StoredRelationship] = {
+  override def allRelations(withProperty: Boolean = false): Iterator[StoredRelationship] = {
     if (withProperty) relationStore.all()
     else inRelationStore.all()
   }
@@ -208,7 +190,7 @@ class RelationshipStoreAPI(
   override def findOutRelations(
       fromNodeId: Long,
       edgeType: Option[Int] = None
-  ): Iterator[StoredRelationship] =
+    ): Iterator[StoredRelationship] =
     edgeType
       .map(outRelationStore.getRelations(fromNodeId, _))
       .getOrElse(outRelationStore.getRelations(fromNodeId))
@@ -216,7 +198,7 @@ class RelationshipStoreAPI(
   override def findInRelations(
       toNodeId: Long,
       edgeType: Option[Int] = None
-  ): Iterator[StoredRelationship] =
+    ): Iterator[StoredRelationship] =
     edgeType
       .map(inRelationStore.getRelations(toNodeId, _))
       .getOrElse(inRelationStore.getRelations(toNodeId))
@@ -225,7 +207,7 @@ class RelationshipStoreAPI(
       toNodeId: Long,
       fromNodeId: Long,
       edgeType: Option[Int] = None
-  ): Iterator[StoredRelationship] = {
+    ): Iterator[StoredRelationship] = {
     edgeType
       .map(inRelationStore.getRelation(toNodeId, _, fromNodeId).toIterator)
       .getOrElse(
@@ -237,7 +219,7 @@ class RelationshipStoreAPI(
       fromNodeId: Long,
       toNodeId: Long,
       edgeType: Option[Int] = None
-  ): Iterator[StoredRelationship] = {
+    ): Iterator[StoredRelationship] = {
     edgeType
       .map(outRelationStore.getRelation(fromNodeId, _, toNodeId).toIterator)
       .getOrElse(

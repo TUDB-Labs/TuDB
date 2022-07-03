@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /** @Author: Airzihao
- * @Description:
- * @Date: Created at 15:35 2022/4/1
- * @Modified By:
- */
+  * @Description:
+  * @Date: Created at 15:35 2022/4/1
+  * @Modified By:
+  */
 class TuDBServer(serverContext: TuDBServerContext) extends LazyLogging {
 
   /** main logger */
@@ -39,6 +39,4 @@ class TuDBServer(serverContext: TuDBServerContext) extends LazyLogging {
     _server.shutdown().awaitTermination(5, TimeUnit.SECONDS)
   }
 
-
 }
-

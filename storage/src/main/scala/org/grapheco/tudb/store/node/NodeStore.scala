@@ -16,15 +16,9 @@ class NodeStore(db: KeyValueDB) {
   val allocator: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
 
   // [labelId,nodeId]->[Node]
-  def set(
-      nodeId: NodeId,
-      labelIds: Array[LabelId],
-      value: Array[Byte]
-  ): Unit = {
+  def set(nodeId: NodeId, labelIds: Array[LabelId], value: Array[Byte]): Unit = {
     if (labelIds.nonEmpty)
-      labelIds.foreach(labelId =>
-        db.put(NodeSerializer.encodeNodeKey(nodeId, labelId), value)
-      )
+      labelIds.foreach(labelId => db.put(NodeSerializer.encodeNodeKey(nodeId, labelId), value))
     else
       db.put(NodeSerializer.encodeNodeKey(nodeId, NONE_LABEL_ID), value)
   }

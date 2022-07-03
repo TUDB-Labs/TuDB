@@ -47,9 +47,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyL
     testInRelationData.toArray
   }
 
-  private def getRelationByIdTest(
-      data: Array[StoredRelationshipWithProperty]
-    ): Unit = {
+  private def getRelationByIdTest(data: Array[StoredRelationshipWithProperty]): Unit = {
     data.foreach(r => {
       testTemplate(() => relationshipStore.getRelationById(r.id).get)
     })
@@ -57,9 +55,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyL
     costArray.clear()
     println()
   }
-  private def findInRelationTest(
-      data: Array[StoredRelationshipWithProperty]
-    ): Unit = {
+  private def findInRelationTest(data: Array[StoredRelationshipWithProperty]): Unit = {
     data.foreach(r => {
       testTemplate(() => {
         val res = relationshipStore
@@ -72,9 +68,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyL
     costArray.clear()
     println()
   }
-  private def updateRelationTest(
-      data: Array[StoredRelationshipWithProperty]
-    ): Unit = {
+  private def updateRelationTest(data: Array[StoredRelationshipWithProperty]): Unit = {
     data.foreach(r => {
       testTemplate(() =>
         relationshipStore.relationSetProperty(
@@ -96,9 +90,7 @@ class RelationPerformance(relationshipStore: RelationshipStoreAPI) extends LazyL
     println()
   }
 
-  private def addAndDeleteRelation(
-      data: Array[StoredRelationshipWithProperty]
-    ): Unit = {
+  private def addAndDeleteRelation(data: Array[StoredRelationshipWithProperty]): Unit = {
     data.foreach(r => {
       testTemplate(() => relationshipStore.deleteRelation(r.id))
     })

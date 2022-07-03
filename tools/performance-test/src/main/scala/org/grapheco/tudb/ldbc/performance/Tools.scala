@@ -10,10 +10,7 @@ import java.util.concurrent.TimeUnit
   * @create: 2022-03-24 17:54
   */
 object Tools extends LazyLogging {
-  def printTimeCalculateResult(
-      timeCostArray: Array[Long],
-      apiName: String
-  ): Unit = {
+  def printTimeCalculateResult(timeCostArray: Array[Long], apiName: String): Unit = {
     val costArray = timeCostArray.sorted.slice(1, timeCostArray.length - 1)
     val usTimeCost = costArray.sum / (costArray.length)
     val msTimeCost = TimeUnit.NANOSECONDS.toMillis(usTimeCost)

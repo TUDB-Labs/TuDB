@@ -2,7 +2,7 @@ package org.grapheco.tudb.APITest
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.tudb.APITest.RelationshipStoreAPITest.{nodeStoreAPI, relationshipStoreAPI}
-import org.grapheco.tudb.TuInstanceContext
+import org.grapheco.tudb.TuDBInstanceContext
 import org.grapheco.tudb.serializer.{NodeSerializer, RelationshipSerializer}
 import org.grapheco.tudb.store.meta.DBNameMap
 import org.grapheco.tudb.store.meta.TypeManager.TypeId
@@ -19,11 +19,10 @@ import java.io.File
   * @Date: Created at 10:07 上午 2022/2/5
   * @Modified By:
   */
-
 object RelationshipStoreAPITest {
   val outputRoot: String =
     s"${TestUtils.getModuleRootPath}/testOutput/relationshipStoreTest"
-  TuInstanceContext.setDataPath(outputRoot)
+  TuDBInstanceContext.setDataPath(outputRoot)
   val metaDB: KeyValueDB =
     RocksDBStorage.getDB(s"${outputRoot}/${DBNameMap.nodeMetaDB}")
   val nodeStoreAPI = new NodeStoreAPI(
@@ -87,9 +86,7 @@ class RelationshipStoreAPITest {
     nodeStoreAPI.allNodes().foreach(node => nodeStoreAPI.deleteNode(node.id))
     relationshipStoreAPI
       .allRelations()
-      .foreach(relationship =>
-        relationshipStoreAPI.deleteRelation(relationship.id)
-      )
+      .foreach(relationship => relationshipStoreAPI.deleteRelation(relationship.id))
     Assert.assertFalse(nodeStoreAPI.allNodes().hasNext)
     Assert.assertFalse(relationshipStoreAPI.allRelations().hasNext)
   }
