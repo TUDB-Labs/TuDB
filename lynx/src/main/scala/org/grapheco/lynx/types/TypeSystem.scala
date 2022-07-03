@@ -15,4 +15,3 @@ trait TypeSystem {
 
   def wrap(value: Any): LynxValue
 }
-

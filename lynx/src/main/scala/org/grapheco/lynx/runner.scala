@@ -32,7 +32,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     classOf[PredicateFunctions],
     classOf[ScalarFunctions],
     classOf[StringFunctions],
-    //    classOf[TimeFunctions],
+    classOf[TimeFunctions],
     classOf[TrigonometricFunctions]
   )
   protected lazy val expressionEvaluator: ExpressionEvaluator =
@@ -182,10 +182,12 @@ trait PlanAware {
   * @param properties filter property names
   */
 case class NodeFilter(labels: Seq[LynxNodeLabel], properties: Map[LynxPropertyKey, LynxValue]) {
-  def matches(node: LynxNode): Boolean = labels.forall(node.labels.contains) &&
-    properties.forall { case (propertyName, value) =>
-      node.property(propertyName).exists(value.equals)
-    }
+  def matches(node: LynxNode): Boolean =
+    labels.forall(node.labels.contains) &&
+      properties.forall {
+        case (propertyName, value) =>
+          node.property(propertyName).exists(value.equals)
+      }
 }
 
 /** types note: the relationship of type TYPE1 or of type TYPE2.
@@ -195,13 +197,15 @@ case class NodeFilter(labels: Seq[LynxNodeLabel], properties: Map[LynxPropertyKe
 case class RelationshipFilter(
     types: Seq[LynxRelationshipType],
     properties: Map[LynxPropertyKey, LynxValue]) {
-  def matches(relationship: LynxRelationship): Boolean = ((types, relationship.relationType) match {
-    case (Seq(), _)          => true
-    case (_, None)           => false
-    case (_, Some(typeName)) => types.contains(typeName)
-  }) && properties.forall { case (propertyName, value) =>
-    relationship.property(propertyName).exists(value.equals)
-  }
+  def matches(relationship: LynxRelationship): Boolean =
+    ((types, relationship.relationType) match {
+      case (Seq(), _)          => true
+      case (_, None)           => false
+      case (_, Some(typeName)) => types.contains(typeName)
+    }) && properties.forall {
+      case (propertyName, value) =>
+        relationship.property(propertyName).exists(value.equals)
+    }
 }
 
 /** A triplet of path.
@@ -411,9 +415,10 @@ trait GraphModel {
   def statistics: Statistics = new Statistics {
     override def numNode: Long = nodes().length
 
-    override def numNodeByLabel(labelName: LynxNodeLabel): Long = nodes(
-      NodeFilter(Seq(labelName), Map.empty)
-    ).length
+    override def numNodeByLabel(labelName: LynxNodeLabel): Long =
+      nodes(
+        NodeFilter(Seq(labelName), Map.empty)
+      ).length
 
     override def numNodeByProperty(
         labelName: LynxNodeLabel,
@@ -580,10 +585,12 @@ trait GraphModel {
       case BOTH     => relationships().flatMap(item => Seq(item, item.revert))
       case INCOMING => relationships().map(_.revert)
       case OUTGOING => relationships()
-    }).filter { case PathTriple(startNode, rel, endNode, _) =>
-      relationshipFilter.matches(rel) && startNodeFilter.matches(startNode) && endNodeFilter
-        .matches(endNode)
-    }.map(Seq(_))
+    }).filter {
+        case PathTriple(startNode, rel, endNode, _) =>
+          relationshipFilter.matches(rel) && startNodeFilter.matches(startNode) && endNodeFilter
+            .matches(endNode)
+      }
+      .map(Seq(_))
 
   /** Take a node as the starting or ending node and expand in a certain direction.
     * @param nodeId The id of this node
@@ -635,8 +642,9 @@ case class GraphModelHelper(graphModel: GraphModel) {
       .dropIndex(Index(LynxNodeLabel(labelName), properties.map(LynxPropertyKey)))
 
   def indexes: Array[(String, Set[String])] =
-    this.graphModel.indexManager.indexes.map { case Index(label, properties) =>
-      (label.value, properties.map(_.value))
+    this.graphModel.indexManager.indexes.map {
+      case Index(label, properties) =>
+        (label.value, properties.map(_.value))
     }
 
   /*

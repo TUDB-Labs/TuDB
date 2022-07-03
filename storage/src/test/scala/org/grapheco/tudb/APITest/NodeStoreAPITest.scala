@@ -2,7 +2,7 @@ package org.grapheco.tudb.APITest
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.tudb.APITest.NodeStoreAPITest.nodeStoreAPI
-import org.grapheco.tudb.TuInstanceContext
+import org.grapheco.tudb.TuDBInstanceContext
 import org.grapheco.tudb.SerializerTest.SerializerTestBase
 import org.grapheco.tudb.serializer.NodeSerializer
 import org.grapheco.tudb.store.meta.DBNameMap
@@ -19,11 +19,10 @@ import java.io.File
   * @Date: Created at 10:18 上午 2022/2/2
   * @Modified By: LianxinGao
   */
-
 object NodeStoreAPITest {
   val outputRoot: String =
     s"${TestUtils.getModuleRootPath}/testOutput/nodeStoreTest"
-  TuInstanceContext.setDataPath(s"$outputRoot")
+  TuDBInstanceContext.setDataPath(s"$outputRoot")
   val metaDB: KeyValueDB =
     RocksDBStorage.getDB(s"$outputRoot/${DBNameMap.nodeMetaDB}")
   val nodeStoreAPI: NodeStoreAPI = new NodeStoreAPI(

@@ -16,11 +16,8 @@ import scala.concurrent.{Await, Future}
   * @Date: Created at 10:20 2021/1/15
   * @Modified By:
   */
-class SingleNodeFileImporter(
-    file: File,
-    importCmd: ImportCmd,
-    globalArgs: GlobalArgs
-) extends SingleFileImporter {
+class SingleNodeFileImporter(file: File, importCmd: ImportCmd, globalArgs: GlobalArgs)
+  extends SingleFileImporter {
 
   override val csvFile: File = file
   override val cmd: ImportCmd = importCmd
@@ -95,9 +92,7 @@ class SingleNodeFileImporter(
           _getNodeKeys(node._1, node._2)
         val serializedNodeValue =
           serializer.encodeNodeWithProperties(node._1, node._2, node._3)
-        node._2.foreach(labelId =>
-          _countMapAdd(innerTaskNodeCountByLabel, labelId, 1L)
-        )
+        node._2.foreach(labelId => _countMapAdd(innerTaskNodeCountByLabel, labelId, 1L))
         keys.foreach(pair => {
           nodeBatch.put(pair._1, serializedNodeValue)
           labelBatch.put(pair._2, Array.emptyByteArray)
@@ -119,9 +114,7 @@ class SingleNodeFileImporter(
       )
     }
 
-    innerTaskNodeCountByLabel.foreach(kv =>
-      _countMapAdd(innerFileNodeCountByLabel, kv._1, kv._2)
-    )
+    innerTaskNodeCountByLabel.foreach(kv => _countMapAdd(innerFileNodeCountByLabel, kv._1, kv._2))
     val f1: Future[Unit] = Future { nodeDB.flush() }
     val f2: Future[Unit] = Future { nodeLabelDB.flush() }
     Await.result(f1, Duration.Inf)
@@ -129,9 +122,7 @@ class SingleNodeFileImporter(
     true
   }
 
-  private def _wrapNode(
-      lineArr: Array[String]
-  ): (Long, Array[Int], Map[Int, Any]) = {
+  private def _wrapNode(lineArr: Array[String]): (Long, Array[Int], Map[Int, Any]) = {
     val id = lineArr(idIndex).toLong
     val labels: Array[String] = {
       if (labelIndex == -1) {
@@ -153,10 +144,7 @@ class SingleNodeFileImporter(
     true
   }
 
-  private def _getNodeKeys(
-      id: Long,
-      labelIds: Array[Int]
-  ): Array[(Array[Byte], Array[Byte])] = {
+  private def _getNodeKeys(id: Long, labelIds: Array[Int]): Array[(Array[Byte], Array[Byte])] = {
     if (labelIds.isEmpty) {
       val nodeKey = NodeSerializer.encodeNodeKey(id, NONE_LABEL_ID)
       val labelKey = NodeSerializer.encodeNodeLabelKey(id, NONE_LABEL_ID)

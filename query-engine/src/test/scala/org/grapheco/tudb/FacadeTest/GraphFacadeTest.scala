@@ -6,7 +6,7 @@ import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
 import org.grapheco.tudb.FacadeTest.GraphFacadeTest.db
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.{GraphDatabaseBuilder, TuInstanceContext}
+import org.grapheco.tudb.{GraphDatabaseBuilder, TuDBInstanceContext}
 import org.junit._
 import org.junit.runners.MethodSorters
 
@@ -18,16 +18,15 @@ import java.io.File
   * @Date 2022/3/25
   * @Version 0.1
   */
-
 object GraphFacadeTest {
 
   val outputPath: String = s"${TestUtils.getModuleRootPath}/facadeTest"
   val file = new File(outputPath)
   if (file.exists()) FileUtils.deleteDirectory(file)
-  TuInstanceContext.setDataPath(outputPath)
+  TuDBInstanceContext.setDataPath(outputPath)
   val db =
     GraphDatabaseBuilder.newEmbeddedDatabase(
-      TuInstanceContext.getDataPath,
+      TuDBInstanceContext.getDataPath,
       "tudb://index?type=dummy"
     )
 

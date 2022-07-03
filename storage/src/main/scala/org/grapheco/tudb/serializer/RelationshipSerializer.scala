@@ -18,7 +18,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
       toId: Long,
       typeId: Int,
       props: Map[Int, Any]
-  ): Array[Byte] = {
+    ): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeLong(relationId)
     _bytebuf.writeLong(fromId)
@@ -29,9 +29,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
     bytes
   }
 
-  override def encodeRelationship(
-      storedRelationship: StoredRelationship
-  ): Array[Byte] = {
+  override def encodeRelationship(storedRelationship: StoredRelationship): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeLong(storedRelationship.id)
     _bytebuf.writeLong(storedRelationship.from)
@@ -42,7 +40,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
 
   override def decodeRelationshipWithProperties(
       bytes: Array[Byte]
-  ): StoredRelationshipWithProperty = {
+    ): StoredRelationshipWithProperty = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     val relationshipId: Long = _bytebuf.readLong()
@@ -60,9 +58,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
   }
 
   // [relationId, fromId, toID, typeId, props]
-  override def decodePropertiesFromFullRelationship(
-      bytes: Array[Byte]
-  ): Map[Int, Any] = {
+  override def decodePropertiesFromFullRelationship(bytes: Array[Byte]): Map[Int, Any] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     _bytebuf.readerIndex(28)
@@ -77,21 +73,14 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
     BaseSerializer.releaseBuf(_bytebuf)
   }
 
-  def encodeRelationshipKey(
-      typeId: TypeId,
-      relationshipId: RelationshipId
-  ): Array[Byte] = {
+  def encodeRelationshipKey(typeId: TypeId, relationshipId: RelationshipId): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeInt(typeId)
     _bytebuf.writeLong(relationshipId)
     BaseSerializer.releaseBuf(_bytebuf)
   }
 
-  def encodeDirectedRelationshipKey(
-      fromId: NodeId,
-      typeId: TypeId,
-      toId: NodeId
-  ): Array[Byte] = {
+  def encodeDirectedRelationshipKey(fromId: NodeId, typeId: TypeId, toId: NodeId): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeLong(fromId)
     _bytebuf.writeInt(typeId)
@@ -105,19 +94,14 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
   }
 
   // [fromNodeId(8Bytes),relationType(4Bytes),----]
-  def encodeRelationshipPrefix(
-      fromNodeId: NodeId,
-      typeId: TypeId
-  ): Array[Byte] = {
+  def encodeRelationshipPrefix(fromNodeId: NodeId, typeId: TypeId): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeLong(fromNodeId)
     _bytebuf.writeInt(typeId)
     BaseSerializer.releaseBuf(_bytebuf)
   }
 
-  def decodeRelationshipDirectionKey(
-      bytes: Array[Byte]
-  ): (NodeId, TypeId, NodeId) = {
+  def decodeRelationshipDirectionKey(bytes: Array[Byte]): (NodeId, TypeId, NodeId) = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     val node1Id = _bytebuf.readLong()
@@ -127,10 +111,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
     (node1Id, typeId, node2Id)
   }
 
-  def encodeRelationshipTypeKey(
-      typeId: TypeId,
-      relationshipId: RelationshipId
-  ): Array[Byte] = {
+  def encodeRelationshipTypeKey(typeId: TypeId, relationshipId: RelationshipId): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeInt(typeId)
     _bytebuf.writeLong(relationshipId)
@@ -143,9 +124,7 @@ object RelationshipSerializer extends AbstractRelationshipSerializer {
     BaseSerializer.releaseBuf(_bytebuf)
   }
 
-  def decodeRelationshipTypeKey(
-      bytes: Array[Byte]
-  ): (TypeId, RelationshipId) = {
+  def decodeRelationshipTypeKey(bytes: Array[Byte]): (TypeId, RelationshipId) = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     val typeId = _bytebuf.readInt()

@@ -1,4 +1,4 @@
-/** Copyright (c) 2022 PandaDB * */
+/** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.store.index
 
 import scala.collection.mutable
@@ -64,10 +64,10 @@ class MemoryIndexServerImpl(params: Map[String, String]) extends IndexServer(par
   override val indexName: String = "memory"
 
   /**
-   * check   need rebuild index or not
-   *
-   * @param lastIndex last time use index
-   * @return
-   */
+    * check   need rebuild index or not
+    *
+    * @param lastIndex last time use index
+    * @return
+    */
   override def needRebuildIndex(lastIndex: String): Boolean = true
 }

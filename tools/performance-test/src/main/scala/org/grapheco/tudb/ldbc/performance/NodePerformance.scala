@@ -13,8 +13,7 @@ import scala.collection.mutable.ArrayBuffer
   * @author: LiamGao
   * @create: 2022-03-24 17:50
   */
-class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean)
-    extends LazyLogging {
+class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean) extends LazyLogging {
   private var startTime: Long = _
   private val costArray: ArrayBuffer[Long] = ArrayBuffer.empty
 
@@ -56,7 +55,7 @@ class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean)
       val labelId = nodeStore.getLabelId(label)
       if (labelId.isDefined) {
         nodeStore.getNodesByLabel(labelId.get).next()
-      } else throw new ClientException(TuDBError.CLIENT_ERROR,s"no such label: $label")
+      } else throw new ClientException(TuDBError.CLIENT_ERROR, s"no such label: $label")
     })
     nodes
   }
@@ -70,9 +69,7 @@ class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean)
     println()
   }
 
-  private def addAndDeleteNodeTest(
-      nodes: Array[StoredNodeWithProperty]
-  ): Unit = {
+  private def addAndDeleteNodeTest(nodes: Array[StoredNodeWithProperty]): Unit = {
     nodes.foreach(node => {
       testTemplate(() => nodeStore.deleteNode(node.id))
     })
@@ -90,9 +87,7 @@ class NodePerformance(nodeStore: NodeStoreAPI, testScanAllNodeData: Boolean)
 
   private def updateNodeTest(nodes: Array[StoredNodeWithProperty]): Unit = {
     nodes.foreach(node => {
-      testTemplate(() =>
-        nodeStore.nodeSetProperty(node.id, 233, "test property set")
-      )
+      testTemplate(() => nodeStore.nodeSetProperty(node.id, 233, "test property set"))
     })
     printTimeCalculateResult(costArray.toArray, "nodeSetProperty")
     costArray.clear()

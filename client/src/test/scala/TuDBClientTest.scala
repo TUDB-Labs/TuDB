@@ -6,7 +6,7 @@ import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelati
 import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.network.Query
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.{TuDBServer, TuDBServerContext, TuInstanceContext}
+import org.grapheco.tudb.{TuDBServer, TuDBServerContext, TuDBInstanceContext}
 import org.junit.{AfterClass, Assert, BeforeClass, Test}
 
 import java.io.File
@@ -16,11 +16,10 @@ import java.io.File
   * @Date: Created at 16:55 2022/4/1
   * @Modified By:
   */
-
 object TuDBClientTest {
   val testConnectionPort = 7600
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
-  TuInstanceContext.setDataPath(dbPath)
+  TuDBInstanceContext.setDataPath(dbPath)
 
   val serverContext = new TuDBServerContext()
   serverContext.setDataPath(dbPath)

@@ -1,18 +1,19 @@
-/** Copyright (c) 2022 PandaDB * */
+/** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.store.storage
 
 import org.rocksdb._
+
 /** @author: huagnlin
- * @createDate: 2022-06-28 7:19:08
- * @description: this is the rocksdb config class
- */
+  * @createDate: 2022-06-28 7:19:08
+  * @description: this is the rocksdb config class
+  */
 object RocksDBStorageConfig {
 
   /**
-   * return default rocksdb config with lz4 compression
-   * @param createIfMissing
-   * @return
-   */
+    * return default rocksdb config with lz4 compression
+    * @param createIfMissing
+    * @return
+    */
   def getDefault(createIfMissing: Boolean): Options = {
     val options: Options = new Options()
     val tableConfig = new BlockBasedTableConfig()
@@ -57,10 +58,10 @@ object RocksDBStorageConfig {
   }
 
   /**
-   * return high performance rocksdb config with no compression
-   * @param createIfMissing
-   * @return
-   */
+    * return high performance rocksdb config with no compression
+    * @param createIfMissing
+    * @return
+    */
   def getHighPerConfig(createIfMissing: Boolean): Options = {
     val options: Options = new Options()
     val tableConfig = new BlockBasedTableConfig()

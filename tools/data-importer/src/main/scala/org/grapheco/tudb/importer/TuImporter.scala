@@ -155,8 +155,7 @@ object TuImporter extends LazyLogging {
       globalArgs.statistics.addRelationTypeCount(kv._1, kv._2)
     )
     globalArgs.statistics.nodeCount = importerStatics.getGlobalNodeCount.get()
-    globalArgs.statistics.relationCount =
-      importerStatics.getGlobalRelCount.get()
+    globalArgs.statistics.relationCount = importerStatics.getGlobalRelCount.get()
     globalArgs.statistics.flush()
     statistics.close()
 

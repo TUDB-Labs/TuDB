@@ -14,12 +14,10 @@ trait AbstractRelationshipSerializer {
       toId: Long,
       typeId: Int,
       props: Map[Int, Any]
-  ): Array[Byte]
+    ): Array[Byte]
   def encodeRelationship(storedRelationship: StoredRelationship): Array[Byte]
 
-  def decodeRelationshipWithProperties(
-      bytes: Array[Byte]
-  ): StoredRelationshipWithProperty
+  def decodeRelationshipWithProperties(bytes: Array[Byte]): StoredRelationshipWithProperty
   def decodePropertiesFromFullRelationship(bytes: Array[Byte]): Map[Int, Any]
 
 }

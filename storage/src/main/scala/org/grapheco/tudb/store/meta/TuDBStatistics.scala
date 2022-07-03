@@ -27,8 +27,7 @@ object TuDBStatistics {
   val emptyLong: Array[Byte] = BaseSerializer.encodeLong(0)
 }
 
-class TuDBStatistics(path: String, rocksdbCfgPath: String = "default")
-    extends lynx.Statistics {
+class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends lynx.Statistics {
 
   val db: KeyValueDB = RocksDBStorage.getDB(
     s"${path}/${DBNameMap.statisticsDB}",
@@ -206,7 +205,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default")
       labelName: LynxNodeLabel,
       propertyName: LynxPropertyKey,
       value: LynxValue
-  ): Long = 0
+    ): Long = 0
 
   override def numRelationship: Long = relationCount
 
@@ -216,24 +215,26 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default")
     ).getOrElse(0)
 
   def getNodeCountByLabel(): LynxMap = {
-    LynxMap(_nodeCountByLabel.map { case (key, value) =>
-      (
-        TuStoreContext.getNodeStoreAPI
-          .getLabelName(key)
-          .getOrElse("unknown"),
-        LynxInteger(value)
-      )
+    LynxMap(_nodeCountByLabel.map {
+      case (key, value) =>
+        (
+          TuStoreContext.getNodeStoreAPI
+            .getLabelName(key)
+            .getOrElse("unknown"),
+          LynxInteger(value)
+        )
     }.toMap)
   }
 
   def getRelationshipCountByType(): LynxMap = {
-    LynxMap(_relationCountByType.map { case (key, value) =>
-      (
-        TuStoreContext.getRelationshipAPI
-          .getRelationTypeName(key)
-          .getOrElse("unknown"),
-        LynxInteger(value)
-      )
+    LynxMap(_relationCountByType.map {
+      case (key, value) =>
+        (
+          TuStoreContext.getRelationshipAPI
+            .getRelationTypeName(key)
+            .getOrElse("unknown"),
+          LynxInteger(value)
+        )
     }.toMap)
   }
 

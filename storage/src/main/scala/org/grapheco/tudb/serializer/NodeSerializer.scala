@@ -11,10 +11,7 @@ import org.grapheco.tudb.store.node.StoredNodeWithProperty
 object NodeSerializer extends AbstractNodeSerializer {
   val allocator: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
 
-  override def encodeNodeKey(
-      id: Long,
-      labelIds: Array[Int]
-  ): Array[Array[Byte]] = {
+  override def encodeNodeKey(id: Long, labelIds: Array[Int]): Array[Array[Byte]] = {
     val _bytebuf = allocator.directBuffer()
     val bytes: Array[Array[Byte]] = labelIds.map(labelId => {
       _bytebuf.writeInt(labelId)
@@ -45,7 +42,7 @@ object NodeSerializer extends AbstractNodeSerializer {
 
   override def encodeNodeWithProperties(
       storedNodeWithProperty: StoredNodeWithProperty
-  ): Array[Byte] = {
+    ): Array[Byte] = {
     storedNodeWithProperty.sourceBytes
   }
 
@@ -53,7 +50,7 @@ object NodeSerializer extends AbstractNodeSerializer {
       id: Long,
       labelIDs: Array[Int],
       properties: Map[Int, Any]
-  ): Array[Byte] = {
+    ): Array[Byte] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeLong(id)
     BaseSerializer.encodeArray(labelIDs, _bytebuf)
@@ -61,9 +58,7 @@ object NodeSerializer extends AbstractNodeSerializer {
     BaseSerializer.releaseBuf(_bytebuf)
   }
 
-  override def decodeNodeWithProperties(
-      bytes: Array[Byte]
-  ): StoredNodeWithProperty = {
+  override def decodeNodeWithProperties(bytes: Array[Byte]): StoredNodeWithProperty = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     val id: Long = _bytebuf.readLong()
@@ -75,10 +70,7 @@ object NodeSerializer extends AbstractNodeSerializer {
     new StoredNodeWithProperty(id, labelIDs, bytes)
   }
 
-  def decodeNodeWithProperties(
-      _byteBuf: ByteBuf,
-      bytes: Array[Byte]
-  ): StoredNodeWithProperty = {
+  def decodeNodeWithProperties(_byteBuf: ByteBuf, bytes: Array[Byte]): StoredNodeWithProperty = {
     _byteBuf.writeBytes(bytes)
     val id: Long = _byteBuf.readLong()
     val labelIDsTypeFlag = SerializerDataType(_byteBuf.readByte().toInt)
@@ -89,9 +81,7 @@ object NodeSerializer extends AbstractNodeSerializer {
     new StoredNodeWithProperty(id, labelIDs, bytes)
   }
 
-  override def decodePropertiesFromFullNode(
-      bytes: Array[Byte]
-  ): Map[Int, Any] = {
+  override def decodePropertiesFromFullNode(bytes: Array[Byte]): Map[Int, Any] = {
     val _bytebuf = allocator.directBuffer()
     _bytebuf.writeBytes(bytes)
     val id: Long = _bytebuf.readLong()
@@ -113,10 +103,7 @@ object NodeSerializer extends AbstractNodeSerializer {
     (nodeId, labelId)
   }
 
-  def decodeNodeKey(
-      _byteBuf: ByteBuf,
-      bytes: Array[Byte]
-  ): (NodeId, LabelId) = {
+  def decodeNodeKey(_byteBuf: ByteBuf, bytes: Array[Byte]): (NodeId, LabelId) = {
     _byteBuf.writeBytes(bytes)
     val labelId = _byteBuf.readInt()
     val nodeId = _byteBuf.readLong()

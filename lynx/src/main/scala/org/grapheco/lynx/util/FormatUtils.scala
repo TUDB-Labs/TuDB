@@ -8,11 +8,11 @@ import org.apache.commons.lang3.StringUtils
 object FormatUtils {
   def format(x: Any, nullString: String = "(null)"): String = {
     x match {
-      case null => nullString
-      case None => nullString
-      case Some(m) => format(m, nullString);
+      case null       => nullString
+      case None       => nullString
+      case Some(m)    => format(m, nullString);
       case date: Date => new SimpleDateFormat("yyyy-MM-dd HH:mm:SS").format(date)
-      case _ => x.toString
+      case _          => x.toString
     }
   }
 
@@ -37,19 +37,23 @@ object FormatUtils {
     colWidths.map("═" * _).addString(sb, "╔", "╤", "╗\n")
 
     // column names
-    formatedColumns.zipWithIndex.map {
-      case (cell, i) ⇒
-        StringUtils.rightPad(cell, colWidths(i))
-    }.addString(sb, "║", "│", "║\n")
+    formatedColumns.zipWithIndex
+      .map {
+        case (cell, i) ⇒
+          StringUtils.rightPad(cell, colWidths(i))
+      }
+      .addString(sb, "║", "│", "║\n")
 
     colWidths.map("═" * _).addString(sb, "╠", "╪", "╣\n")
 
     // data
     formatedData.foreach {
-      _.zipWithIndex.map {
-        case (cell, i) ⇒
-          StringUtils.rightPad(cell, colWidths(i))
-      }.addString(sb, "║", "│", "║\n")
+      _.zipWithIndex
+        .map {
+          case (cell, i) ⇒
+            StringUtils.rightPad(cell, colWidths(i))
+        }
+        .addString(sb, "║", "│", "║\n")
     }
 
     colWidths.map("═" * _).addString(sb, "╚", "╧", "╝\n")

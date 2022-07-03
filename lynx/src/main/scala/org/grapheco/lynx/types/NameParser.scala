@@ -3,12 +3,12 @@ package org.grapheco.lynx.types
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 
 /**
- * @ClassName NameParser
- * @Description TODO
- * @Author huchuan
- * @Date 2022/4/1
- * @Version 0.1
- */
+  * @ClassName NameParser
+  * @Description TODO
+  * @Author huchuan
+  * @Date 2022/4/1
+  * @Version 0.1
+  */
 object NameParser {
 //  implicit def parseLabelName(name: String): LynxNodeLabel = LynxNodeLabel(name)
 //

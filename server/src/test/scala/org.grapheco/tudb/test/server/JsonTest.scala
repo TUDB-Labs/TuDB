@@ -1,6 +1,7 @@
 /** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.test.server
 
+
 import org.grapheco.lynx.{LynxResult, PathTriple}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxPath, LynxString}
@@ -70,7 +71,7 @@ class JsonTest {
     Assert.assertTrue(
       json5 == """[[{"keys": ["a"],"length": 1,"_fields":["1"]},{"keys": ["b"],"length": 1,"_fields":["2"]}]]"""
     )
-
+    
     /**  one-hop test
      */
     val node3 = TuNode(

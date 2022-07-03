@@ -5,7 +5,7 @@ package org.grapheco.tudb
   * @Date: Created at 17:50 2022/4/12
   * @Modified By:
   */
-object TuInstanceContext extends ContextMap {
+object TuDBInstanceContext extends ContextMap {
 
   def setDataPath(path: String): Unit = {
     // Todo: check whether the path is illegal.

@@ -1,5 +1,5 @@
 import org.apache.commons.io.FileUtils
-import org.grapheco.tudb.TuInstanceContext
+import org.grapheco.tudb.TuDBInstanceContext
 import org.grapheco.tudb.importer.TuImporter
 import org.grapheco.tudb.store.meta.{DBNameMap, TuDBStatistics}
 import org.grapheco.tudb.store.node.NodeStoreAPI
@@ -25,7 +25,7 @@ class TestImporter {
   def init(): Unit = {
     val f = new File(_dbPath)
     if (f.exists()) FileUtils.deleteDirectory(f)
-    TuInstanceContext.setDataPath(_dbPath)
+    TuDBInstanceContext.setDataPath(_dbPath)
   }
 
   @After
@@ -54,7 +54,13 @@ class TestImporter {
       .getResource("relationships/comment_hasCreator_person2.csv")
       .getPath
     script = script ++
-      Array(commentDataPath1, commentDataPath2, personDataPath, relationDataPath1, relationDataPath2)
+      Array(
+        commentDataPath1,
+        commentDataPath2,
+        personDataPath,
+        relationDataPath1,
+        relationDataPath2
+      )
 
     TuImporter.main(script)
 
@@ -69,7 +75,7 @@ class TestImporter {
       "default",
       nodeMetaDB,
       "tudb://index?type=dummy",
-    _dbPath
+      _dbPath
     )
     Assert.assertEquals(862, nodeStore.allNodes().size)
     Assert.assertEquals(862, statisticDB.nodeCount)

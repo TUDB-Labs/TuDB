@@ -8,7 +8,6 @@ import scala.collection.mutable.{Map => MMap}
   * @Date: Created at 17:50 2022/4/12
   * @Modified By:
   */
-
 class ContextMap {
   private val _map = MMap[String, Any]();
 

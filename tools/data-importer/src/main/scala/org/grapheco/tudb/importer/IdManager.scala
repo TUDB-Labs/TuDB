@@ -11,7 +11,6 @@ import scala.collection.mutable
   * @Date: Created at 19:14 2020/12/24
   * @Modified By:
   */
-
 // Thread safe Id manager.
 class MetaIdManager(maxSize: Int) extends IdMapManager {
   override protected var MAX_SIZE: Int = maxSize
@@ -27,8 +26,7 @@ trait IdMapManager {
   protected var _name2Id: Map[String, Int] = Map[String, Int]()
 
   def init(bytes: Array[Byte]): Unit = {
-    val deserialized
-        : (Int, Int, mutable.Queue[Int], Map[Int, String], Map[String, Int]) =
+    val deserialized: (Int, Int, mutable.Queue[Int], Map[Int, String], Map[String, Int]) =
       deserialize(bytes)
     MAX_SIZE = deserialized._1
     _count = new AtomicInteger(deserialized._2)
@@ -91,7 +89,7 @@ trait IdMapManager {
 
   def deserialize(
       bytes: Array[Byte]
-  ): (Int, Int, mutable.Queue[Int], Map[Int, String], Map[String, Int]) = {
+    ): (Int, Int, mutable.Queue[Int], Map[Int, String], Map[String, Int]) = {
     val byteBuf: ByteBuf = Unpooled.wrappedBuffer(bytes)
     val maxSize: Int = byteBuf.readInt()
     val count: Int = byteBuf.readInt()

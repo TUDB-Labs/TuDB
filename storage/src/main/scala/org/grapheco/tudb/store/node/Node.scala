@@ -10,12 +10,7 @@ import org.grapheco.tudb.serializer.NodeSerializer
   * @Date: Created at 9:57 下午 2022/1/25
   * @Modified By:
   */
-
-case class StoredNode(
-    id: Long,
-    labelIds: Array[Int],
-    sourceBytes: Array[Byte]
-) {
+case class StoredNode(id: Long, labelIds: Array[Int], sourceBytes: Array[Byte]) {
   lazy val properties: Map[Int, Any] = Map.empty
 }
 
@@ -23,8 +18,8 @@ case class StoredNode(
 class StoredNodeWithProperty(
     override val id: Long,
     override val labelIds: Array[Int],
-    override val sourceBytes: Array[Byte]
-) extends StoredNode(id, labelIds, sourceBytes) {
+    override val sourceBytes: Array[Byte])
+  extends StoredNode(id, labelIds, sourceBytes) {
 
   def this(id: Long, labelId: Array[Int], props: Map[Int, Any]) = {
     this(
@@ -39,10 +34,8 @@ class StoredNodeWithProperty(
 
   override def equals(obj: Any): Boolean = {
     val other = obj.asInstanceOf[StoredNodeWithProperty]
-    if (
-      id == other.id && labelIds.sameElements(other.labelIds) && properties
-        .sameElements(other.properties)
-    ) true
+    if (id == other.id && labelIds.sameElements(other.labelIds) && properties
+          .sameElements(other.properties)) true
     else false
   }
 
@@ -54,11 +47,8 @@ case class LynxNodeId(value: Long) extends LynxId {
   override def toLynxInteger: LynxInteger = LynxInteger(value)
 }
 
-case class TuNode(
-    longId: Long,
-    labels: Seq[LynxNodeLabel],
-    props: Seq[(String, LynxValue)]
-) extends LynxNode {
+case class TuNode(longId: Long, labels: Seq[LynxNodeLabel], props: Seq[(String, LynxValue)])
+  extends LynxNode {
   lazy val properties: Map[String, LynxValue] = props.toMap
   override val id: LynxId = LynxNodeId(longId)
   def property(name: String): Option[LynxValue] = properties.get(name)
@@ -75,15 +65,15 @@ case class TuNode(
     properties.get(propertyKey.value)
 }
 
-case class LazyTuNode(longId: Long, nodeStoreSPI: NodeStoreSPI)
-    extends LynxNode {
+case class LazyTuNode(longId: Long, nodeStoreSPI: NodeStoreSPI) extends LynxNode {
   lazy val nodeValue: TuNode = transfer(nodeStoreSPI)
   override val id: LynxId = LynxNodeId(longId)
 
-  override def labels: Seq[LynxNodeLabel] = nodeStoreSPI
-    .getNodeLabelsById(longId)
-    .map(f => LynxNodeLabel(nodeStoreSPI.getLabelName(f).get))
-    .toSeq
+  override def labels: Seq[LynxNodeLabel] =
+    nodeStoreSPI
+      .getNodeLabelsById(longId)
+      .map(f => LynxNodeLabel(nodeStoreSPI.getLabelName(f).get))
+      .toSeq
 
   def property(name: String): Option[LynxValue] = nodeValue.properties.get(name)
 

@@ -7,8 +7,7 @@ import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.{NodeInput, RelationshipInput, StoredNodeInputRef, TestBase, types}
 import org.junit.{Assert, Before, Test}
 class CypherCreateTest extends TestBase {
-  runOnDemoGraph(
-    """
+  runOnDemoGraph("""
       |Create
       |(a:person:leader{name:"bluejoe", age: 40, gender:"male"}),
       |(b:person{name:"Alice", age: 30, gender:"female"}),
@@ -93,7 +92,10 @@ class CypherCreateTest extends TestBase {
     val rs = runOnDemoGraph("CREATE (n {name: 'God', age: 10000})")
     Assert.assertEquals(NODE_SIZE + 1, all_nodes.size)
     Assert.assertEquals(REL_SIZE, all_rels.size)
-    Assert.assertEquals(LynxString("God"), all_nodes.apply(NODE_SIZE).property(LynxPropertyKey("name")).get)
+    Assert.assertEquals(
+      LynxString("God"),
+      all_nodes.apply(NODE_SIZE).property(LynxPropertyKey("name")).get
+    )
   }
 
   @Test
@@ -101,20 +103,34 @@ class CypherCreateTest extends TestBase {
     val rs = runOnDemoGraph("CREATE (n {name: 'God', age: 10000}) return n")
     Assert.assertEquals(NODE_SIZE + 1, all_nodes.size)
     Assert.assertEquals(REL_SIZE, all_rels.size)
-    Assert.assertEquals((NODE_SIZE + 1).toLong, rs.records().toSeq.head.apply("n").asInstanceOf[LynxNode].id.value)
+    Assert.assertEquals(
+      (NODE_SIZE + 1).toLong,
+      rs.records().toSeq.head.apply("n").asInstanceOf[LynxNode].id.value
+    )
   }
 
   @Test
   def testCreateNodesRelation(): Unit = {
-    val rs = runOnDemoGraph("CREATE (n:person {name: 'God', age: 10000}), (m:place {name: 'heaven'}), (n)-[r:livesIn]->(m) return n,r,m")
+    val rs = runOnDemoGraph(
+      "CREATE (n:person {name: 'God', age: 10000}), (m:place {name: 'heaven'}), (n)-[r:livesIn]->(m) return n,r,m"
+    )
     Assert.assertEquals(NODE_SIZE + 2, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 1, all_rels.size)
 
-    Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get)
-    Assert.assertEquals(LynxInteger(10000), all_nodes(NODE_SIZE).property(LynxPropertyKey("age")).get)
+    Assert.assertEquals(
+      LynxString("God"),
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get
+    )
+    Assert.assertEquals(
+      LynxInteger(10000),
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("age")).get
+    )
     Assert.assertEquals(Seq("person"), all_nodes(NODE_SIZE).labels.map(_.value))
 
-    Assert.assertEquals(LynxString("heaven"), all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get)
+    Assert.assertEquals(
+      LynxString("heaven"),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get
+    )
     Assert.assertEquals(Seq("place"), all_nodes(NODE_SIZE + 1).labels.map(_.value))
 
     Assert.assertEquals("livesIn", all_rels(REL_SIZE).relationType.get.value)
@@ -124,15 +140,26 @@ class CypherCreateTest extends TestBase {
 
   @Test
   def testCreateNodesAndRelationsWithinPath(): Unit = {
-    val rs = runOnDemoGraph("CREATE (n:person {name: 'God', age: 10000})-[r:livesIn]->(m:place {name: 'heaven'}) return n,r,m")
+    val rs = runOnDemoGraph(
+      "CREATE (n:person {name: 'God', age: 10000})-[r:livesIn]->(m:place {name: 'heaven'}) return n,r,m"
+    )
     Assert.assertEquals(NODE_SIZE + 2, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 1, all_rels.size)
 
-    Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get)
-    Assert.assertEquals(LynxInteger(10000), all_nodes(NODE_SIZE).property(LynxPropertyKey("age")).get)
+    Assert.assertEquals(
+      LynxString("God"),
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get
+    )
+    Assert.assertEquals(
+      LynxInteger(10000),
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("age")).get
+    )
     Assert.assertEquals(Seq("person"), all_nodes(NODE_SIZE).labels.map(_.value))
 
-    Assert.assertEquals(LynxString("heaven"), all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get)
+    Assert.assertEquals(
+      LynxString("heaven"),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get
+    )
     Assert.assertEquals(Seq("place"), all_nodes(NODE_SIZE + 1).labels.map(_.value))
 
     Assert.assertEquals("livesIn", all_rels(REL_SIZE).relationType.get.value)
@@ -142,13 +169,24 @@ class CypherCreateTest extends TestBase {
 
   @Test
   def testCreateNodesPath(): Unit = {
-    val rs = runOnDemoGraph("CREATE (a:person {name: 'BaoChai'}), (b:person {name: 'BaoYu'}), (c:person {name: 'DaiYu'}), (a)-[:LOVES]->(b)-[:LOVES]->(c) return a,b,c")
+    val rs = runOnDemoGraph(
+      "CREATE (a:person {name: 'BaoChai'}), (b:person {name: 'BaoYu'}), (c:person {name: 'DaiYu'}), (a)-[:LOVES]->(b)-[:LOVES]->(c) return a,b,c"
+    )
     Assert.assertEquals(NODE_SIZE + 3, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 2, all_rels.size)
 
-    Assert.assertEquals(LynxString("BaoChai"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get)
-    Assert.assertEquals(LynxString("BaoYu"), all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get)
-    Assert.assertEquals(LynxString("DaiYu"), all_nodes(NODE_SIZE + 2).property(LynxPropertyKey("name")).get)
+    Assert.assertEquals(
+      LynxString("BaoChai"),
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get
+    )
+    Assert.assertEquals(
+      LynxString("BaoYu"),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get
+    )
+    Assert.assertEquals(
+      LynxString("DaiYu"),
+      all_nodes(NODE_SIZE + 2).property(LynxPropertyKey("name")).get
+    )
 
     Assert.assertEquals("LOVES", all_rels(REL_SIZE).relationType.get.value)
     Assert.assertEquals(all_nodes(NODE_SIZE).id.value, all_rels(REL_SIZE).startNodeId.value)
@@ -161,15 +199,23 @@ class CypherCreateTest extends TestBase {
 
   @Test
   def testMatchToCreateMultipleNodesAndRelations(): Unit = {
-    var rs = runOnDemoGraph("match (m:person) CREATE (n {name: 'God', age: 10000}), (n)-[r:LOVES]->(m) return n,r,m").show()
+    var rs = runOnDemoGraph(
+      "match (m:person) CREATE (n {name: 'God', age: 10000}), (n)-[r:LOVES]->(m) return n,r,m"
+    ).show()
     Assert.assertEquals(NODE_SIZE + 2, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 2, all_rels.size)
 
     Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")))
     Assert.assertEquals(LynxInteger(10000), all_nodes(NODE_SIZE).property(LynxPropertyKey("age")))
 
-    Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")))
-    Assert.assertEquals(LynxInteger(10000), all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("age")))
+    Assert.assertEquals(
+      LynxString("God"),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name"))
+    )
+    Assert.assertEquals(
+      LynxInteger(10000),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("age"))
+    )
 
     Assert.assertEquals("LOVES", all_rels(REL_SIZE).relationType.get)
     Assert.assertEquals((NODE_SIZE + 1).toLong, all_rels(REL_SIZE).startNodeId)
@@ -182,14 +228,14 @@ class CypherCreateTest extends TestBase {
 
   @Test
   def testCreateIndex(): Unit = {
-    runOnDemoGraph("CREATE (n:person {name: 'God', age: 10000}), (m:place {name: 'heaven'}), (n)-[r:livesIn]->(m) return n,r,m")
+    runOnDemoGraph(
+      "CREATE (n:person {name: 'God', age: 10000}), (m:place {name: 'heaven'}), (n)-[r:livesIn]->(m) return n,r,m"
+    )
     runOnDemoGraph("CREATE INDEX ON :person(name)")
     runOnDemoGraph("CREATE INDEX ON :person(name, age)")
   }
-
-
   @Test
-  def testCreateDate(): Unit ={
+  def testCreateDate(): Unit = {
     runOnDemoGraph("CREATE (n:Person {name:'node_Date1',born:date('2018-04-05')}) return n")
   }
 }
