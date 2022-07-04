@@ -57,6 +57,17 @@ depends on:
 
 Run the following command to run the test suite: `mvn -B clean install test --file pom.xml`.
 
+## Pre-commit Checks
+
+We run several checks before every commit automatically with `pre-commit`. Install [pre-commit](https://pre-commit.com/) to run
+the required checks when you commit your changes.
+
+Once it's installed, run `pre-commit install` to install the hooks that will be run automatically when you `git commit`
+your changes. You can also run it via `pre-commit run` on your changes or `pre-commit run --all` to run the checks on
+all files.
+
+If you'd like to uninstall the pre-commit hooks, run `pre-commit uninstall`.
+
 ## Code Review Guidelines
 
 Before considering how to contribute code, it’s useful to understand how code is reviewed, and why changes may be rejected.
