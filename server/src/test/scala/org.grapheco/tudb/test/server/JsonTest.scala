@@ -7,14 +7,15 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxPath, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxRelationshipType}
 import org.grapheco.lynx.util.FormatUtils
-import org.grapheco.tudb.graph.{TuNode, TuRelationship}
+import org.grapheco.tudb.store.node.TuNode
+import org.grapheco.tudb.store.relationship.TuRelationship
 import org.junit._
 import org.junit.runners.MethodSorters
 
 /** @Author: huanglin
-  * @Description:
-  * @Date: Created at 2022-6-29
-  */
+ * @Description:
+ * @Date: Created at 2022-6-29
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class JsonTest {
 

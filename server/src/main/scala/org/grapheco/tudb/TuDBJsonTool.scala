@@ -5,18 +5,20 @@ import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.{LynxResult, PathTriple}
 import org.grapheco.lynx.types.property.{LynxNumber, LynxPath, LynxString}
+import org.grapheco.lynx.types.structural.LynxNodeLabel
 import org.grapheco.lynx.types.time.LynxTemporalValue
-import org.grapheco.tudb.graph.{TuNode, TuRelationship}
+import org.grapheco.tudb.store.node.TuNode
+import org.grapheco.tudb.store.relationship.TuRelationship
 
 import java.text.SimpleDateFormat
 
 /** add toJson method to AnyRef
-  *
-  * use case:
-  *
-  * import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
-  *
-  * val mapString=Map("a"->1,"b"->2).toJson()
+ *
+ * use case:
+ *
+ * import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
+ *
+ * val mapString=Map("a"->1,"b"->2).toJson()
   * val nodeString=Node("a").toJson()
   * AnyObject.toJson()
   */
@@ -41,17 +43,20 @@ object TuDBJsonTool {
 
   def toJson(bean: Any): String = {
     bean match {
-      case node: TuNode                 => getJson(node)
+      case node: TuNode => getJson(node)
       case relationship: TuRelationship => getJson(relationship)
-      case subPath: PathTriple          => getJson(subPath)
-      case path: LynxPath               => getJson(path)
-      case result: LynxResult           => getJson(result)
-      case str: LynxString              => '"' + str.value + '"'
-      case number: LynxNumber           => number.value.toString
-      case time: LynxTemporalValue      => '"' + time.value.toString + '"'
-      case list: LynxList               => toJson(list.value)
-      case map: LynxMap                 => toJson(map.value)
-      case seq: Seq[Any]                => "[" + seq.map(toJson).mkString(",") + "]"
+      case subPath: PathTriple => getJson(subPath)
+      case path: LynxPath => getJson(path)
+      case result: LynxResult => getJson(result)
+      case str: LynxString => '"' + str.value + '"'
+      case str: String => '"' + str + '"'
+      case number: LynxNumber => number.value.toString
+      case number: Number => number.toString
+      case label: LynxNodeLabel => '"' + label.value + '"'
+      case time: LynxTemporalValue => '"' + time.value.toString + '"'
+      case list: LynxList => toJson(list.value)
+      case map: LynxMap => toJson(map.value)
+      case seq: Seq[Any] => "[" + seq.map(toJson).mkString(",") + "]"
       case m: Map[Any, Any] =>
         "{" + m.map(kv => (toJson(kv._1) + ":" + toJson(kv._2))).mkString(",") + "}"
       case v: Any => objectMapper.writeValueAsString(v)
