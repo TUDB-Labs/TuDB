@@ -35,6 +35,16 @@ class CallTest extends TestBase {
   }
 
   @Test
+  def coalesceTest(): Unit = {
+    runOnDemoGraph("create (n:Developer{name:'Alice2', age: 38, eyes: 'brown'})")
+    val r = runOnDemoGraph(
+      "match (n) where n.name='Alice2' return coalesce(n.hairColor, n.eyes) as value"
+    ).records()
+    val res = r.next()("value")
+    Assert.assertEquals("brown", res.value)
+  }
+
+  @Test
   def testWrongCall(): Unit = {
     Assert.assertThrows(classOf[UnknownProcedureException], new ThrowingRunnable() {
       override def run(): Unit = {

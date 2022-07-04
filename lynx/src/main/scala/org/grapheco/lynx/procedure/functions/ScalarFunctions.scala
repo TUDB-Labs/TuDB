@@ -20,6 +20,16 @@ class ScalarFunctions {
   val booleanPattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE)
   val numberPattern = Pattern.compile("-?[0-9]+.?[0-9]*")
 
+  /**
+    *returns the first non-null value in the given list of expressions.
+    * @param args
+    */
+  @LynxProcedure(name = "coalesce")
+  def coalesce(args: Seq[LynxValue]): LynxValue = {
+    val res = args.find(p => p != LynxNull)
+    res.getOrElse(LynxNull)
+  }
+
   /** Returns the first element in a list.
     * Considerations:
     * - head(null) returns null.
