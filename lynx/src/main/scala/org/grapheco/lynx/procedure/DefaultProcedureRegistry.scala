@@ -37,7 +37,7 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
           annotation.name(),
           inputs,
           outputs,
-          args => types.wrap(method.invoke(host, args: _*))
+          args => types.wrap(method.invoke(host, args))
         )
       }
     }
@@ -64,8 +64,6 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
     )
   }
 
-  override def getProcedure(
-      prefix: List[String],
-      name: String,
-    ): Option[CallableProcedure] = procedures.get((prefix :+ name).mkString("."))
+  override def getProcedure(prefix: List[String], name: String): Option[CallableProcedure] =
+    procedures.get((prefix :+ name).mkString("."))
 }
