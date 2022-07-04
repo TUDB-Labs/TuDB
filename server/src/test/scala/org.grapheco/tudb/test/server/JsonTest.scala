@@ -12,9 +12,9 @@ import org.junit._
 import org.junit.runners.MethodSorters
 
 /** @Author: huanglin
- * @Description:
- * @Date: Created at 2022-6-29
- */
+  * @Description:
+  * @Date: Created at 2022-6-29
+  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class JsonTest {
 
@@ -73,7 +73,7 @@ class JsonTest {
     )
 
     /**  one-hop test
-     */
+      */
     val node3 = TuNode(
       2L,
       List[LynxNodeLabel](LynxNodeLabel("name")),
@@ -87,7 +87,7 @@ class JsonTest {
     )
 
     /** two-hop test
-     */
+      */
     val node4 = TuNode(
       3L,
       List[LynxNodeLabel](LynxNodeLabel("name")),
@@ -103,8 +103,8 @@ class JsonTest {
     }
 
     /**
-     * three-hop test
-     */
+      * three-hop test
+      */
     val node5 = TuNode(
       4L,
       List[LynxNodeLabel](LynxNodeLabel("name")),
