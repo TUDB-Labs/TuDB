@@ -8,18 +8,18 @@ import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
 
 /** @ClassName List functions return lists of things — nodes in a path, and so on.
- * @Description TODO
- * @Author huchuan
- * @Date 2022/4/20
- * @Version 0.1
- */
+  * @Description TODO
+  * @Author huchuan
+  * @Date 2022/4/20
+  * @Version 0.1
+  */
 class ListFunctions {
 
   /** Returns a list containing the string representations
-   * for all the property names of a node, relationship, or map.
-   * @param x A node, relationship, or map
-   * @return property names
-   */
+    * for all the property names of a node, relationship, or map.
+    * @param x A node, relationship, or map
+    * @return property names
+    */
   @LynxProcedure(name = "keys")
   def keys(args: Seq[LynxValue]): List[String] = args.head match {
     case n: LynxNode         => n.keys.toList.map(_.value)
@@ -29,16 +29,16 @@ class ListFunctions {
   }
 
   /** Returns a list containing the string representations for all the labels of a node.
-   * @param x The node
-   * @return labels
-   */
+    * @param x The node
+    * @return labels
+    */
   @LynxProcedure(name = "labels")
   def labels(args: Seq[LynxNode]): Seq[String] = args.head.labels.map(_.value)
 
   /** Returns a list containing all the nodes in a path.
-   * @param inputs path
-   * @return nodes
-   */
+    * @param inputs path
+    * @return nodes
+    */
   @LynxProcedure(name = "nodes")
   def nodes(args: Seq[LynxList]): List[LynxNode] = {
     def fetchNodeFromList(args: Seq[LynxList]): LynxNode = {
@@ -55,9 +55,9 @@ class ListFunctions {
   }
 
   /** Returns a list comprising all integer values within a specified range. TODO
-   * @param inputs
-   * @return
-   */
+    * @param inputs
+    * @return
+    */
 
   @LynxProcedure(name = "range")
   def range(args: Seq[LynxInteger]): LynxList = {
@@ -77,9 +77,9 @@ class ListFunctions {
   }
 
   /** Returns a list containing all the relationships in a path.
-   * @param inputs path
-   * @return relationships
-   */
+    * @param inputs path
+    * @return relationships
+    */
   @LynxProcedure(name = "relationships")
   def relationships(args: Seq[LynxList]): List[LynxRelationship] = {
     val list: LynxList = args.head.value.tail.head.asInstanceOf[LynxList]

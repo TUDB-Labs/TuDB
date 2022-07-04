@@ -5,11 +5,11 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 
 /** @ClassName StringFunctions
- * @Description These functions are used to manipulate strings or to create a string representation of another value
- * @Author Hu Chuan
- * @Date 2022/4/20
- * @Version 0.1
- */
+  * @Description These functions are used to manipulate strings or to create a string representation of another value
+  * @Author Hu Chuan
+  * @Date 2022/4/20
+  * @Version 0.1
+  */
 class StringFunctions {
   @LynxProcedure(name = "left")
   def left(args: Seq[LynxValue]): String = {
