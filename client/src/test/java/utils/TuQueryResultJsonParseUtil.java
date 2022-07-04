@@ -69,8 +69,7 @@ public class TuQueryResultJsonParseUtil {
         Map<String, String> pout = new HashMap<String, String>();
         Set<String> sets = properties.keySet();
         sets.forEach(key -> {
-            JSONObject p = (JSONObject) properties.get(key);
-            pout.put(key, (String) p.get("v"));
+            pout.put(key, properties.get(key).toString());
         });
         n.setProperties(pout);
         List<String> labels = (List<String>) inner.get("labels");
