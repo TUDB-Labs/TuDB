@@ -19,9 +19,9 @@ import java.text.SimpleDateFormat
  * import org.grapheco.tudb.TuDBJsonTool.AnyRefAddMethod
  *
  * val mapString=Map("a"->1,"b"->2).toJson()
-  * val nodeString=Node("a").toJson()
-  * AnyObject.toJson()
-  */
+ * val nodeString=Node("a").toJson()
+ * AnyObject.toJson()
+ */
 object TuDBJsonTool {
   val objectMapper = new ObjectMapper()
     .findAndRegisterModules()
