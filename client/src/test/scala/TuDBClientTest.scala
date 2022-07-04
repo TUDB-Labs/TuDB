@@ -113,9 +113,9 @@ class TuDBClientTest {
 
     client.query("create (n:person1)-[r:KNOW]->(m:person2)")
     client.query("create (n:person3)-[r:KNOW]->(m:person2)")
-    val statistics:List[Any] = client.getStatistics()
-    val nodeStat = statistics(0).asInstanceOf[Map[String,Integer]]
-    val relStat = statistics(1).asInstanceOf[Map[String,Integer]]
+    val statistics: List[Any] = client.getStatistics()
+    val nodeStat = statistics(0).asInstanceOf[Map[String, Integer]]
+    val relStat = statistics(1).asInstanceOf[Map[String, Integer]]
 
     Assert.assertEquals(1, nodeStat.get("person1").get)
     Assert.assertEquals(2, nodeStat.get("person2").get)
