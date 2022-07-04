@@ -19,7 +19,7 @@ import java.util.*;
  * @date : 2022/7/2
  **/
 public class TuQueryResultJsonParseUtil {
-    
+
 
     public static List<TuClientQueryResultVO> parseJsonList(String json) throws JsonProcessingException {
         List<TuClientQueryResultVO> resultList = new ArrayList<>();
@@ -49,7 +49,7 @@ public class TuQueryResultJsonParseUtil {
             JSONObject obj = (JSONObject) o;
             String key = obj.getJSONArray("keys").getString(0);
             JSONObject fields = obj.getJSONArray("_fields").getJSONObject(0);
-            if (fields.getInteger("startId") != null) {
+            if (fields.getInteger("start") != null) {
                 TuRelationVO relation = parseRelation(fields);
                 relations.put(key, relation);
             } else {
@@ -64,33 +64,25 @@ public class TuQueryResultJsonParseUtil {
 
     private static TuNodeVO parseNode(JSONObject inner) {
         TuNodeVO n = new TuNodeVO();
-        n.setId(inner.getLong("longId"));
+        n.setId(inner.getLong("identity"));
         JSONObject properties = (JSONObject) inner.get("properties");
         Map<String, String> pout = new HashMap<String, String>();
         Set<String> sets = properties.keySet();
         sets.forEach(key -> {
-            JSONObject p = (JSONObject) properties.get(key);
-            pout.put(key, (String) p.get("v"));
+            pout.put(key, properties.get(key).toString());
         });
         n.setProperties(pout);
-        List<Map<String, String>> labels = (List<Map<String, String>>) inner.get("labels");
-        List<String> outer = new ArrayList<>();
-        for (Map<String, String> m : labels
-        ) {
-            outer.add(m.get("value"));
-
-        }
-        n.setLabels(outer);
+        List<String> labels = (List<String>) inner.get("labels");
+        n.setLabels(labels);
         return n;
     }
 
     private static TuRelationVO parseRelation(JSONObject inner) {
         TuRelationVO r = new TuRelationVO();
-        r.setId(inner.getLong("_id"));
-        r.setStartId(inner.getLong("startId"));
-        r.setEndId(inner.getLong("endId"));
-        Map<String, String> relationType = (Map<String, String>) inner.get("relationType");
-        r.setRelationType(relationType.get("value"));
+        r.setId(inner.getLong("identity"));
+        r.setStartId(inner.getLong("start"));
+        r.setEndId(inner.getLong("end"));
+        r.setRelationType(inner.getString("rel"));
         JSONObject properties = (JSONObject) inner.get("properties");
         Map<String, String> pout = new HashMap<String, String>();
         Set<String> sets = properties.keySet();

@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.{LynxResult, PathTriple}
 import org.grapheco.lynx.types.property.{LynxNumber, LynxPath, LynxString}
+import org.grapheco.lynx.types.structural.LynxNodeLabel
 import org.grapheco.lynx.types.time.LynxTemporalValue
-import org.grapheco.tudb.graph.{TuNode, TuRelationship}
+import org.grapheco.tudb.store.node.TuNode
+import org.grapheco.tudb.store.relationship.TuRelationship
 
 import java.text.SimpleDateFormat
 
@@ -47,7 +49,10 @@ object TuDBJsonTool {
       case path: LynxPath               => getJson(path)
       case result: LynxResult           => getJson(result)
       case str: LynxString              => '"' + str.value + '"'
+      case str: String                  => '"' + str + '"'
       case number: LynxNumber           => number.value.toString
+      case number: Number               => number.toString
+      case label: LynxNodeLabel         => '"' + label.value + '"'
       case time: LynxTemporalValue      => '"' + time.value.toString + '"'
       case list: LynxList               => toJson(list.value)
       case map: LynxMap                 => toJson(map.value)

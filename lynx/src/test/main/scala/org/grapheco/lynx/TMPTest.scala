@@ -6,7 +6,7 @@ import org.junit.Test
 class TMPTest extends TestBase {
 
   @Test
-  def testMethod(): Unit ={
+  def testMethod(): Unit = {
     runOnDemoGraph("create (n:City{name:'ChengDu'})") // id = 1
     runOnDemoGraph("create (n:Tag{name:'T1'})") // id = 2
     runOnDemoGraph("create (n:Tag{name:'T2'})") // id = 3
@@ -40,9 +40,8 @@ class TMPTest extends TestBase {
                       |  CREATE (p)-[:WORKS_AT {workFrom: w[1]}]->(comp)""".stripMargin)
     // TODO Maybe it wasn't created, maybe it wasn't found
     runOnDemoGraph("match (n)-[r]->(m) return r").show()
-    Thread.sleep(1000*1000)
+    Thread.sleep(1000 * 1000)
 
   }
-
 
 }

@@ -42,8 +42,8 @@ class ComplexQueryTest {
       """
         |create (n: Person{id: 1})
         |create (m: Person{id: 2, firstName:'AAA', lastName:'BBB'})
-        |create (q1: Message{id:3, creationDate: 2001-01-01 00:00:00.000, content: 'My Content', imageFile: 'iiiii'})
-        |create (q2: Message{id:4, creationDate: 2021-01-01 00:00:00.000, imageFile: 'My ImageFile'})
+        |create (q1: Message{id:3, creationDate: '2001-01-01 00:00:00.000', content: 'My Content', imageFile: 'iiiii'})
+        |create (q2: Message{id:4, creationDate: '2021-01-01 00:00:00.000', imageFile: 'My ImageFile'})
         |""".stripMargin
     )
     db.cypher("""
