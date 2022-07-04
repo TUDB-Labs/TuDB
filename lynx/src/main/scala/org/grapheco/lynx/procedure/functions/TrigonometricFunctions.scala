@@ -5,13 +5,13 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxNumber
 
 /** @ClassName TrigonometricFunctions
- * @Description These functions all operate on numerical expressions only,
- * and will return an error if used on any other values.
- * All trigonometric functions operate on radians, unless otherwise specified.
- * @Author huchuan
- * @Date 2022/4/20
- * @Version 0.1
- */
+  * @Description These functions all operate on numerical expressions only,
+  * and will return an error if used on any other values.
+  * All trigonometric functions operate on radians, unless otherwise specified.
+  * @Author huchuan
+  * @Date 2022/4/20
+  * @Version 0.1
+  */
 class TrigonometricFunctions {
   @LynxProcedure(name = "acos")
   def acos(args: Seq[LynxNumber]): Double = {
