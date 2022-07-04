@@ -156,6 +156,11 @@
                 <version>${slf4j.version}</version>
                 <scope>compile</scope>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.73</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

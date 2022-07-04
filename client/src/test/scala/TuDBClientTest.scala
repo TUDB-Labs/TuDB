@@ -1,13 +1,11 @@
 import TuDBClientTest.testConnectionPort
 import org.apache.commons.io.FileUtils
-import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
-import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
 import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.network.Query
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.{TuDBServer, TuDBServerContext, TuDBInstanceContext}
+import org.grapheco.tudb.{TuDBInstanceContext, TuDBServer, TuDBServerContext}
 import org.junit.{AfterClass, Assert, BeforeClass, Test}
+import utils.TuQueryResultJsonParseUtil
 
 import java.io.File
 
@@ -54,21 +52,23 @@ class TuDBClientTest {
     val client = new TuDBClient("127.0.0.1", testConnectionPort)
 
     val stat1 = "Create (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END);"
-    val stat2 =
-      "Match p = (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END) return id(n1), r1, id(n2), r2, id(n3);"
     client.query(stat1)
-    val result = client.query(stat2).next()
-    val id1 = result.get("id(n1)").get.asInstanceOf[LynxInteger].value
-    val id2 = result.get("id(n2)").get.asInstanceOf[LynxInteger].value
-    val id3 = result.get("id(n3)").get.asInstanceOf[LynxInteger].value
-    val r1 = result.get("r1").get.asInstanceOf[LynxRelationship].value
-    val r2 = result.get("r2").get.asInstanceOf[LynxRelationship].value
+    val stat2 =
+      "Match p = (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END) return n1, r1, n2, r2, n3;"
+    val queryVO = TuQueryResultJsonParseUtil.parseJsonList(client.query(stat2))
+
+    val id1 = queryVO.get(0).getNodes.get("n1").getId
+    val id2 = queryVO.get(0).getNodes.get("n2").getId
+    val id3 = queryVO.get(0).getNodes.get("n3").getId
+    val r1 = queryVO.get(0).getRelations.get("r1")
+    val r2 = queryVO.get(0).getRelations.get("r2")
+
     Assert.assertFalse(id1 == id2)
     Assert.assertFalse(id2 == id3)
-    Assert.assertEquals(id1, r1.startNodeId.toLynxInteger.value)
-    Assert.assertEquals(id2, r1.endNodeId.toLynxInteger.value)
-    Assert.assertEquals(id2, r2.startNodeId.toLynxInteger.value)
-    Assert.assertEquals(id3, r2.endNodeId.toLynxInteger.value)
+    Assert.assertEquals(id1, r1.getStartId)
+    Assert.assertEquals(id2, r1.getEndId)
+    Assert.assertEquals(id2, r2.getStartId)
+    Assert.assertEquals(id3, r2.getEndId)
 
     client.query("match (n) detach delete n")
     client.shutdown()
@@ -79,26 +79,18 @@ class TuDBClientTest {
     val client = new TuDBClient("127.0.0.1", testConnectionPort)
 
     client.query("Create(n:TestRemoveProp{prop1:'prop1', prop2:'prop2'})")
-    val prop1 = client
-      .query("Match(n:TestRemoveProp) Return n;")
-      .next()
-      .get("n")
-      .get
-      .asInstanceOf[LynxNode]
-      .property(LynxPropertyKey("prop1"))
-      .get
-      .asInstanceOf[LynxString]
-      .value
+    val result = TuQueryResultJsonParseUtil.parseJsonList(
+      client.query("Match(n:TestRemoveProp) Return n;")
+    )
+    val prop1 = result.get(0).getNodes.get("n").getProperties.get("prop1")
     Assert.assertEquals("prop1", prop1)
-    val deletedProp1: Option[LynxValue] = client
-      .query("Match(n:TestRemoveProp) remove n.prop1 Return n;")
-      .next()
-      .get("n")
-      .get
-      .asInstanceOf[LynxNode]
-      .property(LynxPropertyKey("prop1"))
+
+    val deleted = TuQueryResultJsonParseUtil.parseJsonList(
+      client.query("Match(n:TestRemoveProp) remove n.prop1 Return n;")
+    )
+    val deletedProp1 = deleted.get(0).getNodes.get("n").getProperties.get("prop1")
     deletedProp1 match {
-      case None => Assert.assertTrue(true)
+      case null => Assert.assertTrue(true)
       case _    => Assert.assertTrue(false)
     }
     client.query("match (n) detach delete n")
@@ -108,8 +100,10 @@ class TuDBClientTest {
   @Test
   def testEmptyResult(): Unit = {
     val client = new TuDBClient("127.0.0.1", testConnectionPort)
-    val result = client.query("Match(n) WHERE n.prop='On Testing a not existing result' Return n;")
-    Assert.assertFalse(result.hasNext)
+    val result = TuQueryResultJsonParseUtil.parseJsonList(
+      client.query("Match(n) WHERE n.prop='On Testing a not existing result' Return n;")
+    )
+    Assert.assertTrue(result.isEmpty)
     client.shutdown()
   }
 
@@ -119,14 +113,14 @@ class TuDBClientTest {
 
     client.query("create (n:person1)-[r:KNOW]->(m:person2)")
     client.query("create (n:person3)-[r:KNOW]->(m:person2)")
-    val statistics = client.getStatistics()
-    val nodeStat = statistics.head.value
-    val relStat = statistics.last.value
+    val statistics: List[Any] = client.getStatistics()
+    val nodeStat = statistics(0).asInstanceOf[Map[String, Integer]]
+    val relStat = statistics(1).asInstanceOf[Map[String, Integer]]
 
-    Assert.assertEquals(1L, nodeStat("person1").value)
-    Assert.assertEquals(2L, nodeStat("person2").value)
-    Assert.assertEquals(1L, nodeStat("person3").value)
-    Assert.assertEquals(2L, relStat("KNOW").value)
+    Assert.assertEquals(1, nodeStat.get("person1").get)
+    Assert.assertEquals(2, nodeStat.get("person2").get)
+    Assert.assertEquals(1, nodeStat.get("person3").get)
+    Assert.assertEquals(2, relStat.get("KNOW").get)
 
     client.query("match (n) detach delete n")
     client.shutdown()
