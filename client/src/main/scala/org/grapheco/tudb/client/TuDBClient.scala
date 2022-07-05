@@ -31,7 +31,7 @@ class TuDBClient(host: String, port: Int) {
       if (rs.getMessage == "EMPTY") {
         rs.getMessage
       } else {
-        rs.getMessage
+        rs.getResult
       }
     }
   }
@@ -42,7 +42,7 @@ class TuDBClient(host: String, port: Int) {
     val response: Iterator[Query.QueryResponse] =
       blockingStub.queryStatistics(request).asScala
     val resultStr =
-      response.next().getMessage
+      response.next().getResult
     objectMapper.readValue(resultStr, classOf[List[Any]])
   }
 
