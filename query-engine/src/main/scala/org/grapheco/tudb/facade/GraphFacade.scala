@@ -28,6 +28,38 @@ class GraphFacade(
   extends LazyLogging
   with GraphModel {
 
+  /**
+    * Expand function for cypher like (a)-[r1]-(b)-[r2]-(c)
+    * when get the left relationship (a)-[r1]-(b), we need to expand relation from (b)
+    * the reason why we don't use direction is because we only expand from (b)
+    * so we only need findOutRelation.
+    *
+    * @param nodeId The id of this node
+    * @param relationshipFilter conditions for relationships
+    * @param endNodeFilter Filter condition of ending node
+    * @param direction The direction of expansion, INCOMING, OUTGOING or BOTH
+    *  @return Triples after expansion and filter
+    */
+  override def expand(
+      nodeId: LynxId,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection
+    ): Iterator[PathTriple] = {
+    // TODO: expandHelper can use properties in endNodeFilter to index node.
+    expandHelper(nodeId, relationshipFilter.types.map(f => f.value)).filter(p => {
+      relationshipFilter.matches(p.storedRelation) && endNodeFilter.matches(p.endNode)
+    })
+  }
+
+  private def expandHelper(nodeId: LynxId, relationshipType: Seq[String]): Iterator[PathTriple] = {
+    relationshipType
+      .flatMap(rType => {
+        findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
+          .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get))
+      })
+      .toIterator
+  }
   /*
     The default paths will scan all the relationships then use filter to get the data we want,
     and it cannot deal with the situation of relationship with variable length,
@@ -86,8 +118,7 @@ class GraphFacade(
       case SemanticDirection.INCOMING => {
         val inComingPathUtils = new PathUtils(this)
 
-        val endNodes = nodes(endNodeFilter)
-        endNodes
+        nodes(endNodeFilter)
           .flatMap(endNode =>
             inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
           )

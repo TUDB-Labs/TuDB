@@ -64,7 +64,7 @@ class ComplexQueryTest {
 
     val res = db.cypher(s"""
                       |MATCH (:Person {id: 1 })-[:KNOWS]-(friend:Person)<-[:HAS_CREATOR]-(message:Message)
-                      |    WHERE message.creationDate <= 2011
+                      |    WHERE message.creationDate <= '2011'
                       |    RETURN
                       |        friend.id AS personId,
                       |        friend.firstName AS personFirstName,
@@ -76,10 +76,9 @@ class ComplexQueryTest {
                       |        postOrCommentCreationDate DESC,
                       |        toInteger(postOrCommentId) ASC
                       |    LIMIT 20
-                      |""".stripMargin).records()
+                      |""".stripMargin).records().toList
 
-//    val data = res.toList
-//    Assert.assertEquals(1, data.size)
-//    Assert.assertEquals(2L, data.head("personId").value)
+    Assert.assertEquals(2, res.size)
+    Assert.assertEquals(Seq("3", "3"), res.map(mp => mp("postOrCommentId").value.toString))
   }
 }
