@@ -29,7 +29,7 @@ class TuDBQueryService(dbPath: String, indexUri: String)
       val resp: QueryResponse = QueryResponse
         .newBuilder()
         .setMessage("OK")
-        .setMessage(queryResult.toJson())
+        .setResult(queryResult.toJson())
         .build()
       responseObserver.onNext(resp)
 
@@ -105,7 +105,7 @@ class TuDBQueryService(dbPath: String, indexUri: String)
     val resp: QueryResponse = QueryResponse
       .newBuilder()
       .setMessage("OK")
-      .setMessage(statisticsJson)
+      .setResult(statisticsJson)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()

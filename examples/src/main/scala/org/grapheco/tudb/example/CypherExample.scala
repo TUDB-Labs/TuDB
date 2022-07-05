@@ -75,11 +75,7 @@ object CypherExample {
   def queryNode(): Unit = {
     val res = client.query("match (n) return n")
     println()
-    println("Query Node result: ")
-    while (res.hasNext) {
-      val record = res.next()("n").asInstanceOf[LynxNode]
-      showNode(record)
-    }
+    println("Query Node result: ", res)
     println()
   }
 
@@ -93,27 +89,6 @@ object CypherExample {
   def queryRelation(): Unit = {
     val res = client.query("match (n)-[r: belongTo]->(m) return n,r,m")
     println()
-    println("Query Relation Result: ")
-    while (res.hasNext) {
-      val record = res.next()
-      val leftNode = record("n").asInstanceOf[LynxNode]
-      val relation = record("r").asInstanceOf[LynxRelationship]
-      val rightNode = record("m").asInstanceOf[LynxNode]
-      showNode(leftNode)
-      showRelationship(relation)
-      showNode(rightNode)
-    }
-  }
-  def showNode(node: LynxNode): Unit = {
-    println(
-      s"Node<id: ${node.id.toLynxInteger.value}, labels: ${node.labels.map(l => l.value)}," +
-        s" properties: ${node.keys.map(k => node.property(k).get.value)}>"
-    )
-  }
-  def showRelationship(r: LynxRelationship): Unit = {
-    println(
-      s"Relationship<id: ${r.id.toLynxInteger.value}, typeName: ${r.relationType.get.value}, " +
-        s"properties: ${r.keys.map(k => r.property(k).get.value)}>"
-    )
+    println("Query Relation Result: ", res)
   }
 }

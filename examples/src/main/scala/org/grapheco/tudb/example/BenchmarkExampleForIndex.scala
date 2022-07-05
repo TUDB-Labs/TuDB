@@ -1,9 +1,8 @@
 /** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.example
 
-import org.grapheco.lynx.types.structural.LynxNode
 import org.grapheco.tudb.client.TuDBClient
-import org.grapheco.tudb.example.CypherExample.{showNode, startServer}
+import org.grapheco.tudb.example.CypherExample.{startServer}
 
 import java.io.{FileInputStream, FileOutputStream}
 import java.util.zip.ZipInputStream
@@ -80,11 +79,7 @@ object BenchmarkExampleForIndex {
     val time = System.currentTimeMillis()
     val res = client.query("match (n:Tag) where n.name='Rumi' return n limit 10")
     println()
-    println("Query Node result: ")
-    while (res.hasNext) {
-      val record = res.next()("n").asInstanceOf[LynxNode]
-      showNode(record)
-    }
+    println("Query Node result: ", res)
     println()
     System.currentTimeMillis() - time
   }
