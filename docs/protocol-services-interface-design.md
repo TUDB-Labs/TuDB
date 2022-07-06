@@ -159,18 +159,28 @@ client = tudb.Client(address=xxx)
 We can then get the graphs and nodes similar to REST APIs:
 
 ```python
+// Get the list of graphs
 client.list_graphs()
+// Get a particular graph
 graph = client.get_graph(name=xxx)
 
+// Get the list of the nodes associated with the graph
 graph.list_nodes(labels=xxx)
-client.list_nodes(graph_name=xxx, labels=xxx)
-client.get_node(name=xxx)
+// Get a particular node
+graph.get_node(name=xxx)
 
+// Get the list of relationships associated with the graph
 graph.list_relationships()
-client.list_relationships(graph_name=xxx)
-client.get_relationship(name=xxx)
+// Get a particular relationship
+graph.get_relationship(name=xxx)
 ```
 
 ### CLI
 
-TBA
+Our CLI provides the following commands where `object_type` can be one of the following: graph, node, and relationship.
+
+1. `tudb list <object_type>`: get a list of objects of this type.
+2. `tudb get <object_type> <object_name>`: get a single object of this type.
+3. `tudb create <object_type> -f <path-to-graph-definition>`: create an object of this type based on the specified definition.
+4. `tudb delete <object_type> <object_name>`: delete a single object of this type.
+5. `tudb delete <object_type> --all`: delete all objects of this type.
