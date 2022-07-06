@@ -153,7 +153,7 @@ We also provide SDKs such as Python SDK to our users.
 First, initialize the client:
 
 ```python
-client = tudb.Client(address=xxx)
+client = tudb.Client(address=xxx, config=xxx)
 ```
 
 We can then get the graphs and nodes similar to REST APIs:
@@ -163,16 +163,28 @@ We can then get the graphs and nodes similar to REST APIs:
 client.list_graphs()
 // Get a particular graph
 graph = client.get_graph(name=xxx)
+// Create a new graph
+graph = client.create_graph(Graph(...))
+// Delete a graph
+client.delete_graph(name=xxx)
 
 // Get the list of the nodes associated with the graph
 graph.list_nodes(labels=xxx)
 // Get a particular node
 graph.get_node(name=xxx)
+// Create a node
+graph.create_node(Node(...))
+// Delete a node
+graph.delete_node(name=xxx)
 
 // Get the list of relationships associated with the graph
 graph.list_relationships()
 // Get a particular relationship
 graph.get_relationship(name=xxx)
+// Create a relationship
+graph.create_relationship(Relationship(...))
+// Delete a relationship
+graph.delete_relationship(name=xxx)
 ```
 
 ### CLI
@@ -181,6 +193,11 @@ Our CLI provides the following commands where `object_type` can be one of the fo
 
 1. `tudb list <object_type>`: get a list of objects of this type.
 2. `tudb get <object_type> <object_name>`: get a single object of this type.
-3. `tudb create <object_type> -f <path-to-graph-definition>`: create an object of this type based on the specified definition.
+3. `tudb create <object_type> -f <path_to_graph_definition>`: create an object of this type based on the specified definition.
 4. `tudb delete <object_type> <object_name>`: delete a single object of this type.
 5. `tudb delete <object_type> --all`: delete all objects of this type.
+
+For nodes, there are also additional flags:
+1. `--labels`: retrieving nodes that have this list of labels.
+
+For both nodes and relationships, we also need to provide `--graph <graph_name>` to associate with a graph when running the queries.
