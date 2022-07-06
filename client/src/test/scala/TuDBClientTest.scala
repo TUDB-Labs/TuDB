@@ -4,7 +4,7 @@ import org.grapheco.tudb.client.TuDBClient
 import org.grapheco.tudb.network.Query
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{TuDBInstanceContext, TuDBServer, TuDBServerContext}
-import org.junit.{AfterClass, Assert, BeforeClass, Test}
+import org.junit.{After, AfterClass, Assert, Before, BeforeClass, Test}
 import utils.TuQueryResultJsonParseUtil
 
 import java.io.File
@@ -47,9 +47,21 @@ object TuDBClientTest {
 }
 
 class TuDBClientTest {
+  var client: TuDBClient = null
+  @Before
+  def setUpClient(): Unit = {
+    client = new TuDBClient("127.0.0.1", testConnectionPort)
+  }
+
+  @After
+  def shutDownlient(): Unit = {
+    if (client != null) {
+      client.query("match (n) detach delete n")
+      client.shutdown()
+    }
+  }
   @Test
   def testRelationshipID(): Unit = {
-    val client = new TuDBClient("127.0.0.1", testConnectionPort)
 
     val stat1 = "Create (n1:START)-[r1:rel]->(n2:Middle)-[r2:rel]->(n3:END);"
     client.query(stat1)
@@ -69,14 +81,10 @@ class TuDBClientTest {
     Assert.assertEquals(id2, r1.getEndId)
     Assert.assertEquals(id2, r2.getStartId)
     Assert.assertEquals(id3, r2.getEndId)
-
-    client.query("match (n) detach delete n")
-    client.shutdown()
   }
 
   @Test
   def testRemoveProp(): Unit = {
-    val client = new TuDBClient("127.0.0.1", testConnectionPort)
 
     client.query("Create(n:TestRemoveProp{prop1:'prop1', prop2:'prop2'})")
     val result = TuQueryResultJsonParseUtil.parseJsonList(
@@ -93,23 +101,19 @@ class TuDBClientTest {
       case null => Assert.assertTrue(true)
       case _    => Assert.assertTrue(false)
     }
-    client.query("match (n) detach delete n")
-    client.shutdown()
+
   }
 
   @Test
   def testEmptyResult(): Unit = {
-    val client = new TuDBClient("127.0.0.1", testConnectionPort)
     val result = TuQueryResultJsonParseUtil.parseJsonList(
       client.query("Match(n) WHERE n.prop='On Testing a not existing result' Return n;")
     )
     Assert.assertTrue(result.isEmpty)
-    client.shutdown()
   }
 
   @Test
   def testStatistics(): Unit = {
-    val client = new TuDBClient("127.0.0.1", testConnectionPort)
 
     client.query("create (n:person1)-[r:KNOW]->(m:person2)")
     client.query("create (n:person3)-[r:KNOW]->(m:person2)")
@@ -121,14 +125,10 @@ class TuDBClientTest {
     Assert.assertEquals(2, nodeStat.get("person2").get)
     Assert.assertEquals(1, nodeStat.get("person3").get)
     Assert.assertEquals(2, relStat.get("KNOW").get)
-
-    client.query("match (n) detach delete n")
-    client.shutdown()
   }
 
   @Test
   def testCypherException(): Unit = {
-    val client: TuDBClient = new TuDBClient("127.0.0.1", testConnectionPort)
     val request: Query.QueryRequest =
       Query.QueryRequest.newBuilder().setStatement("321321321321").build()
     val response = client.blockingStub.query(request)
