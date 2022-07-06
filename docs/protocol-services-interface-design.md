@@ -1,6 +1,6 @@
 # Protocol, Services, and Interfaces Design
 
-## Protocol Definitions
+## Protocol Design
 
 ### Object Definitions
 
@@ -94,7 +94,9 @@ service GraphService {
 
 Services for other objects are similar.
 
-## REST APIs
+## Interfaces
+
+### REST APIs
 
 We provide three types of methods:
 
@@ -144,7 +146,7 @@ The returned object looks like the following:
 }
 ```
 
-## SDKs
+### SDKs
 
 We also provide SDKs such as Python SDK to our users.
 
@@ -168,3 +170,7 @@ graph.list_relationships()
 client.list_relationships(graph_name=xxx)
 client.get_relationship(name=xxx)
 ```
+
+### CLI
+
+TBA
