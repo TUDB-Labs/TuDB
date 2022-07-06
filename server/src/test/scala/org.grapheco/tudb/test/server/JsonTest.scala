@@ -68,8 +68,9 @@ class JsonTest {
     }
     val json5 = resutlData.toJson()
     println(json5)
-    Assert.assertTrue(
-      json5 == """[[{"keys": ["a"],"length": 1,"_fields":["1"]},{"keys": ["b"],"length": 1,"_fields":["2"]}]]"""
+    Assert.assertEquals(
+      """[[{"keys": ["a"],"length": 1,"_fields":["1"]},{"keys": ["b"],"length": 1,"_fields":["2"]}]]""",
+      json5
     )
 
     /**  one-hop test
