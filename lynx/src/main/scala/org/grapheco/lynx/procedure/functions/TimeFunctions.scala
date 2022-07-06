@@ -1,15 +1,11 @@
 package org.grapheco.lynx.procedure.functions
 
 import org.grapheco.lynx.func.LynxProcedure
-import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
-import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNumber, LynxString}
-import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
+import org.grapheco.lynx.types.composite.LynxMap
+import org.grapheco.lynx.types.property.{LynxInteger, LynxNumber, LynxString}
 import org.grapheco.lynx.types.time._
 import org.grapheco.lynx.util._
-
-import java.util.regex.Pattern
 
 class TimeFunctions {
   @LynxProcedure(name = "lynx")
@@ -38,6 +34,16 @@ class TimeFunctions {
       case 0 => LynxDateTimeUtil.now()
       case 1 => LynxDateTimeUtil.parse(args.head).asInstanceOf[LynxDateTime]
     }
+  }
+
+  /**
+   * date function [now()]
+   * @param args nothing need
+   * @return LynxDateTime-Now
+   */
+  @LynxProcedure(name = "now")
+  def now(args: Seq[LynxValue]): LynxDateTime = {
+    LynxDateTimeUtil.now()
   }
 
   @LynxProcedure(name = "localdatetime")

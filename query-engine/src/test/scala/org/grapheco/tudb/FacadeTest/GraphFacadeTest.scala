@@ -4,6 +4,8 @@ import org.apache.commons.io.FileUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPropertyKey, LynxRelationship}
+import org.grapheco.lynx.types.time.LynxDateTime
+import org.grapheco.lynx.util.LynxDateTimeUtil
 import org.grapheco.tudb.FacadeTest.GraphFacadeTest.db
 import org.grapheco.tudb.test.TestUtils
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuDBInstanceContext}
@@ -436,4 +438,31 @@ class GraphFacadeTest {
       case _    => Assert.assertTrue(false)
     }
   }
+
+  @Test
+  def testDatetimeFunction(): Unit = {
+    val cypher = "RETURN datetime('2015-06-24T12:50:35.556+01:00') AS theDateTime"
+    db.cypher(cypher).show()
+    val cypher1 = "With datetime('2015-06-24T12:50:35.556+01:00') as date Return date.day"
+    db.cypher(cypher1).show()
+  }
+
+  @Test
+  def testNowFunction(): Unit = {
+    val now = LynxDateTimeUtil.now()
+    val compare = db.cypher("Return now() as now")
+      .records()
+      .next()
+      .get("now")
+      .get
+      .asInstanceOf[LynxDateTime]
+    Assert.assertTrue(now.zonedDateTime.getYear == compare.zonedDateTime.getYear)
+    Assert.assertTrue(now.zonedDateTime.getMonth == compare.zonedDateTime.getMonth)
+    Assert.assertTrue(now.zonedDateTime.getDayOfMonth == compare.zonedDateTime.getDayOfMonth)
+    // in cross hour this case maybe fail ,retry
+    Assert.assertTrue(now.zonedDateTime.getHour == compare.zonedDateTime.getHour)
+    // in cross minute this case maybe fail ,retry
+    Assert.assertTrue(now.zonedDateTime.getMinute == compare.zonedDateTime.getMinute)
+  }
+
 }
