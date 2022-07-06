@@ -46,20 +46,26 @@ class GraphFacade(
       endNodeFilter: NodeFilter,
       direction: SemanticDirection
     ): Iterator[PathTriple] = {
-    // TODO: expandHelper can use properties in endNodeFilter to index node.
-    expandHelper(nodeId, relationshipFilter.types.map(f => f.value)).filter(p => {
-      relationshipFilter.matches(p.storedRelation) && endNodeFilter.matches(p.endNode)
-    })
+    // TODO:  use properties in endNodeFilter to index node.
+    // The expand relationship may not contain the relationship type,
+    // or may query like this:
+    // 1. (a)-[r:FRIEND]->(b)
+    // 2. (a)-[r:FRIEND|KNOW]->(b)
+    val relationshipTypes = relationshipFilter.types.map(t => t.value)
+    if (relationshipTypes.nonEmpty) {
+      relationshipTypes
+        .flatMap(rType => {
+          findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
+            .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get))
+        })
+        .toIterator
+    } else {
+      findOutRelations(nodeId.toLynxInteger.value).map(r =>
+        PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
+      )
+    }
   }
 
-  private def expandHelper(nodeId: LynxId, relationshipType: Seq[String]): Iterator[PathTriple] = {
-    relationshipType
-      .flatMap(rType => {
-        findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-          .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get))
-      })
-      .toIterator
-  }
   /*
     The default paths will scan all the relationships then use filter to get the data we want,
     and it cannot deal with the situation of relationship with variable length,
