@@ -4,7 +4,5 @@ repos:
     hooks:
       - id: maven
         args: [ 'clean compile scalafmt:format --file pom.xml' ]
-#      - id: maven
-#          args: [ 'scalafmt:format --file pom.xml' ]
 # TODO: Fix all issues in https://github.com/TUDB-Labs/TuDB/issues/99
 #        -   id: maven-checkstyle
