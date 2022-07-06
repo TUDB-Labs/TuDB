@@ -23,7 +23,7 @@ jobs:
           output: ' '
       - uses: DamianReeves/write-file-action@v1.0
         with:
-          path: ${{ env.home}}/.m2/settings.xml
+          path: /home/runner/.m2/settings.xml
           contents: |
             <settings>
               <servers>
