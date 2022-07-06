@@ -33,6 +33,7 @@
         <scala-logging.version>3.8.0</scala-logging.version>
         <logback.version>1.1.7</logback.version>
         <slf4j.version>1.7.21</slf4j.version>
+        <main.basedir>${project.basedir}</main.basedir>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -253,6 +254,22 @@
                                     </resource>
                                 </resources>
                             </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.antipathy</groupId>
+                    <artifactId>mvn-scalafmt_2.12</artifactId>
+                    <version>1.1.1640084764.9f463a9</version>
+                    <configuration>
+                        <configLocation>${main.basedir}/.scalafmt.conf</configLocation> <!-- path to config -->
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>format</goal>
+                            </goals>
                         </execution>
                     </executions>
                 </plugin>

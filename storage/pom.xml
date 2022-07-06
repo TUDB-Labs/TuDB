@@ -15,6 +15,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <main.basedir>${project.basedir}/../</main.basedir>
     </properties>
 
     <dependencies>
@@ -57,10 +58,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <!--The plugin is to make sure the unit test doesn't influence each other.
                 or the RocksDB would make the JVM crash.-->
-                <configuration>
-                    <forkCount>1</forkCount>
-                    <reuseForks>false</reuseForks>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
