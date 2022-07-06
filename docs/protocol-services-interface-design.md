@@ -21,8 +21,8 @@ message Node {
 
 message Relationship {
   string name = 1;
-  Node startNode = 2;
-  Node endNode = 3;
+  Node start_node = 2;
+  Node end_node = 3;
   repeated map<string, google.protobuf.Any> properties = 4;
   string relationType = 5;
 }
@@ -106,7 +106,7 @@ We provide three types of methods:
 
 These three methods are available for the all three core objects in the graph database.
 
-For example, the following endpoints are available for graphs:
+For example, the following endpoints are available for graphs (actual endpoints will be prefixed by `/api/v1`):
 
 1. `GET /graphs`: obtain a list of graphs;
 2. `GET /graphs/<graph_name>`: obtain a particular graph;
