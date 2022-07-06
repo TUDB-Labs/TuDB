@@ -111,16 +111,16 @@ For example, the following endpoints are available for graphs:
 1. `GET /graphs`: obtain a list of graphs;
 2. `GET /graphs/<graph_name>`: obtain a particular graph;
 3. `POST /graphs/<graph_name>`: create a new graph in the database;
-4. `DELETE /graph/<graph_name>`: delete an existing graph.
+4. `DELETE /graphs/<graph_name>`: delete an existing graph.
 
 The following endpoints are available for nodes:
-1. `GET /graph/<graph_name>/nodes`: obtain a list of nodes in a particular graph;
-2. `GET /graph/<graph_name>/nodes/labels`: obtain a list of nodes in a particular graph by labels;
-3. `GET /graph/<graph_name>/nodes/<node_name>`: get a particular node from a graph;
+1. `GET /graphs/<graph_name>/nodes`: obtain a list of nodes in a particular graph;
+2. `GET /graphs/<graph_name>/nodes/labels`: obtain a list of nodes in a particular graph by labels;
+3. `GET /graphs/<graph_name>/nodes/<node_name>`: get a particular node from a graph;
 4. `POST /graphs/<graph_name>/nodes/<node_name>`: create a new node in the graph;
-5. `DELETE /graph/<graph_name>/nodes/<node_name>`: delete an existing node;
-6. `DELETE /graph/<graph_name>/nodes`: delete all nodes in the graph;
-7. `DELETE /graph/<graph_name>/nodes/labels`: delete all nodes in the graph by labels.
+5. `DELETE /graphs/<graph_name>/nodes/<node_name>`: delete an existing node;
+6. `DELETE /graphs/<graph_name>/nodes`: delete all nodes in the graph;
+7. `DELETE /graphs/<graph_name>/nodes/labels`: delete all nodes in the graph by labels.
 
 The endpoints are available for relationships are similar.
 
