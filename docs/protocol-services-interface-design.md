@@ -1,4 +1,4 @@
-# Protocol Design
+# Protocol, Services, and Interfaces Design
 
 ## Protocol Definitions
 
