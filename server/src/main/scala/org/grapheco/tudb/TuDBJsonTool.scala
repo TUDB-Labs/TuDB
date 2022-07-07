@@ -97,7 +97,9 @@ object TuDBJsonTool {
   def getJson(result: LynxResult): String = {
     val resultJsonBuilder = new mutable.StringBuilder()
     resultJsonBuilder.append("[")
+    var hasRecord = false
     for (record <- result.records()) {
+      hasRecord = true
       resultJsonBuilder.append("[")
       for (column <- result.columns()) {
         resultJsonBuilder.append(f"""{"keys": [""")
@@ -113,7 +115,7 @@ object TuDBJsonTool {
       resultJsonBuilder.append("]")
       resultJsonBuilder.append(",")
     }
-    if (result.records().nonEmpty) {
+    if (hasRecord) {
       resultJsonBuilder.deleteCharAt(resultJsonBuilder.length - 1)
     }
     resultJsonBuilder.append("]")
