@@ -11,6 +11,7 @@ import org.grapheco.tudb.store.node.TuNode
 import org.grapheco.tudb.store.relationship.TuRelationship
 
 import java.text.SimpleDateFormat
+import scala.collection.mutable
 
 /** add toJson method to AnyRef
   *
@@ -92,17 +93,31 @@ object TuDBJsonTool {
       ""","segments":[""" + path.path.map(v => getJson(v)).mkString(",") +
       """],"length":""" + path.path.length + """}"""
   }
+
   def getJson(result: LynxResult): String = {
-    "[" + result
-      .records()
-      .map { record =>
-        "[" + record
-          .map { kv =>
-            f"""{"keys": [${toJson(kv._1)}],"length": 1,"_fields":[${toJson(kv._2)}]}"""
-          }
-          .mkString(",") + "]"
+    val resultJsonBuilder = new mutable.StringBuilder()
+    resultJsonBuilder.append("[")
+    for (record <- result.records()) {
+      resultJsonBuilder.append("[")
+      for (column <- result.columns()) {
+        resultJsonBuilder.append(f"""{"keys": [""")
+        resultJsonBuilder.append(toJson(column))
+        resultJsonBuilder.append(f"""],"length": 1,"_fields":[""")
+        resultJsonBuilder.append(toJson(record(column)))
+        resultJsonBuilder.append(f"""]}""")
+        resultJsonBuilder.append(",")
       }
-      .mkString(",") + "]"
+      if (result.columns().nonEmpty) {
+        resultJsonBuilder.deleteCharAt(resultJsonBuilder.length - 1)
+      }
+      resultJsonBuilder.append("]")
+      resultJsonBuilder.append(",")
+    }
+    if (result.records().nonEmpty) {
+      resultJsonBuilder.deleteCharAt(resultJsonBuilder.length - 1)
+    }
+    resultJsonBuilder.append("]")
+    resultJsonBuilder.toString()
   }
 
 }
