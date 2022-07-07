@@ -171,7 +171,10 @@ class DefaultExpressionEvaluator(
         LynxValue(eval(lhs) != eval(rhs))
 
       case Equals(lhs, rhs) => //todo add testcase: 1) n.name == null 2) n.nullname == 'some'
-        LynxValue(eval(lhs) == eval(rhs))
+        (eval(lhs), eval(rhs)) match {
+          case (a: LynxNumber, b: LynxNumber) => LynxValue(a.value == b.value)
+          case (a: LynxValue, b: LynxValue)   => LynxValue(a == b)
+        }
 
       case GreaterThan(lhs, rhs) =>
         safeBinaryOp(
