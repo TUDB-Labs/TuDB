@@ -18,7 +18,7 @@ jobs:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
           RUNNER_TOOL_CACHE: /opt/hostedtoolcache
       - id: file_changes
-        uses: trilom/file-changes-action@v1.2.3
+        uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
       - uses: DamianReeves/write-file-action@v1.0
