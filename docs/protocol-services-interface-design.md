@@ -146,6 +146,10 @@ The returned object looks like the following:
 }
 ```
 
+#### OpenAPI Spec
+
+REST APIs can be generated via [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway). We can [automatically generate OpenAPI spec](https://bbengfort.github.io/2021/01/grpc-openapi-docs/) as well.
+
 ### SDKs
 
 We also provide SDKs such as Python SDK to our users.
