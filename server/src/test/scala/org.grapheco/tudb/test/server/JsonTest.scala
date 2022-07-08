@@ -29,7 +29,9 @@ class JsonTest {
     )
     val json = node.toJson()
     println(json)
-    Assert.assertTrue(json == """{"identity":1,"labels":["name"],"properties":{"name":"sd"}}""")
+    Assert.assertTrue(
+      json == """{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}}"""
+    )
     val relation = TuRelationship(
       5L,
       1L,
@@ -40,19 +42,19 @@ class JsonTest {
     val json2 = relation.toJson()
     println(json2)
     Assert.assertTrue(
-      json2 == """{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}"""
+      json2 == """{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}"""
     )
     val list_data = List(node, relation)
     val json3 = list_data.toJson()
     println(json3)
     Assert.assertTrue(
-      json3 == """[{"identity":1,"labels":["name"],"properties":{"name":"sd"}},{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}]"""
+      json3 == """[{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}]"""
     )
     val map_data = Map("a" -> node, "b" -> relation)
     val json4 = map_data.toJson()
     println(json4)
     Assert.assertTrue(
-      json4 == """{"a":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"b":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
+      json4 == """{"a":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"b":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}}"""
     )
 
     val resutlData = new LynxResult {
@@ -84,7 +86,7 @@ class JsonTest {
     val json5_1 = oneHop.toJson()
     println(json5_1)
     Assert.assertTrue(
-      json5_1 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":1}"""
+      json5_1 == """{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"paths","end":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"segments":[{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"path","end":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":1}"""
     )
 
     /** two-hop test
@@ -99,9 +101,10 @@ class JsonTest {
     )
     val json6 = twoHop.toJson()
     println(json6)
-    Assert.assertTrue {
-      json6 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":2}"""
-    }
+    Assert.assertEquals(
+      json6,
+      """{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"paths","end":{"identity":3,"tu_type":"node","labels":["name"],"properties":{"name":"sg"}},"segments":[{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"path","end":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"tu_type":"path","end":{"identity":3,"tu_type":"node","labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":2}"""
+    )
 
     /**
       * three-hop test
@@ -120,9 +123,10 @@ class JsonTest {
     )
     val json7 = threeHop.toJson()
     println(json7)
-    Assert.assertTrue {
-      json7 == """{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":4,"labels":["name"],"properties":{"name":"sh"}},"segments":[{"start":{"identity":1,"labels":["name"],"properties":{"name":"sd"}},"end":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"labels":["name"],"properties":{"name":"sf"}},"end":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":3,"labels":["name"],"properties":{"name":"sg"}},"end":{"identity":4,"labels":["name"],"properties":{"name":"sh"}},"relationship":{"identity":5,"start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":3}"""
-    }
+    Assert.assertEquals(
+      json7,
+      """{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"paths","end":{"identity":4,"tu_type":"node","labels":["name"],"properties":{"name":"sh"}},"segments":[{"start":{"identity":1,"tu_type":"node","labels":["name"],"properties":{"name":"sd"}},"tu_type":"path","end":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":2,"tu_type":"node","labels":["name"],"properties":{"name":"sf"}},"tu_type":"path","end":{"identity":3,"tu_type":"node","labels":["name"],"properties":{"name":"sg"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}},{"start":{"identity":3,"tu_type":"node","labels":["name"],"properties":{"name":"sg"}},"tu_type":"path","end":{"identity":4,"tu_type":"node","labels":["name"],"properties":{"name":"sh"}},"relationship":{"identity":5,"tu_type":"relationship","start":1,"end":2,"type":"a","properties":{"year":"2200"}}}],"length":3}"""
+    )
   }
 
   @Before
