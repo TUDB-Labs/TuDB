@@ -65,29 +65,30 @@ object TuDBJsonTool {
   }
 
   def getJson(node: TuNode): String = {
-    """{"identity":""" + node.id.value + ""","labels":""" + objectMapper.writeValueAsString(
-      node.labels.map(_.value)
-    ) + ""","properties":""" + objectMapper.writeValueAsString(
+    """{"identity":""" + node.id.value + ""","tu_type":"node","labels":""" + objectMapper
+      .writeValueAsString(
+        node.labels.map(_.value)
+      ) + ""","properties":""" + objectMapper.writeValueAsString(
       node.properties.map(kv => kv._1 -> kv._2.value)
     ) + """}"""
   }
 
   def getJson(relationship: TuRelationship): String = {
-    """{"identity":""" + relationship.id.value + ""","start":""" + relationship.startId + ""","end":""" +
+    """{"identity":""" + relationship.id.value + ""","tu_type":"relationship","start":""" + relationship.startId + ""","end":""" +
       relationship.endId + ""","type":""" + toJson(relationship.relationType.get.value) +
       ""","properties":""" + objectMapper.writeValueAsString(
       relationship.properties.map(kv => kv._1 -> kv._2.value)
     ) + """}"""
   }
   def getJson(subPath: PathTriple): String = {
-    """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","end":""" +
+    """{"start":""" + getJson(subPath.startNode.asInstanceOf[TuNode]) + ""","tu_type":"path","end":""" +
       getJson(subPath.endNode.asInstanceOf[TuNode]) + ""","relationship":""" + getJson(
       subPath.storedRelation.asInstanceOf[TuRelationship]
     ) + """}"""
   }
 
   def getJson(path: LynxPath): String = {
-    """{"start":""" + getJson(path.startNode().asInstanceOf[TuNode]) + ""","end":""" + getJson(
+    """{"start":""" + getJson(path.startNode().asInstanceOf[TuNode]) + ""","tu_type":"paths","end":""" + getJson(
       path.endNode().asInstanceOf[TuNode]
     ) +
       ""","segments":[""" + path.path.map(v => getJson(v)).mkString(",") +
