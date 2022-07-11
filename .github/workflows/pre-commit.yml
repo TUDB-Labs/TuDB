@@ -21,7 +21,7 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      - uses: DamianReeves/write-file-action@v1.0
+      - uses: DamianReeves/write-file-action@v1.1
         with:
           path: /home/runner/.m2/settings.xml
           contents: |
