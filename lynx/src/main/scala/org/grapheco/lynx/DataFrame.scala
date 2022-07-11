@@ -291,21 +291,22 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
               })
           }
         }
-        val result = if (needCheckSkip) {
-          val gap = a.schema.size
-          joinedRecords.filterNot(r => {
-            var identical: Boolean = true
-            for (i <- 0 until gap) {
-              if (r(i).value != r(i + gap).value) {
-                identical = false
-              }
-            }
-            identical
-          })
-        } else {
-          joinedRecords
-        }
-        result.filter(item => {
+        // TODO: Don't know why need this, just comment.
+//        val result = if (needCheckSkip) {
+//          val gap = a.schema.size
+//          joinedRecords.filterNot(r => {
+//            var identical: Boolean = true
+//            for (i <- 0 until gap) {
+//              if (r(i).value != r(i + gap).value) {
+//                identical = false
+//              }
+//            }
+//            identical
+//          })
+//        } else {
+//          joinedRecords
+//        }
+        joinedRecords.filter(item => {
           //(m)-[r]-(n)-[p]-(t), r!=p
           val relIds =
             item.filter(_.isInstanceOf[LynxRelationship]).map(_.asInstanceOf[LynxRelationship].id)
