@@ -18,12 +18,12 @@ jobs:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
           RUNNER_TOOL_CACHE: /opt/hostedtoolcache
       - id: file_changes
-        uses: trilom/file-changes-action@v1.2.3
+        uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      - uses: DamianReeves/write-file-action
+      - uses: DamianReeves/write-file-action@v1.0
         with:
-          path: ${{ env.home}}/.m2/settings.xml
+          path: /home/runner/.m2/settings.xml
           contents: |
             <settings>
               <servers>
@@ -58,7 +58,7 @@ jobs:
                       <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
                   </mirror>
               </mirrors>
-          </settings>
+            </settings>
           write-mode: append
       - uses: pre-commit/action@v3.0.0
         with:

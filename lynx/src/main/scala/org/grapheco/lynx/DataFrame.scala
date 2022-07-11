@@ -282,7 +282,7 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
             smallMap
               .getOrElse(value, Seq())
               .map(x => {
-                val lvs = largeColumns2.map(lc => row(lc._1)).toSeq
+                val lvs = largeColumns2.toSeq.sortBy(s => s._1).map(lc => row(lc._1))
                 if (swapped) {
                   lvs ++ x._2
                 } else {

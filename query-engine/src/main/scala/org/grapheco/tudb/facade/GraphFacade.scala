@@ -28,6 +28,44 @@ class GraphFacade(
   extends LazyLogging
   with GraphModel {
 
+  /**
+    * Expand function for cypher like (a)-[r1]-(b)-[r2]-(c)
+    * when get the left relationship (a)-[r1]-(b), we need to expand relation from (b)
+    * the reason why we don't use direction is because we only expand from (b)
+    * so we only need findOutRelation.
+    *
+    * @param nodeId The id of this node
+    * @param relationshipFilter conditions for relationships
+    * @param endNodeFilter Filter condition of ending node
+    * @param direction The direction of expansion, INCOMING, OUTGOING or BOTH
+    *  @return Triples after expansion and filter
+    */
+  override def expand(
+      nodeId: LynxId,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection
+    ): Iterator[PathTriple] = {
+    // TODO:  use properties in endNodeFilter to index node.
+    // The expand relationship may not contain the relationship type,
+    // or may query like this:
+    // 1. (a)-[r:FRIEND]->(b)
+    // 2. (a)-[r:FRIEND|KNOW]->(b)
+    val relationshipTypes = relationshipFilter.types.map(t => t.value)
+    if (relationshipTypes.nonEmpty) {
+      relationshipTypes
+        .flatMap(rType => {
+          findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
+            .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get))
+        })
+        .toIterator
+    } else {
+      findOutRelations(nodeId.toLynxInteger.value).map(r =>
+        PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
+      )
+    }
+  }
+
   /*
     The default paths will scan all the relationships then use filter to get the data we want,
     and it cannot deal with the situation of relationship with variable length,
@@ -86,8 +124,7 @@ class GraphFacade(
       case SemanticDirection.INCOMING => {
         val inComingPathUtils = new PathUtils(this)
 
-        val endNodes = nodes(endNodeFilter)
-        endNodes
+        nodes(endNodeFilter)
           .flatMap(endNode =>
             inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
           )
