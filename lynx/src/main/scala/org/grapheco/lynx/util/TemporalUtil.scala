@@ -248,7 +248,7 @@ object LynxDateTimeUtil extends LynxTemporalParser {
           LynxDateTime(ZonedDateTime.parse(translateSdfStrToZoneDateTime(zonedDateTimeStr)))
         case "zone_date_time" =>
           LynxDateTime(ZonedDateTime.parse(zonedDateTimeStr))
-          // TODO to support more format,add case process here
+        // TODO to support more format,add case process here
       }
     } catch {
       case _ => throw new Exception("Unsupported datetime format")
