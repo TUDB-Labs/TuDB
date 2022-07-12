@@ -6,8 +6,12 @@ import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.{LynxInteger, LynxNumber, LynxString}
 import org.grapheco.lynx.types.time._
 import org.grapheco.lynx.util._
+import org.grapheco.tudb.common.utils.LogUtil
+import org.slf4j.LoggerFactory
 
 class TimeFunctions {
+  val LOGGER = LoggerFactory.getLogger(classOf[TimeFunctions])
+
   @LynxProcedure(name = "lynx")
   def lynx(args: Seq[LynxValue]): String = {
     "lynx-0.3"
@@ -33,14 +37,42 @@ class TimeFunctions {
     args.size match {
       case 0 => LynxDateTimeUtil.now()
       case 1 => LynxDateTimeUtil.parse(args.head).asInstanceOf[LynxDateTime]
+      case 8 =>
+        try {
+          LynxDateTimeUtil.of(
+            args(0).value.asInstanceOf[Int],
+            args(1).value.asInstanceOf[Int],
+            args(2).value.asInstanceOf[Int],
+            args(3).value.asInstanceOf[Int],
+            args(4).value.asInstanceOf[Int],
+            args(5).value.asInstanceOf[Int],
+            args(6).value.asInstanceOf[Int],
+            args(7).value.asInstanceOf[String]
+          )
+        } catch {
+          case _: IndexOutOfBoundsException =>
+            throw LynxTemporalParseException(
+              "Datetime constructor error,datetime must construct from {year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int, nanosecond: Int,  timezone: String}"
+            )
+          case _: ClassCastException =>
+            throw LynxTemporalParseException(
+              "Datetime constructor error,datetime must construct from {year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int, nanosecond: Int,  timezone: String}"
+            )
+          case t: Throwable =>
+            LogUtil.error(LOGGER, t, "datetime constructor occurred an error")
+            throw LynxTemporalParseException(
+              "System error!"
+            )
+        }
+
     }
   }
 
   /**
-   * date function [now()]
-   * @param args nothing need
-   * @return LynxDateTime-Now
-   */
+    * date function [now()]
+    * @param args nothing need
+    * @return LynxDateTime-Now
+    */
   @LynxProcedure(name = "now")
   def now(args: Seq[LynxValue]): LynxDateTime = {
     LynxDateTimeUtil.now()

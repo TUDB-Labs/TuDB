@@ -13,6 +13,8 @@ import org.junit._
 import org.junit.runners.MethodSorters
 
 import java.io.File
+import java.time.ZonedDateTime
+import java.util.regex.Pattern
 
 /** @ClassName GraphFacadeTest
   * @Description TODO
@@ -440,17 +442,53 @@ class GraphFacadeTest {
   }
 
   @Test
-  def testDatetimeFunction(): Unit = {
-    val cypher = "RETURN datetime('2015-06-24T12:50:35.556+01:00') AS theDateTime"
+  def testStandardDateTime(): Unit = {
+    val cypher = "With datetime('2022-01-01T00:00:00.000+08:00') as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
     db.cypher(cypher).show()
-    val cypher1 = "With datetime('2015-06-24T12:50:35.556+01:00') as date Return date.day"
-    db.cypher(cypher1).show()
+    val result = db.cypher(cypher).records().next()
+    dateTimeCheck(ZonedDateTime.parse("2022-01-01T00:00:00.000+08:00"), result)
+
+    val cypher1 = "With datetime('2022-09-09T09:09:09.999+01:00') as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
+    val result1 = db.cypher(cypher1).records().next()
+    dateTimeCheck(ZonedDateTime.parse("2022-09-09T09:09:09.999+01:00"), result1)
+  }
+
+  @Test
+  def testSimpleDateTime(): Unit = {
+    val cypher = "With datetime('2022-01-01 00:00:00 0800') as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
+    val result = db.cypher(cypher)
+    dateTimeCheck(ZonedDateTime.parse("2022-01-01T00:00:00+08:00"), result.records().next())
+
+    val cypher1 = "With datetime('2022-09-09 09:09:09 0100') as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
+    val result1 = db.cypher(cypher1)
+    dateTimeCheck(ZonedDateTime.parse("2022-09-09T09:09:09+01:00"), result1.records().next())
+  }
+
+  @Test
+  def testDatetimeConstructor(): Unit = {
+    val cypher = "With datetime({year: 2022, month: 1, day: 1,  hour: 0, minute: 0, second: 0, nanosecond: 0,  timezone: 'Asia/Shanghai'}) as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
+    val result = db.cypher(cypher)
+    dateTimeCheck(ZonedDateTime.parse("2022-01-01T00:00:00+08:00"), result.records().next())
+
+    val cypher1 = "With datetime({year: 2022, month: 9, day: 9,  hour: 9, minute: 9, second: 9, nanosecond: 999999999,  timezone: 'Asia/Shanghai'}) as d Return d.year,d.quarter,d.month,d.week,d.day," +
+      "d.dayOfYear,d.dayOfMonth,d.dayOfWeek,d.hour,d.minute,d.second,d.millisecond,d.microsecond,d.nanosecond,d.offset,d.epochSeconds,d.epochMillis"
+    val result1 = db.cypher(cypher1)
+    dateTimeCheck(
+      ZonedDateTime.parse("2022-09-09T09:09:09.999999999+08:00"),
+      result1.records().next()
+    )
   }
 
   @Test
   def testNowFunction(): Unit = {
     val now = LynxDateTimeUtil.now()
-    val compare = db.cypher("Return now() as now")
+    val compare = db
+      .cypher("Return now() as now")
       .records()
       .next()
       .get("now")
@@ -463,6 +501,68 @@ class GraphFacadeTest {
     Assert.assertTrue(now.zonedDateTime.getHour == compare.zonedDateTime.getHour)
     // in cross minute this case maybe fail ,retry
     Assert.assertTrue(now.zonedDateTime.getMinute == compare.zonedDateTime.getMinute)
+  }
+
+  @Test
+  def timeTest(): Unit = {
+    val sdf = "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}[.]\\d{3}\\s\\d{4}"
+    val time = "2002-02-02 02:02:02.111 0800"
+    println(Pattern.matches(sdf, time))
+  }
+
+  @Test
+  def timePatchTest: Unit = {
+    val zonedDateTimeStr = "2002-02-02 02:02:02 0800"
+    val arr = zonedDateTimeStr.split(" ")
+
+    println(arr(0) + "T" + arr(1) + ".000+" + arr(2).substring(0, 2) + "." + arr(2).substring(2, 4))
+    for (elem <- 1.to(12)) {
+      println((elem + 2) / 3)
+
+    }
+  }
+
+  /**
+    * date result check
+    * @param stringToValue
+    */
+  def dateTimeCheck(date: ZonedDateTime, values: Map[String, LynxValue]): Unit = {
+    Assert.assertEquals(date.getYear.longValue(), values.get("d.year").get.value)
+    Assert.assertEquals((date.getMonthValue.longValue() + 2) / 3, values.get("d.quarter").get.value)
+    Assert.assertEquals(date.getMonthValue.longValue(), values.get("d.month").get.value)
+    Assert.assertEquals(date.getDayOfYear.longValue(), values.get("d.day").get.value)
+    Assert.assertEquals(date.getDayOfYear.longValue(), values.get("d.dayOfYear").get.value)
+    Assert.assertEquals(date.getDayOfMonth.longValue(), values.get("d.dayOfMonth").get.value)
+    Assert.assertEquals(date.getDayOfWeek.getValue.longValue(), values.get("d.dayOfWeek").get.value)
+    Assert.assertEquals(date.getHour.longValue(), values.get("d.hour").get.value)
+    Assert.assertEquals(date.getMinute.longValue(), values.get("d.minute").get.value)
+    Assert.assertEquals(date.getSecond.longValue(), values.get("d.second").get.value)
+    Assert.assertEquals(date.getNano / 100000L, values.get("d.millisecond").get.value)
+    Assert.assertEquals(date.getNano / 100L, values.get("d.microsecond").get.value)
+    Assert.assertEquals(date.getOffset.getId, values.get("d.offset").get.value)
+    Assert.assertEquals(date.toEpochSecond.longValue(), values.get("d.epochSeconds").get.value)
+    Assert.assertEquals(date.toInstant.toEpochMilli, values.get("d.epochMillis").get.value)
+
+  }
+
+  @Test
+  def testDatetimeWeek(): Unit = {
+    val cypher = "With datetime('2018-01-01 00:00:00 0800') as d Return d.week"
+    val result = db.cypher(cypher).records().next()
+    Assert.assertEquals(1L, result.get("d.week").get.value)
+
+    val cypher1 = "With datetime('2019-01-01 00:00:00 0800') as d Return d.week"
+    val result1 = db.cypher(cypher1).records().next()
+    Assert.assertEquals(52L, result1.get("d.week").get.value)
+
+    val cypher2 = "With datetime('2019-01-02 00:00:00 0800') as d Return d.week"
+    val result2 = db.cypher(cypher2).records().next()
+    Assert.assertEquals(1L, result2.get("d.week").get.value)
+
+    val cypher3 = "With datetime('2019-01-09 00:00:00 0800') as d Return d.week"
+    val result3 = db.cypher(cypher3).records().next()
+    Assert.assertEquals(2L, result3.get("d.week").get.value)
+
   }
 
 }
