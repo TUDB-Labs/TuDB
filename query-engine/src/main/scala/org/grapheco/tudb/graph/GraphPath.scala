@@ -7,7 +7,7 @@ import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
   * @createDate:2022/6/27
   * @description:
   */
-/** @param pathTriples all paths expanded from a node, each pattern like (a)-[r]-(b) called as a Path
+/** @param pathTriples A kind of path, each pattern like (a)-[r]-(b) called as a Path
   */
 case class GraphPath(pathTriples: Seq[PathTriple]) {
 

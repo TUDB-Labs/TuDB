@@ -116,19 +116,19 @@ class GraphFacade(
 
         val startNodes = nodes(startNodeFilter)
         startNodes
-          .flatMap(startNode =>
-            pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
-          )
-          .filter(p => endNodeFilter.matches(p.endNode))
+          .flatMap(startNode => pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter))
+          .filter(p => endNodeFilter.matches(p.endNode()))
+          .flatMap(f => f.pathTriples)
       }
       case SemanticDirection.INCOMING => {
         val inComingPathUtils = new PathUtils(this)
 
         nodes(endNodeFilter)
           .flatMap(endNode =>
-            inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
+            inComingPathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter)
           )
-          .filter(p => startNodeFilter.matches(p.startNode))
+          .filter(p => startNodeFilter.matches(p.startNode()))
+          .flatMap(f => f.pathTriples)
       }
       case SemanticDirection.BOTH => {
         val pathUtils = new PathUtils(this)
@@ -136,15 +136,13 @@ class GraphFacade(
         val startNodes = nodes(startNodeFilter)
         val endNodes = nodes(endNodeFilter)
         startNodes
-          .flatMap(startNode =>
-            pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter).pathTriples
-          )
-          .filter(p => endNodeFilter.matches(p.endNode)) ++
+          .flatMap(startNode => pathUtils.getSingleNodeOutGoingPaths(startNode, relationshipFilter))
+          .filter(p => endNodeFilter.matches(p.endNode()))
+          .flatMap(f => f.pathTriples) ++
           endNodes
-            .flatMap(endNode =>
-              pathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter).pathTriples
-            )
-            .filter(p => startNodeFilter.matches(p.startNode))
+            .flatMap(endNode => pathUtils.getSingleNodeInComingPaths(endNode, relationshipFilter))
+            .filter(p => startNodeFilter.matches(p.startNode()))
+            .flatMap(f => f.pathTriples)
       }
     }
   }
@@ -315,8 +313,7 @@ class GraphFacade(
 
     val firstHop = GraphHop(
       beginNodes
-        .flatMap(node => pathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples)
-        .map(p => GraphPath(Seq(p)))
+        .flatMap(node => pathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter))
         .toSeq
         .filter(p => p.pathTriples.nonEmpty)
     )
@@ -387,8 +384,7 @@ class GraphFacade(
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val firstHop = GraphHop(
       beginNodes
-        .flatMap(node => pathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples)
-        .map(p => GraphPath(Seq(p)))
+        .flatMap(node => pathUtils.getSingleNodeInComingPaths(node, relationshipFilter))
         .toSeq
         .filter(p => p.pathTriples.nonEmpty)
     )
@@ -488,7 +484,7 @@ class GraphFacade(
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val firstHop = GraphHop(
       beginNodes
-        .map(node => pathUtils.getSingleNodeBothPaths(node, relationshipFilter))
+        .flatMap(node => pathUtils.getSingleNodeBothPaths(node, relationshipFilter))
         .toSeq
         .filter(p => p.pathTriples.nonEmpty)
     )

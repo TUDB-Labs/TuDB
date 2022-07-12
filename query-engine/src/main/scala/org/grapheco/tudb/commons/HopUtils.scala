@@ -25,21 +25,23 @@ class HopUtils(pathUtils: PathUtils) {
       // From path's last pathTriple's endNode to expand.
       val left = thisPath.pathTriples.last.endNode
       val paths = pathUtils.getSingleNodeOutGoingPaths(left, relationshipFilter)
-      paths.pathTriples.foreach(next => {
-        /*
-          EndNode may expand many paths, then add each new-path to thisPath's last respectively.
+      /*
+        EndNode may expand many paths, then add each new-path to thisPath's last respectively.
 
-          we should filter the circle situation:
-            1 -friend-> 2 -friend-> 3 -friend-> 4 -friend-> 1
-            , then from 1, circle will happen.
-            pathTriple's like below
-                                                                    circle happened
-                                                                          ||
-                                                                          \/
-            (1,friend,2), (2,friend,3), (3,friend,4), (4,friend,1), (1, friend, 2)
-         */
-        if (!thisPath.pathTriples.contains(next))
-          nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
+        we should filter the circle situation:
+          1 -friend-> 2 -friend-> 3 -friend-> 4 -friend-> 1
+          , then from 1, circle will happen.
+          pathTriple's like below
+                                                                  circle happened
+                                                                        ||
+                                                                        \/
+          (1,friend,2), (2,friend,3), (3,friend,4), (4,friend,1), (1, friend, 2)
+       */
+      paths.foreach(graphPath => {
+        graphPath.pathTriples.foreach(next => {
+          if (!thisPath.pathTriples.contains(next))
+            nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
+        })
       })
     })
     GraphHop(nextHop)
@@ -53,10 +55,12 @@ class HopUtils(pathUtils: PathUtils) {
       // from path's first pathTriple's startNode to expand
       val right = thisPath.pathTriples.head.startNode
       val paths = pathUtils.getSingleNodeInComingPaths(right, relationshipFilter)
-      paths.pathTriples.foreach(next => {
-        // startNode may expand many paths, then add each new-path to thisPath's head respectively
-        if (!thisPath.pathTriples.contains(next))
-          nextHop.append(GraphPath(Seq(next) ++ thisPath.pathTriples))
+      // startNode may expand many paths, then add each new-path to thisPath's head respectively
+      paths.foreach(graphPath => {
+        graphPath.pathTriples.foreach(next => {
+          if (!thisPath.pathTriples.contains(next))
+            nextHop.append(GraphPath(Seq(next) ++ thisPath.pathTriples))
+        })
       })
     })
     GraphHop(nextHop)
@@ -66,6 +70,7 @@ class HopUtils(pathUtils: PathUtils) {
   def getNextBothHop(start: GraphHop, relationshipFilter: RelationshipFilter): GraphHop = {
     val nextHop: ArrayBuffer[GraphPath] = ArrayBuffer.empty
 
+    // thisPath represent a node's all paths
     start.paths.foreach(thisPath => {
       val startNode = thisPath.pathTriples.last.endNode
       // we flag the start node, and next path cannot go back
@@ -73,17 +78,15 @@ class HopUtils(pathUtils: PathUtils) {
       val nextTriple = {
         pathUtils
           .getSingleNodeOutGoingPaths(startNode, relationshipFilter)
-          .pathTriples
           .filter(p => p.endNode != cannotGoBack) ++
           pathUtils
             .getSingleNodeInComingPaths(startNode, relationshipFilter)
-            .pathTriples
             .filter(p => p.startNode != cannotGoBack)
             .map(p => p.revert) // revert, then we only need to use last node to expand.
       }
       nextTriple.foreach(next => {
-        if (!thisPath.pathTriples.contains(next))
-          nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next)))
+        if (!thisPath.pathTriples.contains(next.pathTriples.head))
+          nextHop.append(GraphPath(thisPath.pathTriples ++ Seq(next.pathTriples.head)))
       })
     })
 
