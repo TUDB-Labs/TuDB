@@ -98,7 +98,7 @@ class DefaultPhysicalPlanner(runnerContext: CypherRunnerContext) extends Physica
       case lo @ LPTOrderBy(sortItem) => PPTOrderBy(sortItem)(plan(lo.in), plannerContext)
       case ll @ LPTSkip(expr)        => PPTSkip(expr)(plan(ll.in), plannerContext)
       case lj @ LPTJoin(isSingleMatch) =>
-        PPTJoin(None, isSingleMatch)(plan(lj.a), plan(lj.b), plannerContext)
+        PPTJoin(Seq.empty, isSingleMatch)(plan(lj.a), plan(lj.b), plannerContext)
       case patternMatch: LPTPatternMatch =>
         PPTPatternMatchTranslator(patternMatch)(plannerContext).translate(None)
       case li @ LPTCreateIndex(labelName: LabelName, properties: List[PropertyKeyName]) =>
@@ -142,7 +142,7 @@ case class PPTPatternMatchTranslator(
 }
 
 case class PPTJoin(
-    filterExpr: Option[Expression],
+    filterExpr: Seq[Expression],
     val isSingleMatch: Boolean,
     bigTableIndex: Int = 1
   )(a: PPTNode,
@@ -157,14 +157,20 @@ case class PPTJoin(
 
     val df = df1.join(df2, isSingleMatch, bigTableIndex)
 
+    // TODO: eval function each time can only process one expression,
+    //  so if there are many filterExpression, we will filter DataFrame several times. can speed up?
     if (filterExpr.nonEmpty) {
       val ec = ctx.expressionContext
-      df.filter { (record: Seq[LynxValue]) =>
-        eval(filterExpr.get)(ec.withVars(df.schema.map(_._1).zip(record).toMap)) match {
-          case LynxBoolean(b) => b
-          case LynxNull       => false
-        }
-      }(ec)
+      var filteredDataFrame: DataFrame = DataFrame.empty
+      filterExpr.foreach(expr => {
+        filteredDataFrame = df.filter { (record: Seq[LynxValue]) =>
+          eval(expr)(ec.withVars(df.schema.map(_._1).zip(record).toMap)) match {
+            case LynxBoolean(b) => b
+            case LynxNull       => false
+          }
+        }(ec)
+      })
+      filteredDataFrame
     } else df
   }
 
