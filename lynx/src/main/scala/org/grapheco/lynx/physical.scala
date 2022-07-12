@@ -121,18 +121,23 @@ case class PPTPatternMatchTranslator(
       pm: LPTPatternMatch
     )(implicit ppc: PhysicalPlannerContext
     ): PPTNode = {
-    val LPTPatternMatch(headNode: NodePattern, chain: Seq[(RelationshipPattern, NodePattern)]) = pm
+    val LPTPatternMatch(
+      optional,
+      headNode: NodePattern,
+      chain: Seq[(RelationshipPattern, NodePattern)]
+    ) = pm
     chain.toList match {
       //match (m)
-      case Nil => PPTNodeScan(headNode)(ppc)
+      case Nil => PPTNodeScan(optional, headNode)(ppc)
       //match (m)-[r]-(n)
-      case List(Tuple2(rel, rightNode)) => PPTRelationshipScan(rel, headNode, rightNode)(ppc)
+      case List(Tuple2(rel, rightNode)) =>
+        PPTRelationshipScan(optional, rel, headNode, rightNode)(ppc)
       //match (m)-[r]-(n)-...-[p]-(z)
       case _ =>
         val (lastRelationship, lastNode) = chain.last
         val dropped = chain.dropRight(1)
-        val part = planPatternMatch(LPTPatternMatch(headNode, dropped))(ppc)
-        PPTExpandPath(lastRelationship, lastNode)(part, plannerContext)
+        val part = planPatternMatch(LPTPatternMatch(optional, headNode, dropped))(ppc)
+        PPTExpandPath(optional, lastRelationship, lastNode)(part, plannerContext)
     }
   }
 
@@ -284,6 +289,7 @@ case class PPTFilter(
 }
 
 case class PPTExpandPath(
+    optional: Boolean,
     rel: RelationshipPattern,
     rightNode: NodePattern
   )(implicit in: PPTNode,
@@ -292,7 +298,7 @@ case class PPTExpandPath(
   override val children: Seq[PPTNode] = Seq(in)
 
   override def withChildren(children0: Seq[PPTNode]): PPTExpandPath =
-    PPTExpandPath(rel, rightNode)(children0.head, plannerContext)
+    PPTExpandPath(optional, rel, rightNode)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val RelationshipPattern(
@@ -345,46 +351,56 @@ case class PPTExpandPath(
     DataFrame(
       df.schema ++ schema0,
       () => {
-        df.records.flatMap { record0 =>
-          graphModel
-            .expand(
-              record0.last.asInstanceOf[LynxNode].id,
-              RelationshipFilter(
-                types.map(_.name).map(LynxRelationshipType),
-                properties
-                  .map(
-                    eval(_).asInstanceOf[LynxMap].value.map(kv => (LynxPropertyKey(kv._1), kv._2))
-                  )
-                  .getOrElse(Map.empty)
-              ),
-              NodeFilter(
-                labels2.map(_.name).map(LynxNodeLabel),
-                properties2
-                  .map(
-                    eval(_).asInstanceOf[LynxMap].value.map(kv => (LynxPropertyKey(kv._1), kv._2))
-                  )
-                  .getOrElse(Map.empty)
-              ),
-              direction
-            )
-            .map(triple => record0 ++ Seq(triple.storedRelation, triple.endNode))
-            .filter(item => {
-              //(m)-[r]-(n)-[p]-(t), r!=p
-              val relIds = item
-                .filter(_.isInstanceOf[LynxRelationship])
-                .map(_.asInstanceOf[LynxRelationship].id)
-              relIds.size == relIds.toSet.size
-            })
+        val res = df.records.flatMap {
+          record0 =>
+            graphModel
+              .expand(
+                record0.last.asInstanceOf[LynxNode].id,
+                RelationshipFilter(
+                  types.map(_.name).map(LynxRelationshipType),
+                  properties
+                    .map(
+                      eval(_).asInstanceOf[LynxMap].value.map(kv => (LynxPropertyKey(kv._1), kv._2))
+                    )
+                    .getOrElse(Map.empty)
+                ),
+                NodeFilter(
+                  labels2.map(_.name).map(LynxNodeLabel),
+                  properties2
+                    .map(
+                      eval(_).asInstanceOf[LynxMap].value.map(kv => (LynxPropertyKey(kv._1), kv._2))
+                    )
+                    .getOrElse(Map.empty)
+                ),
+                direction
+              )
+              .map(triple => record0 ++ Seq(triple.storedRelation, triple.endNode))
+              .filter(item => {
+                //(m)-[r]-(n)-[p]-(t), r!=p
+                val relIds = item
+                  .filter(_.isInstanceOf[LynxRelationship])
+                  .map(_.asInstanceOf[LynxRelationship].id)
+                relIds.size == relIds.toSet.size
+              })
+        }
+        optional match {
+          case true =>
+            if (res.nonEmpty) res
+            else Iterator(Seq(LynxNull, LynxNull)) // expand just relationship and right node.
+          case false => res
         }
       }
     )
   }
 }
 
-case class PPTNodeScan(pattern: NodePattern)(implicit val plannerContext: PhysicalPlannerContext)
+case class PPTNodeScan(
+    optional: Boolean,
+    pattern: NodePattern
+  )(implicit val plannerContext: PhysicalPlannerContext)
   extends AbstractPPTNode {
   override def withChildren(children0: Seq[PPTNode]): PPTNodeScan =
-    PPTNodeScan(pattern)(plannerContext)
+    PPTNodeScan(optional, pattern)(plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val NodePattern(
@@ -426,21 +442,26 @@ case class PPTNodeScan(pattern: NodePattern)(implicit val plannerContext: Physic
                 .getOrElse(Map.empty)
             )
           )
-
-        nodes.map(Seq(_))
+        optional match {
+          case true =>
+            if (nodes.nonEmpty) nodes.map(Seq(_))
+            else Iterator(Seq(LynxNull))
+          case false => nodes.map(Seq(_))
+        }
       }
     )
   }
 }
 
 case class PPTRelationshipScan(
+    optional: Boolean,
     rel: RelationshipPattern,
     leftNode: NodePattern,
     rightNode: NodePattern
   )(implicit val plannerContext: PhysicalPlannerContext)
   extends AbstractPPTNode {
   override def withChildren(children0: Seq[PPTNode]): PPTRelationshipScan =
-    PPTRelationshipScan(rel, leftNode, rightNode)(plannerContext)
+    PPTRelationshipScan(optional, rel, leftNode, rightNode)(plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val RelationshipPattern(
@@ -568,11 +589,23 @@ case class PPTRelationshipScan(
         val relCypherType = schema(1)._2
         relCypherType match {
           case r @ CTRelationship => {
-            data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
+            optional match {
+              case true =>
+                if (data.nonEmpty)
+                  data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
+                else Iterator(Seq(LynxNull, LynxNull, LynxNull))
+              case false =>
+                data.map(f => Seq(f.head.startNode, f.head.storedRelation, f.head.endNode))
+            }
           }
           // process relationship Path to support like (a)-[r:TYPE*1..3]->(b)
           case rs @ ListType(CTRelationship) => {
-            data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
+            optional match {
+              case true =>
+                if (data.nonEmpty) data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
+                else Iterator(Seq(LynxNull, LynxNull, LynxNull))
+              case false => data.map(f => Seq(f.head.startNode, LynxPath(f), f.last.endNode))
+            }
           }
         }
       }

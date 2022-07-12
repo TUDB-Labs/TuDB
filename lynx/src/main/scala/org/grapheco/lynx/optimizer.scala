@@ -104,8 +104,8 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
       ppc: PhysicalPlannerContext
     ): PPTNode = {
     val res = pj.children.map {
-      case pn @ PPTNodeScan(pattern) =>
-        PPTNodeScan(getNewNodePattern(pattern, labelMap, propMap))(ppc)
+      case pn @ PPTNodeScan(optional, pattern) =>
+        PPTNodeScan(optional, getNewNodePattern(pattern, labelMap, propMap))(ppc)
       case pjj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex) =>
         pptFilterThenJoinPushDown(propMap, labelMap, pjj, ppc)
       case f => f
@@ -221,24 +221,32 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
       ppc: PhysicalPlannerContext
     ): (Seq[PPTNode], Boolean) = {
     pf.children match {
-      case Seq(pns @ PPTNodeScan(pattern)) => {
+      case Seq(pns @ PPTNodeScan(optional, pattern)) => {
         val patternAndSet = pushExprToNodePattern(pf.expr, pattern)
         if (patternAndSet._3) {
-          if (patternAndSet._2.isEmpty) (Seq(PPTNodeScan(patternAndSet._1)(ppc)), true)
+          if (patternAndSet._2.isEmpty) (Seq(PPTNodeScan(optional, patternAndSet._1)(ppc)), true)
           else
-            (Seq(PPTFilter(patternAndSet._2.head)(PPTNodeScan(patternAndSet._1)(ppc), ppc)), true)
+            (
+              Seq(
+                PPTFilter(patternAndSet._2.head)(PPTNodeScan(optional, patternAndSet._1)(ppc), ppc)
+              ),
+              true
+            )
         } else (null, false)
       }
-      case Seq(prs @ PPTRelationshipScan(rel, left, right)) => {
+      case Seq(prs @ PPTRelationshipScan(optional, rel, left, right)) => {
         val patternsAndSet = pushExprToRelationshipPattern(pf.expr, left, right)
         if (patternsAndSet._4) {
           if (patternsAndSet._3.isEmpty)
-            (Seq(PPTRelationshipScan(rel, patternsAndSet._1, patternsAndSet._2)(ppc)), true)
+            (
+              Seq(PPTRelationshipScan(optional, rel, patternsAndSet._1, patternsAndSet._2)(ppc)),
+              true
+            )
           else
             (
               Seq(
                 PPTFilter(patternsAndSet._3.head)(
-                  PPTRelationshipScan(rel, patternsAndSet._1, patternsAndSet._2)(ppc),
+                  PPTRelationshipScan(optional, rel, patternsAndSet._1, patternsAndSet._2)(ppc),
                   ppc
                 )
               ),
@@ -246,7 +254,7 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
             )
         } else (null, false)
       }
-      case Seq(pep @ PPTExpandPath(rel, right)) => {
+      case Seq(pep @ PPTExpandPath(optional, rel, right)) => {
         val expandAndSet = expandPathPushDown(pf.expr, right, pep, ppc)
         if (expandAndSet._2.isEmpty) (Seq(expandAndSet._1), true)
         else (Seq(PPTFilter(expandAndSet._2.head)(expandAndSet._1, ppc)), true)
@@ -380,7 +388,7 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
       ppc: PhysicalPlannerContext
     ): PPTNode = {
     pptNode match {
-      case e @ PPTExpandPath(rel, right) =>
+      case e @ PPTExpandPath(optional, rel, right) =>
         val newPEP = bottomUpExpandPath(
           nodeLabels: Map[String, Seq[LabelName]],
           nodeProperties: Map[String, Option[Expression]],
@@ -388,12 +396,12 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
           ppc
         )
         val expandRightPattern = getNewNodePattern(right, nodeLabels, nodeProperties)
-        PPTExpandPath(rel, expandRightPattern)(newPEP, ppc)
+        PPTExpandPath(optional, rel, expandRightPattern)(newPEP, ppc)
 
-      case r @ PPTRelationshipScan(rel, left, right) => {
+      case r @ PPTRelationshipScan(optional, rel, left, right) => {
         val leftPattern = getNewNodePattern(left, nodeLabels, nodeProperties)
         val rightPattern = getNewNodePattern(right, nodeLabels, nodeProperties)
-        PPTRelationshipScan(rel, leftPattern, rightPattern)(ppc)
+        PPTRelationshipScan(optional, rel, leftPattern, rightPattern)(ppc)
       }
     }
   }
@@ -490,8 +498,9 @@ object JoinTableSizeEstimateRule extends PhysicalPlanOptimizerRule {
 
   def estimate(table: PPTNode, ppc: PhysicalPlannerContext): Long = {
     table match {
-      case ps @ PPTNodeScan(pattern) => estimateNodeRow(pattern, ppc.runnerContext.graphModel)
-      case pr @ PPTRelationshipScan(rel, left, right) =>
+      case ps @ PPTNodeScan(optional, pattern) =>
+        estimateNodeRow(pattern, ppc.runnerContext.graphModel)
+      case pr @ PPTRelationshipScan(optional, rel, left, right) =>
         estimateRelationshipRow(rel, left, right, ppc.runnerContext.graphModel)
     }
   }

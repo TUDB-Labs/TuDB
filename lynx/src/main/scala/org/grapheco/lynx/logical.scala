@@ -388,14 +388,17 @@ case class LPTJoin(val isSingleMatch: Boolean)(val a: LPTNode, val b: LPTNode) e
 }
 
 /////////////////match/////////////////
-case class LPTPatternMatch(headNode: NodePattern, chain: Seq[(RelationshipPattern, NodePattern)])
+case class LPTPatternMatch(
+    optional: Boolean,
+    headNode: NodePattern,
+    chain: Seq[(RelationshipPattern, NodePattern)])
   extends LPTNode {}
 
 case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
   def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
     //run match
     val Match(optional, Pattern(patternParts: Seq[PatternPart]), hints, where: Option[Where]) = m
-    val parts = patternParts.map(matchPatternPart(_)(plannerContext))
+    val parts = patternParts.map(part => matchPatternPart(optional, part)(plannerContext))
     val matched = parts.drop(1).foldLeft(parts.head)((a, b) => LPTJoin(true)(a, b))
     val filtered = LPTWhereTranslator(where).translate(Some(matched))
 
@@ -406,22 +409,24 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
   }
 
   private def matchPatternPart(
+      optional: Boolean,
       patternPart: PatternPart
     )(implicit lpc: LogicalPlannerContext
     ): LPTNode = {
     patternPart match {
-      case EveryPath(element: PatternElement) => matchPattern(element)
+      case EveryPath(element: PatternElement) => matchPattern(optional, element)
     }
   }
 
   private def matchPattern(
+      optional: Boolean,
       element: PatternElement
     )(implicit lpc: LogicalPlannerContext
     ): LPTPatternMatch = {
     element match {
       //match (m:label1)
       case np: NodePattern =>
-        LPTPatternMatch(np, Seq.empty)
+        LPTPatternMatch(optional, np, Seq.empty)
 
       //match ()-[]->()
       case rc @ RelationshipChain(
@@ -429,7 +434,7 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
             relationship: RelationshipPattern,
             rightNode: NodePattern
           ) =>
-        LPTPatternMatch(leftNode, Seq(relationship -> rightNode))
+        LPTPatternMatch(optional, leftNode, Seq(relationship -> rightNode))
 
       //match ()-[]->()-...-[r:type]->(n:label2)
       case rc @ RelationshipChain(
@@ -437,8 +442,8 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
             relationship: RelationshipPattern,
             rightNode: NodePattern
           ) =>
-        val mp = matchPattern(leftChain)
-        LPTPatternMatch(mp.headNode, mp.chain :+ (relationship -> rightNode))
+        val mp = matchPattern(optional, leftChain)
+        LPTPatternMatch(optional, mp.headNode, mp.chain :+ (relationship -> rightNode))
     }
   }
 }

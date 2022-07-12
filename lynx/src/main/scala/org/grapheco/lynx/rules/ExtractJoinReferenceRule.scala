@@ -240,13 +240,13 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
     val noReferenceExpressionArray = ArrayBuffer[Expression]()
     pptNode match {
       // check is there any reference in nodePattern, if have, add to referenceExpressionArray
-      case ps @ PPTNodeScan(nodePattern) => {
+      case ps @ PPTNodeScan(optional, nodePattern) => {
         val newNodePattern = getReferenceFromNodePattern(
           nodePattern,
           referenceSchema,
           referenceExpressionArray
         )
-        PPTNodeScan(newNodePattern)(ppc)
+        PPTNodeScan(optional, newNodePattern)(ppc)
       }
       // check is there any reference in PPTFilter, if have, add to referenceExpressionArray
       case pf @ PPTFilter(expr) => {
@@ -268,7 +268,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
         }
       }
       // check is there any reference in leftNodePattern and rightNodePattern, if have, add to referenceExpressionArray
-      case pr @ PPTRelationshipScan(rel, leftNodePattern, rightNodePattern) => {
+      case pr @ PPTRelationshipScan(optional, rel, leftNodePattern, rightNodePattern) => {
         val newLeftNodePattern = getReferenceFromNodePattern(
           leftNodePattern,
           referenceSchema,
@@ -279,7 +279,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
           referenceSchema,
           referenceExpressionArray
         )
-        PPTRelationshipScan(rel, newLeftNodePattern, newRightNodePattern)(ppc)
+        PPTRelationshipScan(optional, rel, newLeftNodePattern, newRightNodePattern)(ppc)
       }
       case default => default
     }
