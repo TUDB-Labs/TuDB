@@ -82,6 +82,83 @@ class ComplexQueryTest {
     Assert.assertEquals(Seq("3", "3"), res.map(mp => mp("postOrCommentId").value.toString))
   }
   @Test
+  def Q3(): Unit = {
+    db.cypher("""
+        |create (n1: Person{name:'A', id: 1})
+        |create (n11: Person{name:'B'})
+        |create (n12: Person{firstName:'FFF', lastName:'LLL', id:666})
+        |
+        |create (n2: Country{name:'China'})
+        |create (n3: Country{name:'USA'})
+        |create (n4: Country{name:'Japan'})
+        |
+        |create (n5: City{name:'Chengdu'})
+        |create (n6: City{name: 'Beijing'})
+        |create (n7: City{name:'Tokyo'})
+        |
+        |create (n5)-[r1:IS_PART_OF]->(n2)
+        |create (n6)-[r2:IS_PART_OF]->(n2)
+        |create (n7)-[r3:IS_PART_OF]->(n4)
+        |
+        |create (n1)-[r4:KNOWS]->(n11)
+        |create (n11)-[r5:KNOWS]->(n12)
+        |
+        |create (n1)-[: IS_LOCATED_IN]->(n5)
+        |create (n11)-[: IS_LOCATED_IN]->(n6)
+        |create (n12)-[: IS_LOCATED_IN]->(n7)
+        |
+        |create (m1: Message{creationDate:2000})
+        |create (m2: Message{creationDate:2010})
+        |create (m3: Message{creationDate:2020})
+        |
+        |create (n12)<-[hc1: HAS_CREATOR]-(m1)
+        |create (n12)<-[hc2: HAS_CREATOR]-(m2)
+        |create (n12)<-[hc3: HAS_CREATOR]-(m3)
+        |
+        |create (m1)-[i1: IS_LOCATED_IN]->(n2)
+        |create (m2)-[i2: IS_LOCATED_IN]->(n3)
+        |create (m3)-[i3: IS_LOCATED_IN]->(n4)
+        |""".stripMargin)
+
+    val res = db.cypher(s"""
+        |MATCH (countryX:Country {name: 'China' }),
+        |      (countryY:Country {name: 'USA' }),
+        |      (person:Person {id: 1 })
+        |WITH person, countryX, countryY
+        |LIMIT 1
+        |MATCH (city:City)-[:IS_PART_OF]->(country:Country)
+        |WHERE country IN [countryX, countryY]
+        |WITH person, countryX, countryY, collect(city) AS cities
+        |MATCH (person)-[:KNOWS*1..2]-(friend)-[:IS_LOCATED_IN]->(city)
+        |WHERE NOT person=friend AND NOT city IN cities
+        |WITH DISTINCT friend, countryX, countryY
+        |MATCH (friend)<-[:HAS_CREATOR]-(message),
+        |      (message)-[:IS_LOCATED_IN]->(country)
+        |WHERE 3000 > message.creationDate >= 1000 AND
+        |      country IN [countryX, countryY]
+        |WITH friend,
+        |     CASE WHEN country=countryX THEN 1 ELSE 0 END AS messageX,
+        |     CASE WHEN country=countryY THEN 1 ELSE 0 END AS messageY
+        |WITH friend, sum(messageX) AS xCount, sum(messageY) AS yCount
+        |WHERE xCount>0 AND yCount>0
+        |RETURN friend.id AS friendId,
+        |       friend.firstName AS friendFirstName,
+        |       friend.lastName AS friendLastName,
+        |       xCount,
+        |       yCount,
+        |       xCount + yCount AS xyCount
+        |ORDER BY xyCount DESC, friendId ASC
+        |LIMIT 20
+        |""".stripMargin).records().next()
+    Assert.assertEquals(666L, res("friendId").value)
+    Assert.assertEquals("FFF", res("friendFirstName").value)
+    Assert.assertEquals("LLL", res("friendLastName").value)
+    Assert.assertEquals(1.0, res("xCount").value)
+    Assert.assertEquals(1.0, res("yCount").value)
+    Assert.assertEquals(2.0, res("xyCount").value)
+  }
+
+  @Test
   def Q4(): Unit = {
     db.cypher(
       """

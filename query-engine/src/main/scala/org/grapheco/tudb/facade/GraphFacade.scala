@@ -318,6 +318,7 @@ class GraphFacade(
         .flatMap(node => pathUtils.getSingleNodeOutGoingPaths(node, relationshipFilter).pathTriples)
         .map(p => GraphPath(Seq(p)))
         .toSeq
+        .filter(p => p.pathTriples.nonEmpty)
     )
 
     collected.append(firstHop)
@@ -389,6 +390,7 @@ class GraphFacade(
         .flatMap(node => pathUtils.getSingleNodeInComingPaths(node, relationshipFilter).pathTriples)
         .map(p => GraphPath(Seq(p)))
         .toSeq
+        .filter(p => p.pathTriples.nonEmpty)
     )
 
     collected.append(firstHop)
@@ -483,10 +485,12 @@ class GraphFacade(
     ): ArrayBuffer[GraphHop] = {
     val pathUtils = new PathUtils(this)
     val hopUtils = new HopUtils(pathUtils)
-
     val collected: ArrayBuffer[GraphHop] = ArrayBuffer.empty
     val firstHop = GraphHop(
-      beginNodes.map(node => pathUtils.getSingleNodeBothPaths(node, relationshipFilter)).toSeq
+      beginNodes
+        .map(node => pathUtils.getSingleNodeBothPaths(node, relationshipFilter))
+        .toSeq
+        .filter(p => p.pathTriples.nonEmpty)
     )
     collected.append(firstHop)
     var nextHop: GraphHop = null

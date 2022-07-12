@@ -2,7 +2,7 @@ package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.{PPTFilter, PPTJoin, PPTNode, PPTNodeScan, PPTRelationshipScan, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
-import org.opencypher.v9_0.expressions.{Ands, ContainerIndex, Equals, Expression, FunctionInvocation, HasLabels, In, ListLiteral, MapExpression, NodePattern, Property, PropertyKeyName, Variable}
+import org.opencypher.v9_0.expressions.{Ands, ContainerIndex, Equals, Expression, FunctionInvocation, HasLabels, In, ListLiteral, MapExpression, NodePattern, Not, Property, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable.ArrayBuffer
@@ -55,9 +55,8 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
         ppc
       )
 
-    // TODO: PPTJoin's filter expression should change from Option[Expression] to Seq[Expression]
     if (referenceExpressionArray.nonEmpty) {
-      PPTJoin(Option(referenceExpressionArray.head), pptJoin.isSingleMatch, pptJoin.bigTableIndex)(
+      PPTJoin(referenceExpressionArray.toSeq, pptJoin.isSingleMatch, pptJoin.bigTableIndex)(
         table1,
         newTable2,
         ppc
@@ -104,6 +103,20 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
             else noReferenceExpressionArray.append(e)
           }
           case default => noReferenceExpressionArray.append(e)
+        }
+      }
+      case not @ Not(rhs) => {
+        rhs match {
+          case i @ In(Variable(name1), Variable(name2)) => {
+            if (Seq(name1, name2).intersect(referenceSchema).nonEmpty)
+              referenceExpressionArray.append(not)
+            else noReferenceExpressionArray.append(not)
+          }
+          case e @ Equals(Variable(name1), Variable(name2)) => {
+            if (Seq(name1, name2).intersect(referenceSchema).nonEmpty)
+              referenceExpressionArray.append(not)
+            else noReferenceExpressionArray.append(not)
+          }
         }
       }
       /*
