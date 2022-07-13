@@ -4,9 +4,22 @@
 
 ### Object Definitions
 
-Graph, node, and relationship are the main objects in the protocols. Our services are built on these objects.
+Below are the main objects in the protocols. Our services are built on these objects.
 
 ```
+message Element {
+  string name = 1;
+  // The graph associated with this element.
+  Graph graph = 3;
+}
+
+message Property {
+  // The element associated with this property.
+  Element element = 1;
+  string key = 2;
+  google.protobuf.Any value = 3;
+}
+
 message Graph {
   string name = 1;
   repeated Node nodes = 2;
@@ -16,14 +29,16 @@ message Graph {
 message Node {
   string name = 1;
   repeated string labels = 2;
-  repeated map<string, google.protobuf.Any> properties = 3;
+  repeated Property properties = 3;
+  Relationship in_relation = 4;
+  Relationship out_relation = 5;
 }
 
 message Relationship {
   string name = 1;
   Node start_node = 2;
   Node end_node = 3;
-  repeated map<string, google.protobuf.Any> properties = 4;
+  repeated Property properties = 4;
   string relationType = 5;
 }
 ```
@@ -104,7 +119,7 @@ We provide three types of methods:
 2. POST: Send/modify data to the database; 
 3. DELETE: Delete data from the database.
 
-These three methods are available for the all three core objects in the graph database.
+These three methods are available for the all the core objects in the graph database.
 
 For example, the following endpoints are available for graphs (actual endpoints will be prefixed by `/api/v1`):
 
