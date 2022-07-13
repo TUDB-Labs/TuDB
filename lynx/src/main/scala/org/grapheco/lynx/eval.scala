@@ -2,15 +2,16 @@ package org.grapheco.lynx
 
 import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
 import org.grapheco.lynx.procedure.{ProcedureExpression, ProcedureRegistry}
-import org.grapheco.lynx.types.{LynxValue, TypeSystem}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, LynxNull, LynxNumber, LynxString}
+import org.grapheco.lynx.types.property._
 import org.grapheco.lynx.types.structural.{HasProperty, LynxNode, LynxPropertyKey}
 import org.grapheco.lynx.types.time.LynxDateTime
+import org.grapheco.lynx.types.{LynxValue, TypeSystem}
 import org.opencypher.v9_0.expressions._
 import org.opencypher.v9_0.expressions.functions.{Collect, Id}
-import org.opencypher.v9_0.util.symbols.{CTAny, CTBoolean, CTFloat, CTInteger, CTList, CTString, CypherType, ListType}
+import org.opencypher.v9_0.util.symbols.{CTAny, CTBoolean, CTFloat, CTInteger, CTList, CTString, ListType}
 
+import java.time.LocalDate
 import scala.util.matching.Regex
 
 trait ExpressionEvaluator {
@@ -240,7 +241,7 @@ class DefaultExpressionEvaluator(
         eval(src) match {
           case LynxNull           => LynxNull
           case hp: HasProperty    => hp.property(LynxPropertyKey(name)).getOrElse(LynxNull)
-          case time: LynxDateTime => time
+          case time: LynxDateTime => timeEvalSupport(time, name)
         }
 
       case In(lhs, rhs) =>
@@ -334,4 +335,64 @@ class DefaultExpressionEvaluator(
     }
 
   }
+
+  /**
+    * function for time eval
+    * like time.day,time.hour,time.seconds etc
+    * to add more support ,complete this function
+    * @param time the time by selected
+    * @param name function
+    * @return the real value of property
+    * @throws LynxProcedureException if function not support
+    */
+  def timeEvalSupport(time: LynxDateTime, name: String): LynxValue = {
+    name match {
+      case "year" =>
+        return LynxValue(time.zonedDateTime.getYear)
+      case "quarter" =>
+        return LynxValue((time.zonedDateTime.getMonthValue + 2) / 3)
+      case "month" =>
+        return LynxValue(time.zonedDateTime.getMonthValue)
+      case "week" =>
+        // the fourth is guaranteed to be in week 1 by definition
+        val dayOneOfYear = LocalDate.of(time.zonedDateTime.getYear, 1, 1)
+        val week = (time.zonedDateTime.getDayOfYear + 6) / 7
+        if (dayOneOfYear.getDayOfWeek.getValue == 1) {
+          return LynxValue(week)
+        } else if (dayOneOfYear.getDayOfWeek.getValue != 1 && time.zonedDateTime.getDayOfYear < dayOneOfYear.getDayOfWeek.getValue) {
+          return LynxValue(52)
+        } else {
+          return LynxValue(week)
+        }
+      case "day" =>
+        return LynxValue(time.zonedDateTime.getDayOfYear)
+      case "dayOfYear" =>
+        return LynxValue(time.zonedDateTime.getDayOfYear)
+      case "dayOfMonth" =>
+        return LynxValue(time.zonedDateTime.getDayOfMonth)
+      case "dayOfWeek" =>
+        return LynxValue(time.zonedDateTime.getDayOfWeek.getValue)
+      case "hour" =>
+        return LynxValue(time.zonedDateTime.getHour)
+      case "minute" =>
+        return LynxValue(time.zonedDateTime.getMinute)
+      case "second" =>
+        return LynxValue(time.zonedDateTime.getSecond)
+      case "millisecond" =>
+        return LynxValue(time.zonedDateTime.getNano / 100000)
+      case "microsecond" =>
+        return LynxValue(time.zonedDateTime.getNano / 100)
+      case "nanosecond" =>
+        return LynxValue(time.zonedDateTime.getNano)
+      case "offset" =>
+        return LynxValue(time.zonedDateTime.getOffset.getId)
+      case "epochSeconds" =>
+        return LynxValue(time.zonedDateTime.toEpochSecond.longValue())
+      case "epochMillis" =>
+        return LynxValue(time.zonedDateTime.toInstant.toEpochMilli.longValue())
+
+    }
+    throw LynxProcedureException("Function name [" + name + "] not support")
+  }
+
 }

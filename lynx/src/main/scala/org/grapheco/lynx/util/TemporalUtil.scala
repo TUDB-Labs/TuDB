@@ -1,14 +1,14 @@
 package org.grapheco.lynx.util
 
+import org.grapheco.lynx.LynxException
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.util.LynxLocalDateTimeUtil.{of, parseHourMinuteSecond, parseNanoOfSecond, parseYearMonthDay, parseZone}
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxString
-import org.grapheco.lynx.types.time.{LynxDate, LynxDateTime, LynxDuration, LynxLocalDateTime, LynxLocalTime, LynxTemporalValue, LynxTime}
-import org.grapheco.lynx.{LynxException, types}
+import org.grapheco.lynx.types.time._
 
-import java.time.{Duration, Instant, LocalDate, LocalDateTime, LocalTime, OffsetTime, Period, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time._
 import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 case class LynxTemporalParseException(msg: String) extends LynxException {
   override def getMessage: String = msg
@@ -234,13 +234,49 @@ object LynxDateUtil extends LynxTemporalParser {
 }
 
 object LynxDateTimeUtil extends LynxTemporalParser {
+  // TODO to support more format ,add k-v mapping here
+  val supportDatetimeFormat: Map[String, String] = Map(
+    "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\s\\d{4}" -> "simple_date_format",
+    "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[.]\\d{3}[+]\\d{2}[:]\\d{2}" -> "zone_date_time"
+  )
+
   def parse(zonedDateTimeStr: String): LynxDateTime = {
     try {
-      val v = ZonedDateTime.parse(zonedDateTimeStr)
-      LynxDateTime(v)
+      val formatType = getParamFormatType(zonedDateTimeStr)
+      formatType match {
+        case "simple_date_format" =>
+          LynxDateTime(ZonedDateTime.parse(translateSdfStrToZoneDateTime(zonedDateTimeStr)))
+        case "zone_date_time" =>
+          LynxDateTime(ZonedDateTime.parse(zonedDateTimeStr))
+        // TODO to support more format,add case process here
+      }
     } catch {
-      case _ => throw new Exception("DateTimeParseException")
+      case _ => throw new Exception("Unsupported datetime format")
     }
+  }
+
+  /**
+    * translate param timeString to find format type in supportDatetimeFormat
+    * @param timeString
+    * @return format type in supportDatetimeFormat
+    */
+  def getParamFormatType(timeString: String): String = {
+    supportDatetimeFormat.keys.foreach(reg => {
+      if (Pattern.matches(reg, timeString)) {
+        return supportDatetimeFormat.get(reg).get
+      }
+    })
+    throw LynxTemporalParseException("Unsupported datetime format")
+  }
+
+  /**
+    * translate str like "2001-01-01 23:12:12 0800" to "2001-01-01T23:12:12.000+08:00"
+    * @param zonedDateTimeStr
+    * @return parsed str
+    */
+  def translateSdfStrToZoneDateTime(zonedDateTimeStr: String): String = {
+    val arr = zonedDateTimeStr.split(" ")
+    arr(0) + "T" + arr(1) + ".000+" + arr(2).substring(0, 2) + ":" + arr(2).substring(2, 4)
   }
 
   def now(): LynxDateTime = {
