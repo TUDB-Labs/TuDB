@@ -239,3 +239,10 @@ For nodes, there are also additional flags:
 1. `--labels`: retrieving nodes that have this list of labels.
 
 For both nodes and relationships, we also need to provide `--graph <graph_name>` to associate with a graph when running the queries.
+
+
+## References
+
+* [Gremlin structure APIs](https://github.com/apache/tinkerpop/tree/master/gremlin-core/src/main/java/org/apache/tinkerpop/gremlin/structure)
+* [Neo4j Gremlin structure APIs](https://github.com/apache/tinkerpop/tree/master/neo4j-gremlin/src/main/java/org/apache/tinkerpop/gremlin/neo4j/structure)
+* [TigerGraph REST APIs](https://docs.tigergraph.com.cn/dev/restpp-api/introduction)
