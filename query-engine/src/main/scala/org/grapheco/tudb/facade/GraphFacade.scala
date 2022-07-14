@@ -62,7 +62,8 @@ class GraphFacade(
                 )
             case SemanticDirection.INCOMING =>
               findInRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-                .map(r => PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get)
+                .map(r =>
+                  PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
                 )
             case SemanticDirection.BOTH =>
               findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
@@ -70,7 +71,7 @@ class GraphFacade(
                 ) ++
                 findInRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
                   .map(r =>
-                    PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get)
+                    PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
                   )
           }
         })
@@ -83,14 +84,14 @@ class GraphFacade(
           )
         case SemanticDirection.INCOMING =>
           findInRelations(nodeId.toLynxInteger.value).map(r =>
-            PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get)
+            PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
           )
         case SemanticDirection.BOTH =>
           findOutRelations(nodeId.toLynxInteger.value).map(r =>
             PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
           ) ++
             findInRelations(nodeId.toLynxInteger.value).map(r =>
-              PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get)
+              PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
             )
       }
     }
