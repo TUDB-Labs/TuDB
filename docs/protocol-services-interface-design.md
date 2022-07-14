@@ -7,12 +7,17 @@
 Below are the main objects in the protocols. Our services are built on these objects.
 
 ```
+// Element is the basic structure for both Node and Relationship. It's ID must be unique to its associated Node or Relationship.
+// An element also maintains a collection of Properties. An element must belong to a graph.
 message Element {
-  string name = 1;
+  string id = 1
+  string name = 2;
   // The graph associated with this element.
   Graph graph = 3;
+  repeated Property properties = 4;
 }
 
+// Property holds a key-value pair that's associated with an element.
 message Property {
   // The element associated with this property.
   Element element = 1;
@@ -20,26 +25,38 @@ message Property {
   google.protobuf.Any value = 3;
 }
 
+// Graph is a collection of nodes and relationships.
 message Graph {
   string name = 1;
   repeated Node nodes = 2;
   repeated Relationship relationships = 3;
 }
 
+// Node extends Element and connects to relationships.
 message Node {
-  string name = 1;
-  repeated string labels = 2;
-  repeated Property properties = 3;
-  Relationship in_relation = 4;
-  Relationship out_relation = 5;
+  string id = 1
+  string name = 2;
+  // The graph associated with this node.
+  Graph graph = 3;
+  repeated Property properties = 4;
+
+  repeated string labels = 5;
+  Relationship in_relation = 6;
+  Relationship out_relation = 7;
 }
 
+// Relationship extends Element and connects two nodes.
 message Relationship {
-  string name = 1;
-  Node start_node = 2;
-  Node end_node = 3;
+  string id = 1
+  string name = 2;
+  // The graph associated with this relationship.
+  Graph graph = 3;
   repeated Property properties = 4;
-  string relationType = 5;
+  
+  Node start_node = 5;
+  Node end_node = 6;
+  // The type of relationship between the two connected nodes.
+  string relationType = 7;
 }
 ```
 
@@ -121,7 +138,9 @@ We provide three types of methods:
 
 These three methods are available for the all the core objects in the graph database.
 
-For example, the following endpoints are available for graphs (actual endpoints will be prefixed by `/api/v1`):
+**Note that all following endpoints will be prefixed by `/api/v1` so that this document is more concise.**
+
+For example, the following endpoints are available for graphs:
 
 1. `GET /graphs`: obtain a list of graphs;
 2. `GET /graphs/<graph_name>`: obtain a particular graph;
