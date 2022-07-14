@@ -562,7 +562,49 @@ class GraphFacadeTest {
     val cypher3 = "With datetime('2019-01-09 00:00:00 0800') as d Return d.week"
     val result3 = db.cypher(cypher3).records().next()
     Assert.assertEquals(2L, result3.get("d.week").get.value)
+  }
 
+  @Test
+  def reverseReturnSchema(): Unit = {
+    db.cypher("""
+        |create (p1: Person{name:'A', id:1})
+        |create (p2: Person{name:'B'})
+        |create (p3: Person{name:'C'})
+        |create (p4: Person{name:'D'})
+        |
+        |create (f1: Forum{name:'F1'})
+        |create (f2: Forum{name:'F2'})
+        |create (f3: Forum{name:'F3'})
+        |
+        |create (f1)-[h1: HAS_MEMBER{joinDate:1900}]->(p2)
+        |create (f2)-[h2: HAS_MEMBER{joinDate:2020}]->(p3)
+        |create (f3)-[h3: HAS_MEMBER{joinDate:2030}]->(p4)
+        |""".stripMargin)
+
+    var res = db.cypher("""
+        |MATCH (friend)<-[membership:HAS_MEMBER]-(forum)
+        |return forum, friend
+        |""".stripMargin).records().toList
+    Assert.assertEquals(
+      true,
+      res.forall(p => p("forum").asInstanceOf[LynxNode].labels.head.value == "Forum")
+    )
+    Assert.assertEquals(
+      true,
+      res.forall(p => p("friend").asInstanceOf[LynxNode].labels.head.value == "Person")
+    )
+    res = db.cypher("""
+                      |MATCH (friend)<-[membership:HAS_MEMBER]-(forum)
+                      |return friend,forum
+                      |""".stripMargin).records().toList
+    Assert.assertEquals(
+      true,
+      res.forall(p => p("forum").asInstanceOf[LynxNode].labels.head.value == "Forum")
+    )
+    Assert.assertEquals(
+      true,
+      res.forall(p => p("friend").asInstanceOf[LynxNode].labels.head.value == "Person")
+    )
   }
 
 }

@@ -14,12 +14,12 @@ class PathUtils(facade: GraphFacade) {
 
   /** @param startNode the node to search it's outgoing relationships
     * @param relationshipFilter filter the searched relationships
-    * @return filtered pathTriple
+    * @return the node's all outgoing GraphPaths, each GraphPath should be individual
     */
-  def getSingleNodeOutGoingPaths(
+  def getSingleNodeOutgoingPaths(
       startNode: LynxNode,
       relationshipFilter: RelationshipFilter
-    ): GraphPath = {
+    ): Seq[GraphPath] = {
     // get relationship type ids
     val relTypeIds = relationshipFilter.types.map(r => facade.relTypeNameToId(r.value))
     // get each type id's outgoing relationships
@@ -40,17 +40,19 @@ class PathUtils(facade: GraphFacade) {
     })
 
     // filter relationships
-    GraphPath(pathTriples.filter(p => relationshipFilter.matches(p.storedRelation)))
+    pathTriples
+      .filter(p => relationshipFilter.matches(p.storedRelation))
+      .map(pathTriple => GraphPath(Seq(pathTriple)))
   }
 
   /** @param endNode the node to search it's incoming relationships
     * @param relationshipFilter filter the searched relationships
     * @return filtered pathTriple
     */
-  def getSingleNodeInComingPaths(
+  def getSingleNodeIncomingPaths(
       endNode: LynxNode,
       relationshipFilter: RelationshipFilter
-    ): GraphPath = {
+    ): Seq[GraphPath] = {
     // get relationship type ids
     val relTypeIds = relationshipFilter.types.map(r => facade.relTypeNameToId(r.value))
     // get each type id's incoming relationships
@@ -67,19 +69,26 @@ class PathUtils(facade: GraphFacade) {
       so if we want relationship's properties, we need to get it.
      */
     val pathTriples = _relationships.flatMap(rels => {
-      rels.map(r => PathTriple(facade.nodeAt(r.from).get, facade.relationshipAt(r.id).get, endNode))
+      rels.map(r =>
+        PathTriple(endNode, facade.relationshipAt(r.id).get, facade.nodeAt(r.from).get, true)
+      )
     })
 
     // filter relationships
-    GraphPath(pathTriples.filter(p => relationshipFilter.matches(p.storedRelation)))
+    pathTriples
+      .filter(p => relationshipFilter.matches(p.storedRelation))
+      .map(pathTriple => GraphPath(Seq(pathTriple)))
   }
 
   def getSingleNodeBothPaths(
       startNode: LynxNode,
       relationshipFilter: RelationshipFilter
-    ): GraphPath = {
-    val out = getSingleNodeOutGoingPaths(startNode, relationshipFilter)
-    val in = getSingleNodeInComingPaths(startNode, relationshipFilter)
-    GraphPath((out.pathTriples ++ in.pathTriples).distinct)
+    ): Seq[GraphPath] = {
+    val out = getSingleNodeOutgoingPaths(startNode, relationshipFilter)
+    val in = getSingleNodeIncomingPaths(startNode, relationshipFilter)
+    (out.flatMap(f => f.pathTriples) ++ in.flatMap(f => f.pathTriples)).map(triple =>
+      GraphPath(Seq(triple))
+    )
+
   }
 }

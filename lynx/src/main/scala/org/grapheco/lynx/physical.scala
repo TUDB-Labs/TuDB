@@ -7,6 +7,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull, LynxPath}
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
+import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.ast._
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipChain, _}
 import org.opencypher.v9_0.util.symbols.{CTAny, CTList, CTNode, CTPath, CTRelationship, CypherType, ListType}
@@ -976,8 +977,8 @@ case class CreateRelationship(
     varName: String,
     types: Seq[RelTypeName],
     properties: Option[Expression],
-    varNameLeftNode: String,
-    varNameRightNode: String)
+    varNameStartNode: String,
+    varNameEndNode: String)
   extends CreateElement
 
 case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
@@ -1046,7 +1047,29 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
         }
 
         schemaLocal += varRelation -> CTRelationship
-        opsLocal += CreateRelationship(varRelation, types, properties2, varLeftNode, varRightNode)
+        direction match {
+          case SemanticDirection.OUTGOING =>
+            opsLocal += CreateRelationship(
+              varRelation,
+              types,
+              properties2,
+              varLeftNode,
+              varRightNode
+            )
+          case SemanticDirection.INCOMING =>
+            opsLocal += CreateRelationship(
+              varRelation,
+              types,
+              properties2,
+              varRightNode,
+              varLeftNode
+            )
+          case SemanticDirection.BOTH =>
+            throw new TuDBException(
+              TuDBError.LYNX_UNSUPPORTED_OPERATION,
+              "Not allow to create a both relationship"
+            )
+        }
 
         (varRightNode, schemaLocal, opsLocal)
 
@@ -1066,7 +1089,29 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
                   } else {
                     Seq.empty
                   }) ++ Seq(
-            CreateRelationship(varRelation, types, properties2, varLastNode, varRightNode)
+            direction match {
+              case SemanticDirection.OUTGOING =>
+                CreateRelationship(
+                  varRelation,
+                  types,
+                  properties2,
+                  varLastNode,
+                  varRightNode
+                )
+              case SemanticDirection.INCOMING =>
+                CreateRelationship(
+                  varRelation,
+                  types,
+                  properties2,
+                  varRightNode,
+                  varLastNode
+                )
+              case SemanticDirection.BOTH =>
+                throw new TuDBException(
+                  TuDBError.LYNX_UNSUPPORTED_OPERATION,
+                  "Not allowed to create a both relationship"
+                )
+            }
           )
         )
     }
@@ -1123,8 +1168,8 @@ case class PPTCreate(
               varName: String,
               types: Seq[RelTypeName],
               properties: Option[Expression],
-              varNameLeftNode: String,
-              varNameRightNode: String
+              varNameStartNode: String,
+              varNameEndNode: String
               ) =>
             def nodeInputRef(varname: String): NodeInputRef = {
               ctxMap
@@ -1146,8 +1191,8 @@ case class PPTCreate(
                     })
                 }
                 .getOrElse(Seq.empty[(LynxPropertyKey, LynxValue)]),
-              nodeInputRef(varNameLeftNode),
-              nodeInputRef(varNameRightNode)
+              nodeInputRef(varNameStartNode),
+              nodeInputRef(varNameEndNode)
             )
         })
 
