@@ -207,4 +207,46 @@ class ComplexQueryTest {
     Assert.assertEquals(2.0, res.last("postCount").value)
     Assert.assertEquals(0.0, res.last("inValidPostCount").value)
   }
+  @Test
+  def Q5(): Unit = {
+    db.cypher(
+      """
+        |create (n: Person{id: 1, name: 'AAA'})
+        |create (m: Person{id: 2, name:'BBB'})
+        |create (p1: Post{id:3, creationDate: '2010'})
+        |create (p2: Post{id:4, creationDate: '2020'})
+        |create (t1: Tag{name:'T1'})
+        |create (t2: Tag{name:'T2'})
+        |
+        |create (n)-[r1:KNOWS]->(m)
+        |create (m)<-[r2: HAS_CREATOR]-(p1)
+        |create (m)<-[r3: HAS_CREATOR]-(p2)
+        |create (p1)-[r4:HAS_TAG]->(t1)
+        |create (p1)-[r5:HAS_TAG]->(t2)
+        |create (p2)-[r6:HAS_TAG]->(t1)
+        |create (p2)-[r7:HAS_TAG]->(t2)
+        |""".stripMargin
+    )
+    val res = db.cypher(s"""
+       |MATCH (person:Person { id: 1 })-[:KNOWS*1..2]-(friend)
+       |WHERE  NOT person=friend
+       |WITH DISTINCT friend
+       |MATCH (friend)<-[membership:HAS_MEMBER]-(forum)
+       |WHERE
+       |    membership.joinDate > '2000-01-01'
+       |WITH
+       |    forum,
+       |    collect(friend) AS friends
+       |
+       |OPTIONAL MATCH (fri)<-[:HAS_CREATOR]-(post)<-[:CONTAINER_OF]-(forum)
+       |WHERE
+       |    fri IN friends
+       |return friends
+       |""".stripMargin).records().toList
+    println(res)
+    """
+      |
+      |
+      |""".stripMargin
+  }
 }
