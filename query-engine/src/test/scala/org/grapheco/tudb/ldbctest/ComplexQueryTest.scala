@@ -49,7 +49,7 @@ class ComplexQueryTest {
     db.cypher("""
         |match (n: Person{id: 1})
         |match (m: Person{id: 2})
-        |create (n)-[r: KNOWS]-(m)
+        |create (n)-[r: KNOWS]->(m)
         |""".stripMargin)
     db.cypher("""
         |match (n: Person{id: 2})
@@ -78,8 +78,8 @@ class ComplexQueryTest {
                       |    LIMIT 20
                       |""".stripMargin).records().toList
 
-    Assert.assertEquals(2, res.size)
-    Assert.assertEquals(Seq("3", "3"), res.map(mp => mp("postOrCommentId").value.toString))
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(Seq("3"), res.map(mp => mp("postOrCommentId").value.toString))
   }
   @Test
   def Q3(): Unit = {
