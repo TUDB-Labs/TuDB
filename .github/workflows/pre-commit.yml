@@ -8,15 +8,15 @@ on:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
        contents: write
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.0-beta.3'
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.8.10'
         env:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
           RUNNER_TOOL_CACHE: /opt/hostedtoolcache
