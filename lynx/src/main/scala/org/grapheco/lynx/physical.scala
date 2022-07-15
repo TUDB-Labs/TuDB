@@ -977,8 +977,8 @@ case class CreateRelationship(
     varName: String,
     types: Seq[RelTypeName],
     properties: Option[Expression],
-    varNameStartNode: String,
-    varNameEndNode: String)
+    varNameFromNode: String,
+    varNameToNode: String)
   extends CreateElement
 
 case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
@@ -1067,7 +1067,7 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
           case SemanticDirection.BOTH =>
             throw new TuDBException(
               TuDBError.LYNX_UNSUPPORTED_OPERATION,
-              "Not allow to create a both relationship"
+              "Not allowed to create a both relationship"
             )
         }
 
@@ -1168,8 +1168,8 @@ case class PPTCreate(
               varName: String,
               types: Seq[RelTypeName],
               properties: Option[Expression],
-              varNameStartNode: String,
-              varNameEndNode: String
+              varNameFromNode: String,
+              varNameToNode: String
               ) =>
             def nodeInputRef(varname: String): NodeInputRef = {
               ctxMap
@@ -1191,8 +1191,8 @@ case class PPTCreate(
                     })
                 }
                 .getOrElse(Seq.empty[(LynxPropertyKey, LynxValue)]),
-              nodeInputRef(varNameStartNode),
-              nodeInputRef(varNameEndNode)
+              nodeInputRef(varNameFromNode),
+              nodeInputRef(varNameToNode)
             )
         })
 
