@@ -14,9 +14,9 @@ jobs:
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.8.10'
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.8.10'
         env:
           AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
           RUNNER_TOOL_CACHE: /opt/hostedtoolcache
