@@ -83,6 +83,13 @@ message GenericQueryResponse {
 }
 ```
 
+The service definition is as follows:
+```
+service QueryService {
+  rpc Query(GenericQueryRequest) returns (stream GenericQueryResponse) {}
+}
+```
+
 ### Object-specific Services
 
 We support object-specific services such as create/get/delete graphs to provide easy-to-use endpoints to our REST client
