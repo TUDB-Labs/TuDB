@@ -10,10 +10,10 @@ Below are the main objects in the protocols. Our services are built on these obj
 // Element is the basic structure for both Node and Relationship. It's ID must be unique to its associated Node or Relationship.
 // An element also maintains a collection of Properties. An element must belong to a graph.
 message Element {
-  string id = 1
+  int32 id = 1;
   string name = 2;
-  // The graph associated with this element.
-  Graph graph = 3;
+  // The graph ID associated with this element.
+  int32 graph_id = 3;
   repeated Property properties = 4;
 }
 
@@ -27,17 +27,18 @@ message Property {
 
 // Graph is a collection of nodes and relationships.
 message Graph {
-  string name = 1;
-  repeated Node nodes = 2;
-  repeated Relationship relationships = 3;
+  int32 id = 1;
+  string name = 2;
+  repeated Node nodes = 3;
+  repeated Relationship relationships = 4;
 }
 
 // Node extends Element and connects to relationships.
 message Node {
-  string id = 1
+  // The following fields are inherited from Element but we write them here explictly since proto3 does not support inheritance.
+  int32 id = 1
   string name = 2;
-  // The graph associated with this node.
-  Graph graph = 3;
+  int32 graph_id = 3; // The graph ID associated with this node.
   repeated Property properties = 4;
 
   repeated string labels = 5;
@@ -47,10 +48,10 @@ message Node {
 
 // Relationship extends Element and connects two nodes.
 message Relationship {
+  // The following fields are inherited from Element but we write them here explictly since proto3 does not support inheritance.
   string id = 1
   string name = 2;
-  // The graph associated with this relationship.
-  Graph graph = 3;
+  int32 graph_id = 3; // The graph ID associated with this relationship.
   repeated Property properties = 4;
   
   Node start_node = 5;
