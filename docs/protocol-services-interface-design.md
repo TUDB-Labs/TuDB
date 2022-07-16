@@ -76,10 +76,14 @@ message GenericQueryRequest {
 
 The response contains results (e.g. graph objects), message, and exit code:
 ```
-message GenericQueryResponse {
-  repeated map<string, google.protobuf.Any> results = 1;
+message GenericResponseStatus {
   string message = 2;
   int32 exit_code = 3;
+}
+
+message GenericQueryResponse {
+  repeated map<string, google.protobuf.Any> results = 1;
+  GenericResponseStatus status = 2;
 }
 ```
 
@@ -102,31 +106,54 @@ message GraphCreateRequest {
   Graph graph = 1;
 };
 
+message GraphCreateResponse {
+  Graph graph = 1;
+  GenericResponseStatus status = 2;
+};
+
 message GraphGetRequest {
   string name = 1;
+};
+
+message GraphGetResponse {
+  Graph graph = 1;
+  GenericResponseStatus status = 2;
 };
 
 message GraphListRequest {
   // TODO: Some filtering options
 };
 
+message GraphListResponse {
+  repeated Graph graphs = 1;
+  GenericResponseStatus status = 2;
+};
+
+message GraphDeleteRequest {
+  string name = 1;
+};
+
+message GraphDeleteResponse {
+  GenericResponseStatus status = 1;
+};
+
 service GraphService {
-  rpc CreateGraph(GraphCreateRequest) returns GenericQueryResponse {
+  rpc CreateGraph(GraphCreateRequest) returns GraphCreateResponse {
     option (google.api.http) = {
       post : "/api/v1/graphs/{graph_name}"
       body : "*"
     };
   }
   
-  rpc GetGraph(GraphGetRequest) returns GenericQueryResponse {
+  rpc GetGraph(GraphGetRequest) returns GraphGetResponse {
     option (google.api.http).get = "/api/v1/graphs/{name}";
   }
   
-  rpc ListGraphs(GraphListRequest) returns GenericQueryResponse {
+  rpc ListGraphs(GraphListRequest) returns GraphListResponse {
     option (google.api.http).get = "/api/v1/graphs";
   }
   
-  rpc DeleteGraph(GraphDeleteRequest) returns GenericQueryResponse {
+  rpc DeleteGraph(GraphDeleteRequest) returns GraphDeleteResponse {
     option (google.api.http).get = "/api/v1/graphs/{name}";
   }
 }
