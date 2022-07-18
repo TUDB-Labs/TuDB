@@ -81,7 +81,7 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.11</version>
+                <version>1.15</version>
             </dependency>
             <dependency>
                 <groupId>eu.medsea.mimeutil</groupId>
@@ -113,7 +113,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.19.3</version>
+                <version>3.21.2</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
