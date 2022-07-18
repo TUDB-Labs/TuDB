@@ -29,8 +29,9 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
       plan, {
         case pNode: PPTNode =>
           val res = pNode.children.map {
-            case pj: PPTJoin => getNewPPTJoin(pj, ppc)
-            case node        => node
+            case pj: PPTJoin =>
+              getNewPPTJoin(pj, ppc)
+            case node => node
           }
           // use withChildren to replace the subtree
           pNode.withChildren(res)
@@ -133,6 +134,31 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
       case in @ In(Variable(name), ListLiteral(expressions)) => {
         // FixMe: maybe expressions have other type
         val names = expressions.map(f => f.asInstanceOf[Variable].name) ++ Seq(name)
+        val res = names.intersect(referenceSchema)
+        if (res.nonEmpty) referenceExpressionArray.append(in)
+        else noReferenceExpressionArray.append(in)
+      }
+
+      /**
+        * for cypher like :
+        *
+        * MATCH (person:Person { id: 1 })-[:KNOWS*1..2]-(friend)
+          WHERE  NOT person=friend
+          WITH DISTINCT friend
+          MATCH (friend)<-[membership:HAS_MEMBER]-(forum)
+          WHERE
+              membership.joinDate > '2000-01-01'
+          WITH
+              forum,
+              collect(friend) AS friends
+
+          OPTIONAL MATCH (fri)<-[:HAS_CREATOR]-(post)<-[:CONTAINER_OF]-(forum)
+          WHERE
+              fri IN friends
+          return friends
+        */
+      case in @ In(Variable(name), Variable(expressions)) => {
+        val names = Seq(expressions) ++ Seq(name)
         val res = names.intersect(referenceSchema)
         if (res.nonEmpty) referenceExpressionArray.append(in)
         else noReferenceExpressionArray.append(in)

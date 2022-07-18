@@ -2,6 +2,7 @@ package org.grapheco.tudb.ldbctest
 
 import org.apache.commons.io.FileUtils
 import org.grapheco.tudb.ldbctest.ComplexQueryTest.db
+import org.grapheco.tudb.store.node.TuNode
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuDBInstanceContext}
 import org.grapheco.tudb.test.TestUtils
 import org.junit.{After, AfterClass, Assert, Test}
@@ -203,8 +204,53 @@ class ComplexQueryTest {
     Assert.assertEquals("T1", res.head("tagName").value)
     Assert.assertEquals(2.0, res.head("postCount").value)
     Assert.assertEquals(0.0, res.head("inValidPostCount").value)
-    Assert.assertEquals("T2", res.last("tagName").value)
+    Assert.assertEquals("T1", res.head("tagName").value)
     Assert.assertEquals(2.0, res.last("postCount").value)
     Assert.assertEquals(0.0, res.last("inValidPostCount").value)
+  }
+  @Test
+  def Q5(): Unit = {
+
+    db.cypher(
+      """
+        |create (n: Person{id: 1, name: 'AAA'})
+        |create (m: Person{id: 2, name:'BBB'})
+        |create (p1: Post{id:3, creationDate: 2010})
+        |create (p2: Post{id:4, creationDate: 2020})
+        |create (f1: Forum{name:'T1'})
+        |create (f2: Forum{name:'T2'})
+        |
+        |create (n)-[r1:KNOWS]->(m)
+        |create (m)<-[r2: HAS_CREATOR]-(p1)
+        |create (m)<-[r3: HAS_CREATOR]-(p2)
+        |create (f1)-[r4:HAS_MEMBER{joinDate:2021}]->(m)
+        |create (f2)-[r5:HAS_MEMBER{joinDate:2022}]->(m)
+        |""".stripMargin
+    )
+    val res = db.cypher(s"""
+       |MATCH (person:Person { id: 1 })-[:KNOWS*1..2]-(friend)
+       |WHERE  NOT person=friend
+       |WITH DISTINCT friend,
+       |    collect(friend) AS friends
+       |
+       |MATCH (fri)<-[:HAS_CREATOR]-(post)
+       |WHERE
+       |    fri IN friends
+       |return post
+       |""".stripMargin).records().toList
+    println(res)
+    Assert.assertEquals(2, res.size)
+    Assert.assertEquals(
+      2010L,
+      res.head("post").asInstanceOf[TuNode].property("creationDate").get.value
+    )
+    Assert.assertEquals(
+      2020L,
+      res.last("post").asInstanceOf[TuNode].property("creationDate").get.value
+    )
+    """
+      |
+      |
+      |""".stripMargin
   }
 }
