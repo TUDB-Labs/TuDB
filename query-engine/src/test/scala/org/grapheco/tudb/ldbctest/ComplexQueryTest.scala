@@ -210,6 +210,7 @@ class ComplexQueryTest {
   }
   @Test
   def Q5(): Unit = {
+
     db.cypher(
       """
         |create (n: Person{id: 1, name: 'AAA'})
@@ -239,8 +240,14 @@ class ComplexQueryTest {
        |""".stripMargin).records().toList
     println(res)
     Assert.assertEquals(2, res.size)
-    Assert.assertEquals(3L, res.head("post").asInstanceOf[TuNode].id.value)
-    Assert.assertEquals(4L, res.last("post").asInstanceOf[TuNode].id.value)
+    Assert.assertEquals(
+      2010L,
+      res.head("post").asInstanceOf[TuNode].property("creationDate").get.value
+    )
+    Assert.assertEquals(
+      2020L,
+      res.last("post").asInstanceOf[TuNode].property("creationDate").get.value
+    )
     """
       |
       |
