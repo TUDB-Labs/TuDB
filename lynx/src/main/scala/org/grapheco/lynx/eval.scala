@@ -324,9 +324,11 @@ class DefaultExpressionEvaluator(
     expr match {
       case fe: ProcedureExpression =>
         if (fe.aggregating) {
-          val argsList =
+          val argsList = {
             ecs.map(eval(fe.args.head)(_)).toList //todo: ".head": any multi-args situation?
-          fe.procedure.call(Seq(LynxList(argsList)))
+          }
+          if (fe.funcInov.distinct) fe.procedure.call(Seq(LynxList(argsList.distinct)))
+          else fe.procedure.call(Seq(LynxList(argsList)))
         } else {
           throw LynxProcedureException("aggregate by nonAggregating procedure.")
         }
