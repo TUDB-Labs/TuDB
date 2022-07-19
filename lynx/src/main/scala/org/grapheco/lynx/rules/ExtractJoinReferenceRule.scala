@@ -155,6 +155,12 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
             if (res.nonEmpty) referenceExpressionArray.append(in)
             else noReferenceExpressionArray.append(in)
           }
+          case (Variable(name1), Variable(name2)) => {
+            val names = Seq(name1, name2)
+            val res = names.intersect(referenceSchema)
+            if (res.nonEmpty) referenceExpressionArray.append(in)
+            else noReferenceExpressionArray.append(in)
+          }
           case default => default
         }
       }
