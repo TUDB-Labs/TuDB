@@ -1,10 +1,6 @@
 package org.grapheco.lynx;
 
-import org.grapheco.lynx.procedure.exceptions.UnknownProcedureException
-import org.grapheco.lynx.util.LynxDurationUtil
-import org.grapheco.lynx.types.composite.LynxList
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, LynxNull, LynxString}
-import org.junit.function.ThrowingRunnable
+import org.grapheco.lynx.types.property.LynxInteger
 import org.junit.{Assert, Test}
 
 class OptimizerTest extends TestBase {
@@ -32,5 +28,67 @@ class OptimizerTest extends TestBase {
          |""".stripMargin
     ).records().next()("count(n)")
     Assert.assertEquals(LynxInteger(2), rs)
+  }
+
+  @Test
+  def testRepeatRelationship(): Unit = {
+    val createQuery: String =
+      s"""
+         | create (AAA:Person {id:"1",
+         | firstName: "AAA",
+         | lastName: "BBB",
+         | birthday: "2022-07-03 00:00:00.000",
+         | locationIP: "localhost",
+         | browserUsed: "safari",
+         | gender: "man",
+         | creationDate: "2022-07-03 00:00:00.000"}
+         | )
+         | create (BBB:Person {id:"22",
+         | firstName: "BBB",
+         | lastName: "CCC",
+         | birthday: "2022-07-03 00:00:00.000",
+         | locationIP: "localhost",
+         | browserUsed: "safari",
+         | gender: "man",
+         | creationDate: "2022-07-04 00:00:00.000"}
+         | )
+         | create (CCC:Person {id:"23",
+         | firstName: "CCC",
+         | lastName: "DDD",
+         | birthday: "2022-07-03 00:00:00.000",
+         | locationIP: "localhost",
+         | browserUsed: "safari",
+         | gender: "man",
+         | creationDate: "2022-07-05 00:00:00.000"}
+         | )
+         | create (DDD:Person {id:"24",
+         | firstName: "DDD",
+         | lastName: "EEE",
+         | birthday: "2022-07-03 00:00:00.000",
+         | locationIP: "localhost",
+         | browserUsed: "safari",
+         | gender: "man",
+         | creationDate: "2022-07-05 00:00:00.000"}
+         | )
+         | create (AAA)-[:KNOWS {creationDate: "2022-07-31"}]->(BBB)
+         | create (AAA)-[:KNOWS {creationDate: "2022-07-31"}]->(CCC)
+         | create (AAA)-[:KNOWS {creationDate: "2022-06-21"}]->(DDD)
+         |""".stripMargin
+      runOnDemoGraph(createQuery)
+
+      val matchQuery: String =
+      s"""
+         |MATCH (n:Person {id: "1" })-[r:KNOWS]-(friend)
+         | RETURN
+         | friend.id AS personId,
+         | friend.firstName AS firstName,
+         | friend.lastName AS lastName,
+         | r.creationDate AS friendshipCreationDate
+         | ORDER BY
+         | friendshipCreationDate DESC,
+         | toInteger(personId) ASC
+         |""".stripMargin
+      val size = runOnDemoGraph(matchQuery).records().length
+      Assert.assertEquals(3, size)
   }
 }
