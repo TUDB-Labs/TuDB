@@ -1,6 +1,7 @@
 package org.grapheco.tudb.ldbctest
 
 import org.apache.commons.io.FileUtils
+import org.grapheco.lynx.types.property.{LynxNull, LynxString}
 import org.grapheco.tudb.ldbctest.ComplexQueryTest.db
 import org.grapheco.tudb.store.node.TuNode
 import org.grapheco.tudb.{GraphDatabaseBuilder, TuDBInstanceContext}
@@ -248,9 +249,56 @@ class ComplexQueryTest {
       2020L,
       res.last("post").asInstanceOf[TuNode].property("creationDate").get.value
     )
-    """
-      |
-      |
-      |""".stripMargin
+  }
+
+  @Test
+  def Q12(): Unit = {
+    db.cypher("""
+        |create (n1:Person{name:'P1', id: 1})
+        |create (n2:Person{name:'P2', id: 2})
+        |create (c1:Comment{name:'C1'})
+        |create (p1: Post{name:'P1'})
+        |
+        |create (n1)-[:KNOWS]->(n2)
+        |create (n2)<-[:HAS_CREATOR]-(c1)
+        |create (c1)-[:REPLY_OF]->(p1)
+        |
+        |create (t1: Tag{name:'A', id: 1})
+        |create (t2: Tag{name:'T2', id: 2})
+        |create (t3: Tag{name:'T3', id: 3})
+        |create (b1: TagClass{name:'TC1'})
+        |create (b2: TagClass{name:'B', id:4})
+        |
+        |create (t1)-[r:HAS_TYPE]->(b1)
+        |create (t2)-[r:HAS_TYPE]->(b1)
+        |create (t3)-[r:IS_SUBCLASS_OF]->(b2)
+        |
+        |create (p1)-[:HAS_TAG]->(t1)
+        |create (p1)-[:HAS_TAG]->(t2)
+        |create (p1)-[:HAS_TAG]->(t3)
+        |""".stripMargin)
+
+    val res = db.cypher(s"""
+                 |MATCH (tag:Tag)-[:HAS_TYPE|IS_SUBCLASS_OF*0..]->(baseTagClass:TagClass)
+                 |WHERE tag.name = 'A' OR baseTagClass.name = 'B'
+                 |WITH collect(tag.id) as tags
+                 |MATCH (:Person {id: 1 })-[:KNOWS]-(friend:Person)<-[:HAS_CREATOR]-(comment:Comment)-[:REPLY_OF]->(:Post)-[:HAS_TAG]->(tag:Tag)
+                 |WHERE tag.id in tags
+                 |RETURN
+                 |    friend.id AS personId,
+                 |    friend.firstName AS personFirstName,
+                 |    friend.lastName AS personLastName,
+                 |    collect(DISTINCT tag.name) AS tagNames,
+                 |    count(DISTINCT comment) AS replyCount
+                 |ORDER BY
+                 |    replyCount DESC,
+                 |    toInteger(personId) ASC
+                 |LIMIT 20
+                 |""".stripMargin).records().next()
+    Assert.assertEquals(2L, res("personId").value)
+    Assert.assertEquals(LynxNull, res("personFirstName"))
+    Assert.assertEquals(LynxNull, res("personLastName"))
+    Assert.assertEquals(List(LynxString("A"), LynxString("T3")), res("tagNames").value)
+    Assert.assertEquals(1L, res("replyCount").value)
   }
 }
