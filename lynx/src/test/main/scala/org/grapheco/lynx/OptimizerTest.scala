@@ -1,10 +1,6 @@
 package org.grapheco.lynx;
 
-import org.grapheco.lynx.procedure.exceptions.UnknownProcedureException
-import org.grapheco.lynx.util.LynxDurationUtil
-import org.grapheco.lynx.types.composite.LynxList
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, LynxNull, LynxString}
-import org.junit.function.ThrowingRunnable
+import org.grapheco.lynx.types.property.LynxInteger
 import org.junit.{Assert, Test}
 
 class OptimizerTest extends TestBase {
