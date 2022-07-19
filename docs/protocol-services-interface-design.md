@@ -19,8 +19,8 @@ message Element {
 
 // Property holds a key-value pair that's associated with an element.
 message Property {
-  // The element associated with this property.
-  Element element = 1;
+  // The element ID associated with this property.
+  int32 element_id = 1;
   string key = 2;
   google.protobuf.Any value = 3;
 }
