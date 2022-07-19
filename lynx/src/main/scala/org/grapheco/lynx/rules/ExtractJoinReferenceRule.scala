@@ -131,12 +131,32 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
         WHERE country IN [countryX, countryY]
         return country
        */
-      case in @ In(Variable(name), ListLiteral(expressions)) => {
-        // FixMe: maybe expressions have other type
-        val names = expressions.map(f => f.asInstanceOf[Variable].name) ++ Seq(name)
-        val res = names.intersect(referenceSchema)
-        if (res.nonEmpty) referenceExpressionArray.append(in)
-        else noReferenceExpressionArray.append(in)
+
+      case in @ In(lhs, rhs) => {
+        (lhs, rhs) match {
+          case (Variable(name), ListLiteral(expressions)) => {
+            // FixMe: maybe expressions have other type
+            val names = expressions.map(f => f.asInstanceOf[Variable].name) ++ Seq(name)
+            val res = names.intersect(referenceSchema)
+            if (res.nonEmpty) referenceExpressionArray.append(in)
+            else noReferenceExpressionArray.append(in)
+          }
+          /*
+          for cypher like:
+          MATCH (tag:Tag)-[:HAS_TYPE|IS_SUBCLASS_OF*0..]->(baseTagClass:TagClass)
+          WITH collect(tag.id) as tags
+          MATCH (:Person {id: 1 })-[:KNOWS]-(friend:Person)-[:HAS_TAG]->(tag:Tag)
+          WHERE tag.id in tags
+          return tag
+           */
+          case (Property(Variable(name1), PropertyKeyName(name2)), Variable(name3)) => {
+            val names = Seq(name1, name3)
+            val res = names.intersect(referenceSchema)
+            if (res.nonEmpty) referenceExpressionArray.append(in)
+            else noReferenceExpressionArray.append(in)
+          }
+          case default => default
+        }
       }
 
       /**
