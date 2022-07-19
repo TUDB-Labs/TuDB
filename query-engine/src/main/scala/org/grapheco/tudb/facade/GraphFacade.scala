@@ -55,7 +55,7 @@ class GraphFacade(
     if (relationshipTypes.nonEmpty) {
       relationshipTypes
         .flatMap(rType => {
-          direction match {
+          (direction match {
             case SemanticDirection.OUTGOING =>
               findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
                 .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
@@ -73,11 +73,11 @@ class GraphFacade(
                   .map(r =>
                     PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
                   )
-          }
+          }).filter(p => endNodeFilter.matches(p.endNode))
         })
         .toIterator
     } else {
-      direction match {
+      (direction match {
         case SemanticDirection.OUTGOING =>
           findOutRelations(nodeId.toLynxInteger.value).map(r =>
             PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
@@ -93,7 +93,7 @@ class GraphFacade(
             findInRelations(nodeId.toLynxInteger.value).map(r =>
               PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
             )
-      }
+      }).filter(p => endNodeFilter.matches(p.endNode))
     }
   }
 

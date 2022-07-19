@@ -252,6 +252,56 @@ class ComplexQueryTest {
   }
 
   @Test
+  def Q11(): Unit = {
+    db.cypher("""
+        |create (n1:Person{firstName:'A1', lastName:'A2', id: 1})
+        |create (n2:Person{firstName:'B1', lastName:'B2', id: 2})
+        |create (n3:Person{firstName:'C1', lastName:'C2', id: 3})
+        |create (n4:Person{firstName:'D1', lastName:'D2', id: 4})
+        |
+        |create (n1)-[:KNOWS]->(n2)
+        |create (n1)-[:KNOWS]->(n4)
+        |create (n2)-[:KNOWS]->(n3)
+        |
+        |create (c1: Company{name:'Google'})
+        |create (c2: Company{name:'Facebook'})
+        |create (c3: Company{name:'Amazon'})
+        |create (c4: Country{name:'China'})
+        |create (c5: Country{name:'USA'})
+        |
+        |create (n2)-[:WORK_AT{workFrom:2010}]->(c1)
+        |create (n3)-[:WORK_AT{workFrom:2020}]->(c2)
+        |create (n4)-[:WORK_AT{workFrom:2030}]->(c3)
+        |
+        |create (c1)-[:IS_LOCATED_IN]->(c4)
+        |create (c2)-[:IS_LOCATED_IN]->(c5)
+        |create (c3)-[:IS_LOCATED_IN]->(c5)
+        |""".stripMargin)
+
+    val res = db.cypher(s"""
+                 |MATCH (person:Person {id: 1 })-[:KNOWS*1..2]-(friend:Person)
+                 |WHERE not(person=friend)
+                 |WITH DISTINCT friend
+                 |MATCH (friend)-[workAt:WORK_AT]->(company:Company)-[:IS_LOCATED_IN]->(:Country {name: 'China' })
+                 |WHERE workAt.workFrom < 2022
+                 |RETURN
+                 |        friend.id AS personId,
+                 |        friend.firstName AS personFirstName,
+                 |        friend.lastName AS personLastName,
+                 |        company.name AS organizationName,
+                 |        workAt.workFrom AS organizationWorkFromYear
+                 |ORDER BY
+                 |        organizationWorkFromYear ASC,
+                 |        toInteger(personId) ASC,
+                 |        organizationName DESC
+                 |LIMIT 10
+                 |""".stripMargin).records().toList
+
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(2L, res.head("personId").value)
+  }
+
+  @Test
   def Q12(): Unit = {
     db.cypher("""
         |create (n1:Person{name:'P1', id: 1})
