@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+option java_package = "org.grapheco.tudb.core";
+
+package org.grapheco.tudb.core;
+
+import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
+// Element is the basic structure for both Node and Relationship. It's ID must be unique to its associated Node or Relationship.
+// An element also maintains a collection of Properties. An element must belong to a graph.
+message Element {
+  int32 id = 1;
+  string name = 2;
+  // The graph ID associated with this element.
+  int32 graph_id = 3;
+  repeated Property properties = 4;
+}
+
+// Property holds a key-value pair that's associated with an element.
+message Property {
+  // The element ID associated with this property.
+  int32 element_id = 1;
+  string key = 2;
+  google.protobuf.Any value = 3;
+}
+
+// Graph is a collection of nodes and relationships.
+message Graph {
+  int32 id = 1;
+  string name = 2;
+  repeated Node nodes = 3;
+  repeated Relationship relationships = 4;
+}
+
+// Node extends Element and connects to relationships.
+message Node {
+  // The following fields are inherited from Element but we write them here explicitly since proto3 does not support inheritance.
+  int32 id = 1;
+  string name = 2;
+  int32 graph_id = 3; // The graph ID associated with this node.
+  repeated Property properties = 4;
+
+  repeated string labels = 5;
+  Relationship in_relation = 6;
+  Relationship out_relation = 7;
+}
+
+// Relationship extends Element and connects two nodes.
+message Relationship {
+  // The following fields are inherited from Element but we write them here explicitly since proto3 does not support inheritance.
+  string id = 1;
+  string name = 2;
+  int32 graph_id = 3; // The graph ID associated with this relationship.
+  repeated Property properties = 4;
+
+  Node start_node = 5;
+  Node end_node = 6;
+  // The type of relationship between the two connected nodes.
+  string relationType = 7;
+}
+
+message GenericQueryRequest {
+  string statement = 1;
+}
+
+message GenericResponseStatus {
+  string message = 2;
+  int32 exit_code = 3;
+}
+
+message GenericQueryResult {
+  map<string, google.protobuf.Any> result = 1;
+}
+
+message GenericQueryResponse {
+  repeated GenericQueryResult results = 1;
+  GenericResponseStatus status = 2;
+}
+
+service QueryService {
+  rpc Query(GenericQueryRequest) returns (stream GenericQueryResponse) {}
+}
+
+message GraphCreateRequest {
+  Graph graph = 1;
+};
+
+message GraphCreateResponse {
+  Graph graph = 1;
+  GenericResponseStatus status = 2;
+};
+
+message GraphGetRequest {
+  string name = 1;
+};
+
+message GraphGetResponse {
+  Graph graph = 1;
+  GenericResponseStatus status = 2;
+};
+
+message GraphListRequest {
+  // TODO: Some filtering options
+};
+
+message GraphListResponse {
+  repeated Graph graphs = 1;
+  GenericResponseStatus status = 2;
+};
+
+message GraphDeleteRequest {
+  string name = 1;
+};
+
+message GraphDeleteResponse {
+  GenericResponseStatus status = 1;
+};
+
+service GraphService {
+  rpc CreateGraph(GraphCreateRequest) returns (GraphCreateResponse) {
+    option (google.api.http) = {
+      post : "/api/v1/graphs/{graph_name}"
+      body : "*"
+    };
+  }
+
+  rpc GetGraph(GraphGetRequest) returns (GraphGetResponse) {
+    option (google.api.http).get = "/api/v1/graphs/{name}";
+  }
+
+  rpc ListGraphs(GraphListRequest) returns (GraphListResponse) {
+    option (google.api.http).get = "/api/v1/graphs";
+  }
+
+  rpc DeleteGraph(GraphDeleteRequest) returns (GraphDeleteResponse) {
+    option (google.api.http).get = "/api/v1/graphs/{name}";
+  }
+}
+
