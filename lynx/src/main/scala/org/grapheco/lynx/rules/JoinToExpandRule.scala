@@ -11,21 +11,21 @@ import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern, Semant
   *  1. There is a reference variable between the two tables of the Join,
   *      and the reference variable in UNWIND or WITH(in physical plan, WITH will translate to SELECT)
   *
-  *       PPTJoin(List(),false,1)
+  *              PPTJoin()
   *                  ╟──PPTUnwind(Variable(friends),Variable(  friend@119))
   *                  ║   ╙──PPTSelect(Vector((friends,Some(friends))))
-  *                  ║           ╙──PPTFilter(xxx)
-  *                  ║               ╙──PPTRelationshipScan(xxx)
-  *                  ╙──PPTFilter(xxx)
+  *                  ║           ╙──PPTFilter()
+  *                  ║               ╙──PPTRelationshipScan()
+  *                  ╙──PPTFilter()
   *                      ╙──PPTRelationshipScan(friend@119)
   *
   *                       ||
   *                       \/
-  *               PPTFilter(xxx)
-  *                  ╙──PhysicalExpandFromNode(  friend@119)
-  *                      ╙──PPTUnwind(Variable(friends),Variable(  friend@119))
+  *               PPTFilter()
+  *                  ╙──PhysicalExpandFromNode(friend@119)
+  *                      ╙──PPTUnwind(Variable(friends),Variable(friend@119))
   *                          ╙──PPTSelect(Vector((friends,Some(friends))))
-  *                                  ╙──PPTRelationshipScan(xxx)
+  *                                  ╙──PPTRelationshipScan()
   *
   *
   */
@@ -63,15 +63,15 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
     if (hasReference.nonEmpty) {
       table1 match {
         case select: PPTSelect =>
-          addRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
+          rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
         case unwind: PPTUnwind =>
-          addRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
+          rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
         case _ => pptJoin
       }
     } else pptJoin
   }
 
-  def addRightTableToTheTopOfLeftTable(
+  def rewriteRightTableToTheTopOfLeftTable(
       varName: String,
       leftTable: PPTNode,
       rightTable: PPTNode,
@@ -116,8 +116,8 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
       }
       case _ =>
         rightTable.withChildren(
-          rightTable.children.map(f =>
-            addRightTableToTheTopOfLeftTable(varName, leftTable, f, plannerContext)
+          rightTable.children.map(rightSubTables =>
+            rewriteRightTableToTheTopOfLeftTable(varName, leftTable, rightSubTables, plannerContext)
           )
         )
     }
