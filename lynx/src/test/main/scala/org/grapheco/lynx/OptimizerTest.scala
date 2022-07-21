@@ -74,9 +74,9 @@ class OptimizerTest extends TestBase {
          | create (AAA)-[:KNOWS {creationDate: "2022-07-31"}]->(CCC)
          | create (AAA)-[:KNOWS {creationDate: "2022-06-21"}]->(DDD)
          |""".stripMargin
-      runOnDemoGraph(createQuery)
+    runOnDemoGraph(createQuery)
 
-      val matchQuery: String =
+    val matchQuery: String =
       s"""
          |MATCH (n:Person {id: "1" })-[r:KNOWS]-(friend)
          | RETURN
@@ -88,7 +88,7 @@ class OptimizerTest extends TestBase {
          | friendshipCreationDate DESC,
          | toInteger(personId) ASC
          |""".stripMargin
-      val size = runOnDemoGraph(matchQuery).records().length
-      Assert.assertEquals(3, size)
+    val size = runOnDemoGraph(matchQuery).records().length
+    Assert.assertEquals(3, size)
   }
 }
