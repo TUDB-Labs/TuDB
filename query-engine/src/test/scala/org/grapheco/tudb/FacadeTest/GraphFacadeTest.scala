@@ -238,6 +238,128 @@ class GraphFacadeTest {
   }
 
   @Test
+  def testOutgoingRelationshipSearch(): Unit = {
+    db.cypher("""
+        |create (n: Person{name:'A'})
+        |create (m: Person{name:'B'})
+        |create (n)-[:KNOW]->(m)
+        |""".stripMargin)
+
+    val res = db.cypher("""
+        |match (n: Person{name:'A'})-[r:KNOW]->(m) where m.name = 'B' return m
+        |""".stripMargin).records().next()
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(
+      "B",
+      res("m").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+  }
+  @Test
+  def testOutgoingPathSearch(): Unit = {
+    db.cypher("""
+                |create (n1: Person{name:'A'})
+                |create (n2: Person{name:'B'})
+                |create (n3: Person{name:'C'})
+                |create (n1)-[:KNOW]->(n2)
+                |create (n2)-[:KNOW]->(n3)
+                |""".stripMargin)
+
+    val res = db.cypher("""
+                          |match (n: Person{name:'A'})-[r:KNOW*1..3]->(m) where m.name = 'C' return m
+                          |""".stripMargin).records().next()
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(
+      "C",
+      res("m").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+  }
+
+  @Test
+  def testIncomingRelationshipSearch(): Unit = {
+    db.cypher("""
+                |create (n: Person{name:'A'})
+                |create (m: Person{name:'B'})
+                |create (n)<-[:KNOW]-(m)
+                |""".stripMargin)
+
+    val res = db.cypher("""
+        |match (n: Person)<-[r:KNOW]-(m:Person{name:'B'})
+        |where n.name = 'A' 
+        |return n
+        |""".stripMargin).records().next()
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(
+      "A",
+      res("n").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+  }
+
+  @Test
+  def testIncomingPathSearch(): Unit = {
+    db.cypher("""
+                |create (n1: Person{name:'A'})
+                |create (n2: Person{name:'B'})
+                |create (n3: Person{name:'C'})
+                |create (n1)<-[:KNOW]-(n2)
+                |create (n2)<-[:KNOW]-(n3)
+                |""".stripMargin)
+
+    val res = db.cypher("""
+                          |match (n: Person{name:'A'})<-[r:KNOW*1..3]-(m) where m.name = 'C' return m
+                          |""".stripMargin).records().next()
+    Assert.assertEquals(1, res.size)
+    Assert.assertEquals(
+      "C",
+      res("m").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+  }
+
+  @Test
+  def testBothRelationshipSearch(): Unit = {
+    db.cypher("""
+                |create (n: Person{name:'A'})
+                |create (m: Person{name:'B'})
+                |create (n)<-[:KNOW]-(m)
+                |create (n)-[:LOVE]->(m)
+                |""".stripMargin)
+
+    val res = db.cypher("""
+                          |match (n: Person)-[r]-(m:Person)
+                          |where n.name = 'A' and m.name = 'B'
+                          |return n,r,m
+                          |""".stripMargin).records().toList
+    Assert.assertEquals(2, res.size)
+    Assert.assertEquals(
+      "A",
+      res.head("n").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+    Assert.assertEquals(
+      "B",
+      res.last("m").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value
+    )
+  }
+  @Test
+  def testBothPathSearch(): Unit = {
+    db.cypher("""
+                |create (n1: Person{name:'A'})
+                |create (n2: Person{name:'B'})
+                |create (n3: Person{name:'C'})
+                |create (n1)<-[:KNOW]-(n2)
+                |create (n2)<-[:KNOW]-(n3)
+                |""".stripMargin)
+
+    val res = db.cypher("""
+                          |match (n: Person)-[r:KNOW*1..3]-(m) where m.name = 'C' return n
+                          |""".stripMargin).records().toList
+    val data =
+      res.map(f =>
+        f("n").asInstanceOf[LynxNode].property(LynxPropertyKey("name")).get.value.toString
+      )
+    Assert.assertEquals(2, res.size)
+    Assert.assertEquals(Seq("A", "B"), data.sorted.toSeq)
+  }
+
+  @Test
   def getPathWithoutLengthTest(): Unit = {
     initOutGoingExample()
     val res = db.cypher("match (n:person)-[r]->(m:person) return r").records()

@@ -51,6 +51,9 @@ class NodeStore(db: KeyValueDB) {
           if (iter.isValid) {
             true
           } else {
+            // FIXME: If no retain, something wrong with this release method when executing ComplexQueryTest Q4,
+            _byteBuf1.retain()
+            _byteBuf2.retain()
             _byteBuf1.release()
             _byteBuf2.release()
             false
