@@ -5,7 +5,6 @@ option java_package = "org.grapheco.tudb.core";
 package org.grapheco.tudb.core;
 
 import "google/protobuf/any.proto";
-import "google/api/annotations.proto";
 
 // Element is the basic structure for both Node and Relationship. It's ID must be unique to its associated Node or Relationship.
 // An element also maintains a collection of Properties. An element must belong to a graph.
@@ -101,7 +100,6 @@ message GraphGetResponse {
 };
 
 message GraphListRequest {
-  // TODO: Some filtering options
 };
 
 message GraphListResponse {
@@ -119,22 +117,112 @@ message GraphDeleteResponse {
 
 service GraphService {
   rpc CreateGraph(GraphCreateRequest) returns (GraphCreateResponse) {
-    option (google.api.http) = {
-      post : "/api/v1/graphs/{graph_name}"
-      body : "*"
-    };
   }
 
   rpc GetGraph(GraphGetRequest) returns (GraphGetResponse) {
-    option (google.api.http).get = "/api/v1/graphs/{name}";
   }
 
   rpc ListGraphs(GraphListRequest) returns (GraphListResponse) {
-    option (google.api.http).get = "/api/v1/graphs";
   }
 
   rpc DeleteGraph(GraphDeleteRequest) returns (GraphDeleteResponse) {
-    option (google.api.http).get = "/api/v1/graphs/{name}";
   }
 }
 
+
+message NodeCreateRequest {
+  Node node = 1;
+};
+
+message NodeCreateResponse {
+  Node node = 1;
+  GenericResponseStatus status = 2;
+};
+
+message NodeGetRequest {
+  string name = 1;
+};
+
+message NodeGetResponse {
+  Node node = 1;
+  GenericResponseStatus status = 2;
+};
+
+message NodeListRequest {
+};
+
+message NodeListResponse {
+  repeated Node nodes = 1;
+  GenericResponseStatus status = 2;
+};
+
+message NodeDeleteRequest {
+  string name = 1;
+};
+
+message NodeDeleteResponse {
+  GenericResponseStatus status = 1;
+};
+
+service NodeService {
+  rpc CreateNode(NodeCreateRequest) returns (NodeCreateResponse) {
+  }
+
+  rpc GetNode(NodeGetRequest) returns (NodeGetResponse) {
+  }
+
+  rpc ListNodes(NodeListRequest) returns (NodeListResponse) {
+  }
+
+  rpc DeleteNode(NodeDeleteRequest) returns (NodeDeleteResponse) {
+  }
+}
+
+
+message RelationshipCreateRequest {
+  Relationship relationship = 1;
+};
+
+message RelationshipCreateResponse {
+  Relationship relationship = 1;
+  GenericResponseStatus status = 2;
+};
+
+message RelationshipGetRequest {
+  string name = 1;
+};
+
+message RelationshipGetResponse {
+  Relationship relationship = 1;
+  GenericResponseStatus status = 2;
+};
+
+message RelationshipListRequest {
+};
+
+message RelationshipListResponse {
+  repeated Relationship relationships = 1;
+  GenericResponseStatus status = 2;
+};
+
+message RelationshipDeleteRequest {
+  string name = 1;
+};
+
+message RelationshipDeleteResponse {
+  GenericResponseStatus status = 1;
+};
+
+service RelationshipService {
+  rpc CreateRelationship(RelationshipCreateRequest) returns (RelationshipCreateResponse) {
+  }
+
+  rpc GetRelationship(RelationshipGetRequest) returns (RelationshipGetResponse) {
+  }
+
+  rpc Lists(RelationshipListRequest) returns (RelationshipListResponse) {
+  }
+
+  rpc DeleteRelationship(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {
+  }
+}
