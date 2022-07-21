@@ -642,6 +642,29 @@ trait GraphModel {
     }
   }
 
+  def nodeLengthExpand(
+      node: LynxNode,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Iterator[Seq[PathTriple]] = {
+    // default impl, bad impl.
+    (direction match {
+      case BOTH =>
+        relationships()
+          .filter(p => p.startNode.id == node.id)
+          .flatMap(item => Seq(item, item.revert))
+      case INCOMING => relationships().filter(p => p.endNode.id == node.id).map(_.revert)
+      case OUTGOING => relationships().filter(p => p.startNode.id == node.id)
+    }).filter {
+        case PathTriple(startNode, rel, endNode, _) =>
+          relationshipFilter.matches(rel) && endNodeFilter.matches(endNode)
+      }
+      .map(Seq(_))
+  }
+
   /** GraphHelper
     */
   val _helper: GraphModelHelper = GraphModelHelper(this)

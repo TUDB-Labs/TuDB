@@ -92,8 +92,12 @@ class DefaultDataFrameOperator(expressionEvaluator: ExpressionEvaluator) extends
 
             //expressionEvaluator.eval(s._1)
             //(ctx.withVars(schema1.map(_._1).zip(record).toMap))
-            val ev1 = expressionEvaluator.eval(s._1)(ctx.withVars(schema.map(_._1).zip(a).toMap))
-            val ev2 = expressionEvaluator.eval(s._1)(ctx.withVars(schema.map(_._1).zip(b).toMap))
+            val ev1 = expressionEvaluator.eval(s._1)(
+              ctx.withVars(schema.toSeq.sortBy(f => f._2._2).map(_._1).zip(a).toMap)
+            )
+            val ev2 = expressionEvaluator.eval(s._1)(
+              ctx.withVars(schema.toSeq.sortBy(f => f._2._2).map(_._1).zip(b).toMap)
+            )
             s._2 match {
               // LynxNull = MAX
               case true => {
