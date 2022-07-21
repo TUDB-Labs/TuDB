@@ -252,6 +252,53 @@ class ComplexQueryTest {
   }
 
   @Test
+  def Q9(): Unit = {
+    db.cypher("""
+        |create (n1:Person{firstName:'A1', lastName:'A2', id: 1})
+        |create (n2:Person{firstName:'B1', lastName:'B2', id: 2})
+        |create (n3:Person{firstName:'C1', lastName:'C2', id: 3})
+        |create (n4:Person{firstName:'D1', lastName:'D2', id: 4})
+        |
+        |create (n1)-[:KNOWS]->(n2)
+        |create (n1)-[:KNOWS]->(n4)
+        |create (n2)-[:KNOWS]->(n3)
+        |
+        |create (m1:Message{id:10, content:'hahahahaha', creationDate:2019})
+        |create (m2:Message{id:11, imageFile:'pic.baidu.com', creationDate:2029})
+        |create (m3:Message{id:12, content:'wowowowowowo', creationDate:2009})
+        |
+        |create (n2)<-[:HAS_CREATOR]-(m1)
+        |create (n3)<-[:HAS_CREATOR]-(m2)
+        |create (n4)<-[:HAS_CREATOR]-(m3)
+        |""".stripMargin)
+
+    val res = db.cypher(s"""
+                 |MATCH (root:Person {id: 1 })-[:KNOWS*1..2]-(friend:Person)
+                 |WITH collect(distinct friend) as friends
+                 |UNWIND friends as friend
+                 |    MATCH (friend)<-[:HAS_CREATOR]-(message:Message)
+                 |    WHERE message.creationDate < 2020
+                 |RETURN
+                 |    friend.id AS personId,
+                 |    friend.firstName AS personFirstName,
+                 |    friend.lastName AS personLastName,
+                 |    message.id AS commentOrPostId,
+                 |    coalesce(message.content,message.imageFile) AS commentOrPostContent,
+                 |    message.creationDate AS commentOrPostCreationDate
+                 |ORDER BY
+                 |    commentOrPostCreationDate DESC,
+                 |    message.id ASC
+                 |LIMIT 20
+                 |""".stripMargin).records().toList
+
+    val data1 = res.map(f => f("commentOrPostCreationDate").value.toString)
+    Assert.assertEquals(Seq("2019", "2009"), data1)
+
+    val data2 = res.map(f => f("commentOrPostId").value.toString)
+    Assert.assertEquals(Seq("10", "12"), data2)
+  }
+
+  @Test
   def Q11(): Unit = {
     db.cypher("""
         |create (n1:Person{firstName:'A1', lastName:'A2', id: 1})

@@ -642,6 +642,15 @@ trait GraphModel {
     }
   }
 
+  def nodeLengthExpand(
+      node: LynxNode,
+      relationshipFilter: RelationshipFilter,
+      endNodeFilter: NodeFilter,
+      direction: SemanticDirection,
+      lowerLimit: Int,
+      upperLimit: Int
+    ): Iterator[Seq[PathTriple]]
+
   /** GraphHelper
     */
   val _helper: GraphModelHelper = GraphModelHelper(this)
