@@ -1,8 +1,9 @@
 package org.grapheco.lynx.procedure.functions
 
 import org.grapheco.lynx.func.LynxProcedure
+import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNull, LynxNumber}
+import org.grapheco.lynx.types.property.{LynxFloat, LynxInteger, LynxNull, LynxNumber, LynxString}
 
 /** @ClassName NumericFunctions
   * @Description These functions all operate on numerical expressions only,
@@ -40,11 +41,28 @@ class NumericFunctions {
   def round(args: Seq[LynxValue]): LynxValue = {
     args.size match {
       case 1 => LynxInteger(math.round(args.head.asInstanceOf[LynxNumber].number.doubleValue()))
-      case 2 => {
+      case 2 => { // precision
         val x = args.head.asInstanceOf[LynxNumber]
         val precision = args.last.asInstanceOf[LynxInteger]
         val base = math.pow(10, precision.value)
         LynxFloat(math.round(base * x.number.doubleValue()).toDouble / base)
+      }
+      case 3 => { // mode
+        val x = args.head.asInstanceOf[LynxNumber]
+        val precision = args(1).asInstanceOf[LynxInteger]
+        val mode = args(2).asInstanceOf[LynxString].value
+        val base = math.pow(10, precision.value)
+        var result = base * x.number.doubleValue()
+        if (mode == "CEILING") {
+          result = math.ceil(result) / base
+        } else if (mode == "FLOOR") {
+          result = math.floor(result) / base
+        } else {
+          throw LynxProcedureException(
+            s"round() can only support the following mode: CEILING or FLOOR. Got ${mode}"
+          )
+        }
+        LynxFloat(result)
       }
     }
   }

@@ -180,6 +180,17 @@ class CallTest extends TestBase {
       runOnDemoGraph(s"return round(3.141592, 3) as value").records().next()("value")
     )
   }
+  @Test
+  def testRoundWithMode(): Unit = {
+    Assert.assertEquals(
+      LynxFloat(3.142),
+      runOnDemoGraph(s"return round(3.141592, 3, 'CEILING') as value").records().next()("value")
+    )
+    Assert.assertEquals(
+      LynxFloat(3.141),
+      runOnDemoGraph(s"return round(3.141592, 3, 'FLOOR') as value").records().next()("value")
+    )
+  }
 
   @Test
   def testSign(): Unit = {
