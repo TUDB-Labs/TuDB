@@ -154,24 +154,23 @@ class GraphFacade(
       case SemanticDirection.INCOMING => {
         val inComingPathUtils = new PathUtils(this)
 
-        nodes(endNodeFilter)
-          .flatMap(endNode =>
-            inComingPathUtils.getSingleNodeIncomingPaths(endNode, relationshipFilter)
+        nodes(startNodeFilter)
+          .flatMap(startNode =>
+            inComingPathUtils.getSingleNodeIncomingPaths(startNode, relationshipFilter)
           )
-          .filter(p => startNodeFilter.matches(p.startNode()))
+          .filter(p => endNodeFilter.matches(p.endNode()))
           .flatMap(f => f.pathTriples)
       }
       case SemanticDirection.BOTH => {
         val pathUtils = new PathUtils(this)
 
-        val startNodes = nodes(startNodeFilter)
-        val endNodes = nodes(endNodeFilter)
-        (startNodes
+        val startNodes = nodes(startNodeFilter).duplicate
+        (startNodes._1
           .flatMap(startNode => pathUtils.getSingleNodeOutgoingPaths(startNode, relationshipFilter))
           .filter(p => endNodeFilter.matches(p.endNode())) ++
-          endNodes
+          startNodes._2
             .flatMap(endNode => pathUtils.getSingleNodeIncomingPaths(endNode, relationshipFilter))
-            .filter(p => startNodeFilter.matches(p.startNode()))).flatMap(f => f.pathTriples)
+            .filter(p => endNodeFilter.matches(p.endNode()))).flatMap(f => f.pathTriples)
 
       }
     }
@@ -395,7 +394,7 @@ class GraphFacade(
     }
     collectedResult.foreach(hops => {
       val filteredPaths =
-        hops.paths.filter(path => stopNodeFilter.matches(path.pathTriples.head.startNode))
+        hops.paths.filter(path => stopNodeFilter.matches(path.pathTriples.last.endNode))
       filteredResult.append(GraphHop(filteredPaths))
     })
 
@@ -494,10 +493,7 @@ class GraphFacade(
       val res = hops.paths.filter(thisPath =>
         startNodeFilter.matches(thisPath.pathTriples.head.startNode) && endNodeFilter.matches(
           thisPath.pathTriples.last.endNode
-        ) ||
-          startNodeFilter.matches(thisPath.pathTriples.last.endNode) && endNodeFilter.matches(
-            thisPath.pathTriples.head.startNode
-          )
+        )
       )
       filteredResult.append(GraphHop(res))
     })
