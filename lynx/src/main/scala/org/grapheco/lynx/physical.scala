@@ -534,9 +534,15 @@ case class PPTRelationshipScan(
     //      [r:XXX*1..] = Some(Some(Range(1, None)))
     //      [r:XXX*1..3] = Some(Some(Range(1, 3)))
     val (lowerLimit, upperLimit) = length match {
-      case None                    => (None, None)
-      case Some(None)              => (Some(1), None)
-      case Some(Some(Range(a, b))) => (a.map(_.value.toInt), b.map(_.value.toInt))
+      case None       => (1, 1)
+      case Some(None) => (1, Int.MaxValue)
+      case Some(Some(Range(a, b))) => {
+        (a, b) match {
+          case (_, None) => (a.get.value.toInt, Int.MaxValue)
+          case (None, _) => (1, b.get.value.toInt)
+          case _         => (a.get.value.toInt, b.get.value.toInt)
+        }
+      }
     }
 
     DataFrame(
@@ -563,8 +569,8 @@ case class PPTRelationshipScan(
                 .getOrElse(Map.empty)
             ),
             direction,
-            upperLimit,
-            lowerLimit
+            Option(upperLimit),
+            Option(lowerLimit)
           )
         val relCypherType = schema(1)._2
         relCypherType match {

@@ -83,9 +83,15 @@ case class PhysicalExpandFromNode(
     }
 
     val (lowerLimit, upperLimit) = length match {
-      case None                    => (1, 1)
-      case Some(None)              => (1, Int.MaxValue)
-      case Some(Some(Range(a, b))) => (a.map(_.value.toInt).get, b.map(_.value.toInt).get)
+      case None       => (1, 1)
+      case Some(None) => (1, Int.MaxValue)
+      case Some(Some(Range(a, b))) => {
+        (a, b) match {
+          case (_, None) => (a.get.value.toInt, Int.MaxValue)
+          case (None, _) => (1, b.get.value.toInt)
+          case _         => (a.get.value.toInt, b.get.value.toInt)
+        }
+      }
     }
 
     implicit val ec = ctx.expressionContext
