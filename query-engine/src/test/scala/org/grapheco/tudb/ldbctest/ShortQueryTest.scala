@@ -190,4 +190,189 @@ class ShortQueryTest {
     Assert.assertEquals(1, result3("postId").asInstanceOf[LynxInteger].value)
     Assert.assertEquals(2, result3("personId").asInstanceOf[LynxInteger].value)
   }
+  @Test
+  def Q3(): Unit = {
+    db.cypher(
+      """
+        |create (AAA:Person {`id`:"1",
+        |                firstName: "AAA",
+        |                lastName: "BBB",
+        |                birthday: "2022-07-03 00:00:00.000",
+        |                locationIP: "localhost",
+        |                browserUsed: "safari",
+        |                gender: "man",
+        |                creationDate: "2022-07-03 00:00:00.000"}
+        |        )
+        |
+        |create (BBB:Person {`id`:"22",
+        |                firstName: "BBB",
+        |                lastName: "CCC",
+        |                birthday: "2022-07-03 00:00:00.000",
+        |                locationIP: "localhost",
+        |                browserUsed: "safari",
+        |                gender: "man",
+        |                creationDate: "2022-07-04 00:00:00.000"}
+        |        )
+        |
+        |create (CCC:Person {`id`:"23",
+        |                firstName: "CCC",
+        |                lastName: "DDD",
+        |                birthday: "2022-07-03 00:00:00.000",
+        |                locationIP: "localhost",
+        |                browserUsed: "safari",
+        |                gender: "man",
+        |                creationDate: "2022-07-05 00:00:00.000"}
+        |        )
+        |create (DDD:Person {`id`:"24",
+        |                firstName: "DDD",
+        |                lastName: "EEE",
+        |                birthday: "2022-07-03 00:00:00.000",
+        |                locationIP: "localhost",
+        |                browserUsed: "safari",
+        |                gender: "man",
+        |                creationDate: "2022-07-05 00:00:00.000"}
+        |        )
+        |
+        |create (AAA)-[:KNOWS {creationDate: "2022-07-31"}]->(BBB)
+        |create (AAA)-[:KNOWS {creationDate: "2022-07-31"}]->(CCC)
+        |create (AAA)-[:KNOWS {creationDate: "2022-06-21"}]->(DDD)
+        |""".stripMargin
+    )
+
+    val resp = db
+      .cypher(
+        """
+        |MATCH (n:Person {id: "1" })-[r:KNOWS]-(friend)
+        |   RETURN
+        |       friend.id AS personId,
+        |       friend.firstName AS firstName,
+        |       friend.lastName AS lastName,
+        |       r.creationDate AS friendshipCreationDate
+        |   ORDER BY
+        |       friendshipCreationDate DESC,
+        |       toInteger(personId) ASC
+        |""".stripMargin
+      )
+      .records()
+      .toList
+    Assert.assertEquals(3, resp.size)
+
+    val result1 = resp(0)
+    val result2 = resp(1)
+    val result3 = resp(2)
+
+    Assert.assertEquals("22", result1("personId").asInstanceOf[LynxString].value)
+    Assert.assertEquals(
+      "2022-07-31",
+      result1("friendshipCreationDate").asInstanceOf[LynxString].value
+    )
+    Assert.assertEquals("BBB", result1("firstName").asInstanceOf[LynxString].value)
+    Assert.assertEquals("23", result2("personId").asInstanceOf[LynxString].value)
+    Assert.assertEquals(
+      "2022-07-31",
+      result2("friendshipCreationDate").asInstanceOf[LynxString].value
+    )
+    Assert.assertEquals("CCC", result2("firstName").asInstanceOf[LynxString].value)
+    Assert.assertEquals("24", result3("personId").asInstanceOf[LynxString].value)
+    Assert.assertEquals(
+      "2022-06-21",
+      result3("friendshipCreationDate").asInstanceOf[LynxString].value
+    )
+    Assert.assertEquals("DDD", result3("firstName").asInstanceOf[LynxString].value)
+  }
+  @Test
+  def Q4(): Unit = {
+    db.cypher(
+      """
+        |create (:Message {id: 1,
+        |                  creationDate: "2022-07-04 00:00:00.000",
+        |                  imageFile: "/a/b/d.img"
+        |                  }
+        |       )
+        |
+        |create (:Message {id: 2,
+        |                  creationDate: "2022-07-04 00:00:00.000",
+        |                  imageFile: "/a/b/c.img",
+        |                  content: "hello"}
+        |       )
+        |""".stripMargin
+    )
+
+    val resp = db.cypher(
+      """
+        |MATCH (m:Message {id: 1})
+        |   RETURN
+        |       m.creationDate as messageCreationDate,
+        |       coalesce(m.content, m.imageFile) as messageContent
+        |""".stripMargin
+    )
+
+    val result = resp.records().next()
+
+    Assert.assertEquals(
+      "2022-07-04 00:00:00.000",
+      result("messageCreationDate").asInstanceOf[LynxString].value
+    )
+    Assert.assertEquals("/a/b/d.img", result("messageContent").asInstanceOf[LynxString].value)
+  }
+
+  @Test
+  def Q5(): Unit = {
+    db.cypher(
+      """
+        |create (:Message {`id`:1,creationDate:"2022-07-06",imageFile:"a/b/c.img",content:"hello"})
+        |       - [:HAS_CREATOR] -> (:Person {`id`:1,firstName:"AAA",lastName:"BBB"})
+        |""".stripMargin
+    )
+
+    val resp = db.cypher(
+      """
+        |MATCH (m:Message {id:1 })-[:HAS_CREATOR]->(p:Person)
+        |   RETURN
+        |       p.id AS personId,
+        |       p.firstName AS firstName,
+        |       p.lastName AS lastName
+        |""".stripMargin
+    )
+
+    val result = resp.records().next()
+
+    Assert.assertEquals(1, result("personId").asInstanceOf[LynxInteger].value)
+    Assert.assertEquals("AAA", result("firstName").asInstanceOf[LynxString].value)
+    Assert.assertEquals("BBB", result("lastName").asInstanceOf[LynxString].value)
+  }
+
+  @Test
+  def Q6(): Unit = {
+    db.cypher(
+      """
+        |create (m:Message {`id`:1}),
+        |       (p:Post {`id`:1}),
+        |       (f:Forum {`id`:1,title:"scala forum"}),
+        |       (pe:Person {`id`:1,firstName:"AAA",lastName:"BBB"})
+        |
+        |create (m)-[:REPLY_OF]->(p)<-[:CONTAINER_OF]-(f)-[:HAS_MODERATOR]->(pe)
+        |""".stripMargin
+    )
+
+    val resp = db.cypher(
+      """
+        |MATCH (m:Message {id: 1 })-[:REPLY_OF*0..]->(p:Post)<-[:CONTAINER_OF]-(f:Forum)-[:HAS_MODERATOR]->(mod:Person)
+        |   RETURN
+        |       f.id AS forumId,
+        |       f.title AS forumTitle,
+        |       mod.id AS moderatorId,
+        |       mod.firstName AS moderatorFirstName,
+        |       mod.lastName AS moderatorLastName
+        |""".stripMargin
+    )
+
+    val result = resp.records().next()
+
+    Assert.assertEquals(1, result("forumId").asInstanceOf[LynxInteger].value)
+    Assert.assertEquals("scala forum", result("forumTitle").asInstanceOf[LynxString].value)
+    Assert.assertEquals(1, result("moderatorId").asInstanceOf[LynxInteger].value)
+    Assert.assertEquals("AAA", result("moderatorFirstName").asInstanceOf[LynxString].value)
+    Assert.assertEquals("BBB", result("moderatorLastName").asInstanceOf[LynxString].value)
+  }
 }
