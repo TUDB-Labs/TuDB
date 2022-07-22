@@ -66,6 +66,8 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
           rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
         case unwind: PPTUnwind =>
           rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
+        case relationshipScan: PPTRelationshipScan =>
+          rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
         case _ => pptJoin
       }
     } else pptJoin
