@@ -44,7 +44,7 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
   }
 
   def register(name: String, procedure: CallableProcedure): Unit = {
-    procedures(name) = procedure
+    procedures(name.toLowerCase) = procedure
     logger.debug(s"registered procedure: ${procedure.signature(name)}")
   }
 
@@ -65,5 +65,5 @@ class DefaultProcedureRegistry(types: TypeSystem, classes: Class[_]*)
   }
 
   override def getProcedure(prefix: List[String], name: String): Option[CallableProcedure] =
-    procedures.get((prefix :+ name).mkString("."))
+    procedures.get((prefix :+ name).mkString(".").toLowerCase)
 }

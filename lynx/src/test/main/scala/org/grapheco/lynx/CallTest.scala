@@ -484,8 +484,11 @@ class CallTest extends TestBase {
 
   @Test
   def testCaseInsensitiveFunctionName(): Unit = {
-    Assert.assertThrows(classOf[ProcedureUnregisteredException], new ThrowingRunnable() {
-      override def run(): Unit = runOnDemoGraph("Match p = ()-->()-->() return LENGTH(p) as length;")
-    })
+    Assert.assertEquals(
+      LynxInteger(2),
+      runOnDemoGraph("Match p = ()-->()-->() return LENGTH(p) as length;")
+        .records()
+        .next()("length")
+    )
   }
 }
