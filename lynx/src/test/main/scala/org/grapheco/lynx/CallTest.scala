@@ -481,4 +481,11 @@ class CallTest extends TestBase {
       runOnDemoGraph("Match p = ()-[:NOT_KNOW]-() return length(p);").records().hasNext
     )
   }
+
+  @Test
+  def testCaseInsensitiveFunctionName(): Unit = {
+    Assert.assertThrows(classOf[ProcedureUnregisteredException], new ThrowingRunnable() {
+      override def run(): Unit = runOnDemoGraph("Match p = ()-->()-->() return LENGTH(p) as length;")
+    })
+  }
 }
