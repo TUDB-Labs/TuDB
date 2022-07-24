@@ -3,7 +3,7 @@ package org.grapheco.lynx
 import org.grapheco.lynx.RemoveNullProject.optimizeBottomUp
 import org.grapheco.lynx.rules.{ExtractJoinReferenceRule, JoinToExpandRule}
 import org.opencypher.v9_0.ast.AliasedReturnItem
-import org.opencypher.v9_0.expressions.{Ands, Equals, Expression, FunctionInvocation, HasLabels, In, LabelName, Literal, LogicalVariable, MapExpression, NodePattern, Not, Ors, PatternExpression, Property, PropertyKeyName, RegexMatch, RelationshipPattern, Variable}
+import org.opencypher.v9_0.expressions.{Ands, Equals, Expression, FunctionInvocation, HasLabels, In, LabelName, Literal, LogicalVariable, MapExpression, NodePattern, Not, Ors, PatternExpression, Property, PropertyKeyName, RegexMatch, RelTypeName, RelationshipPattern, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable
@@ -240,15 +240,20 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
         } else (null, false)
       }
       case Seq(prs @ PPTRelationshipScan(rel, left, right)) => {
-        val patternsAndSet = pushExprToRelationshipPattern(pf.expr, left, right)
-        if (patternsAndSet._4) {
-          if (patternsAndSet._3.isEmpty)
-            (Seq(PPTRelationshipScan(rel, patternsAndSet._1, patternsAndSet._2)(ppc)), true)
+        val patternsAndSet = pushExprToRelationshipPattern(pf.expr, rel, left, right)
+        if (patternsAndSet._5) {
+          if (patternsAndSet._4.isEmpty)
+            (
+              Seq(
+                PPTRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(ppc)
+              ),
+              true
+            )
           else
             (
               Seq(
-                PPTFilter(patternsAndSet._3.head)(
-                  PPTRelationshipScan(rel, patternsAndSet._1, patternsAndSet._2)(ppc),
+                PPTFilter(patternsAndSet._4.head)(
+                  PPTRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(ppc),
                   ppc
                 )
               ),
@@ -301,22 +306,35 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
 
   def pushExprToRelationshipPattern(
       expression: Expression,
+      rel: RelationshipPattern,
       left: NodePattern,
       right: NodePattern
-    ): (NodePattern, NodePattern, Set[Expression], Boolean) = {
+    ): (RelationshipPattern, NodePattern, NodePattern, Set[Expression], Boolean) = {
     expression match {
       case hl @ HasLabels(expr, labels) => {
         expr match {
           case Variable(name) => {
             if (left.variable.get.name == name) {
               val newLeftPattern = getNewNodePattern(left, Map(name -> labels), Map.empty)
-              (newLeftPattern, right, Set(), true)
+              (rel, newLeftPattern, right, Set(), true)
             } else if (right.variable.get.name == name) {
               val newRightPattern = getNewNodePattern(right, Map(name -> labels), Map.empty)
-              (left, newRightPattern, Set(), true)
-            } else (left, right, Set(), false)
+              (rel, left, newRightPattern, Set(), true)
+            } else if (rel.variable.get.name == name) {
+              (
+                getNewRelationshipPattern(
+                  rel,
+                  Map(name -> labels.map(f => RelTypeName(f.name)(f.position))),
+                  Map.empty
+                ),
+                left,
+                right,
+                Set(),
+                true
+              )
+            } else (rel, left, right, Set(), false)
           }
-          case _ => (left, right, Set(), false)
+          case _ => (rel, left, right, Set(), false)
         }
       }
       case e @ Equals(Property(map, pkn), rhs) => {
@@ -328,17 +346,29 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
                 Map.empty,
                 Map(name -> Option(MapExpression(List((pkn, rhs)))(InputPosition(0, 0, 0))))
               )
-              (newLeftPattern, right, Set(), true)
+              (rel, newLeftPattern, right, Set(), true)
             } else if (right.variable.get.name == name) {
               val newRightPattern = getNewNodePattern(
                 right,
                 Map.empty,
                 Map(name -> Option(MapExpression(List((pkn, rhs)))(InputPosition(0, 0, 0))))
               )
-              (left, newRightPattern, Set(), true)
-            } else (left, right, Set(), false)
+              (rel, left, newRightPattern, Set(), true)
+            } else if (rel.variable.get.name == name) {
+              (
+                getNewRelationshipPattern(
+                  rel,
+                  Map.empty,
+                  Map(name -> Option(MapExpression(List((pkn, rhs)))(InputPosition(0, 0, 0))))
+                ),
+                left,
+                right,
+                Set(),
+                true
+              )
+            } else (rel, left, right, Set(), false)
           }
-          case _ => (left, right, Set(), false)
+          case _ => (rel, left, right, Set(), false)
         }
       }
       case andExpr @ Ands(expressions) => {
@@ -346,22 +376,27 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
 
         val leftPattern = getNewNodePattern(left, nodeLabels, nodeProperties)
         val rightPattern = getNewNodePattern(right, nodeLabels, nodeProperties)
-
-        if (otherExpressions.isEmpty) (leftPattern, rightPattern, Set(), true)
+        val relPattern = getNewRelationshipPattern(
+          rel,
+          nodeLabels.map(f => f._1 -> f._2.map(t => RelTypeName(t.name)(t.position))),
+          nodeProperties
+        )
+        if (otherExpressions.isEmpty) (relPattern, leftPattern, rightPattern, Set(), true)
         else {
           if (otherExpressions.size > 1) {
             (
+              relPattern,
               leftPattern,
               rightPattern,
               Set(Ands(otherExpressions.toSet)(InputPosition(0, 0, 0))),
               true
             )
           } else {
-            (leftPattern, rightPattern, Set(otherExpressions.head), true)
+            (relPattern, leftPattern, rightPattern, Set(otherExpressions.head), true)
           }
         }
       }
-      case _ => (left, right, Set(), false)
+      case _ => (rel, left, right, Set(), false)
     }
   }
 
@@ -427,6 +462,26 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
       } else node.properties
     }
     NodePattern(node.variable, label, props, node.baseNode)(node.position)
+  }
+  def getNewRelationshipPattern(
+      rel: RelationshipPattern,
+      relTypes: Map[String, Seq[RelTypeName]],
+      relProperties: Map[String, Option[Expression]]
+    ): RelationshipPattern = {
+    val labelCheck = relTypes.get(rel.variable.get.name)
+    val label = {
+      if (labelCheck.isDefined) (labelCheck.get ++ rel.types).distinct
+      else rel.types
+    }
+    val propCheck = relProperties.get(rel.variable.get.name)
+    val props = {
+      if (propCheck.isDefined) {
+        if (rel.properties.isDefined)
+          Option(Ands(Set(rel.properties.get, propCheck.get.get))(InputPosition(0, 0, 0)))
+        else propCheck.get
+      } else rel.properties
+    }
+    RelationshipPattern(rel.variable, label, rel.length, props, rel.direction)(rel.position)
   }
 
   def handleNodeAndsExpression(
