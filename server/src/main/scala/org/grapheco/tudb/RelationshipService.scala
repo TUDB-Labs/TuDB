@@ -76,7 +76,7 @@ class RelationshipService(dbPath: String, indexUri: String)
       .newBuilder()
       // TODO: Get objects from DB
       //      .setRelationships()
-      .setStatus(new Core.GenericResponseStatus("successfully listed relationships", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
