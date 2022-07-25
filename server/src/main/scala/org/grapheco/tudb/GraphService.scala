@@ -10,10 +10,15 @@ class GraphService(dbPath: String, indexUri: String) extends GraphServiceGrpc.Gr
       responseObserver: StreamObserver[Core.GraphCreateResponse]
     ): Unit = {
     // TODO: Create object and persist in DB and set status
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully created graph")
+      .setExitCode(0)
+      .build()
     val resp: Core.GraphCreateResponse = Core.GraphCreateResponse
       .newBuilder()
       .setGraph(request.getGraph)
-      .setStatus(new Core.GenericResponseStatus("successfully created graph", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -23,11 +28,16 @@ class GraphService(dbPath: String, indexUri: String) extends GraphServiceGrpc.Gr
       request: Core.GraphGetRequest,
       responseObserver: StreamObserver[Core.GraphGetResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully got graph")
+      .setExitCode(0)
+      .build()
     val resp: Core.GraphGetResponse = Core.GraphGetResponse
       .newBuilder()
       // TODO: Get object from DB
       //      .setGraph(request.getName)
-      .setStatus(new Core.GenericResponseStatus("successfully get graph", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -37,10 +47,15 @@ class GraphService(dbPath: String, indexUri: String) extends GraphServiceGrpc.Gr
       request: Core.GraphDeleteRequest,
       responseObserver: StreamObserver[Core.GraphDeleteResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully deleted graph")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the object from DB
     val resp: Core.GraphDeleteResponse = Core.GraphDeleteResponse
       .newBuilder()
-      .setStatus(new Core.GenericResponseStatus("successfully deleted graph", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -50,12 +65,17 @@ class GraphService(dbPath: String, indexUri: String) extends GraphServiceGrpc.Gr
       request: Core.GraphListRequest,
       responseObserver: StreamObserver[Core.GraphListResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully listed graphs")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the object from DB
     val resp: Core.GraphListResponse = Core.GraphListResponse
       .newBuilder()
       // TODO: Get objects from DB
       //      .setGraphs()
-      .setStatus(new Core.GenericResponseStatus("successfully listed graphs", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()

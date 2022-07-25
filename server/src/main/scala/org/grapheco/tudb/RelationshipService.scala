@@ -10,11 +10,16 @@ class RelationshipService(dbPath: String, indexUri: String)
       request: Core.RelationshipCreateRequest,
       responseObserver: StreamObserver[Core.RelationshipCreateResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully created relationship")
+      .setExitCode(0)
+      .build()
     // TODO: Create object and persist in DB and set status
     val resp: Core.RelationshipCreateResponse = Core.RelationshipCreateResponse
       .newBuilder()
       .setRelationship(request.getRelationship)
-      .setStatus(new Core.GenericResponseStatus("successfully created relationship", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -24,11 +29,16 @@ class RelationshipService(dbPath: String, indexUri: String)
       request: Core.RelationshipGetRequest,
       responseObserver: StreamObserver[Core.RelationshipGetResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully got relationship")
+      .setExitCode(0)
+      .build()
     val resp: Core.RelationshipGetResponse = Core.RelationshipGetResponse
       .newBuilder()
       // TODO: Get object from DB
       //      .setRelationship(request.getName)
-      .setStatus(new Core.GenericResponseStatus("successfully get relationship", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -38,10 +48,15 @@ class RelationshipService(dbPath: String, indexUri: String)
       request: Core.RelationshipDeleteRequest,
       responseObserver: StreamObserver[Core.RelationshipDeleteResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully deleted relationship")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the object from DB
     val resp: Core.RelationshipDeleteResponse = Core.RelationshipDeleteResponse
       .newBuilder()
-      .setStatus(new Core.GenericResponseStatus("successfully deleted relationship", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -51,6 +66,11 @@ class RelationshipService(dbPath: String, indexUri: String)
       request: Core.RelationshipListRequest,
       responseObserver: StreamObserver[Core.RelationshipListResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully listed relationships")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the object from DB
     val resp: Core.RelationshipListResponse = Core.RelationshipListResponse
       .newBuilder()

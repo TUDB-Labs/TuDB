@@ -9,11 +9,16 @@ class NodeService(dbPath: String, indexUri: String) extends NodeServiceGrpc.Node
       request: Core.NodeCreateRequest,
       responseObserver: StreamObserver[Core.NodeCreateResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully created node")
+      .setExitCode(0)
+      .build()
     // TODO: Create node and persist in DB and set status
     val resp: Core.NodeCreateResponse = Core.NodeCreateResponse
       .newBuilder()
       .setNode(request.getNode)
-      .setStatus(new Core.GenericResponseStatus("successfully created node", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -23,11 +28,16 @@ class NodeService(dbPath: String, indexUri: String) extends NodeServiceGrpc.Node
       request: Core.NodeGetRequest,
       responseObserver: StreamObserver[Core.NodeGetResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully got node")
+      .setExitCode(0)
+      .build()
     val resp: Core.NodeGetResponse = Core.NodeGetResponse
       .newBuilder()
       // TODO: Get node from DB
       //      .setNode(request.getName)
-      .setStatus(new Core.GenericResponseStatus("successfully get node", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -37,10 +47,15 @@ class NodeService(dbPath: String, indexUri: String) extends NodeServiceGrpc.Node
       request: Core.NodeDeleteRequest,
       responseObserver: StreamObserver[Core.NodeDeleteResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully deleted node")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the node from DB
     val resp: Core.NodeDeleteResponse = Core.NodeDeleteResponse
       .newBuilder()
-      .setStatus(new Core.GenericResponseStatus("successfully deleted node", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
@@ -50,12 +65,17 @@ class NodeService(dbPath: String, indexUri: String) extends NodeServiceGrpc.Node
       request: Core.NodeListRequest,
       responseObserver: StreamObserver[Core.NodeListResponse]
     ): Unit = {
+    val status = Core.GenericResponseStatus
+      .newBuilder()
+      .setMessage("successfully listed nodes")
+      .setExitCode(0)
+      .build()
     // TODO: Delete the node from DB
     val resp: Core.NodeListResponse = Core.NodeListResponse
       .newBuilder()
       // TODO: Get nodes from DB
       //      .setNodes()
-      .setStatus(new Core.GenericResponseStatus("successfully listed nodes", 0))
+      .setStatus(status)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
