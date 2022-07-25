@@ -731,77 +731,18 @@ class GraphFacadeTest {
 
   @Test
   def relationshipFilterTest(): Unit = {
-    db.cypher(
-      """
-        |create(p1:Person{pernr:"00000001",z00hrssdwid:99,z00hrssdw:"国网山东省电力**",zpcodet:"中共党员",gbdat:"1******9",ename:"张三",z00hrssbmid:9930,z00hrssbm:"人资部",z00hrssbzid:993005,z00hrssbz:"人****",z05hrycxygxz:"中央全民",begda1:20070601,gesch:1,plstx:"人力****长",z00hrryztxt:"在岗工作",dat01:20090723,zrackyt:"汉族",z00hrxdjb:"副科级",z00hrygxst:"劳动合同制（长期）",dat03:20090723,z00hrjg:"山东**",z00hrxdmc:"劳动组织",z00hrhtqxl:"有固定期限",dat04:20090723,gbort:"山东济南",icnum:"3************X",trfgr:"**",trfst:"**",age:1,gl:12,z00hrjszgm:"高****师",z00hrqdfs:"评定",z00hrjszgj:"副高级",dwywlb:20261031,dwywlbjc:"/",bmlb:"/",bmlbjc:"/",nsjgfl:"/",nsjgfljc:"/",dwpx:1,bmpx:"19.0",zjpx:15,ygxzcode:1,ryztcode:11,enamejc:"zs",telphone:"18******",z00hrjkzk:"健康",address:"地球",zhicheng:"高****师",racky:1,pcode:1,z00hrygxs:1,z00hrygxz:1,gwpx:"02",zjdate:"20220101.0",orgshort:"山东****",name:"张三"})
+    db.cypher("""
+        |create (n1:Person{name:'A'})
+        |create (n2:Person{name:'B'})
+        |create (n3:Person{name:'C'})
         |
-        |create(p2:Person{pernr:"00000002",z00hrssdwid:99,z00hrssdw:"国网山东省电力**",zpcodet:"中共党员",gbdat:"1******9",ename:"李三",z00hrssbmid:9930,z00hrssbm:"人资部",z00hrssbzid:996505,z00hrssbz:"企协****",z05hrycxygxz:"中央全民",begda1:19980615,gesch:2,plstx:"企业****长",z00hrryztxt:"在岗工作",dat01:19980716,zrackyt:"汉族",z00hrxdjb:"正科级",z00hrygxst:"劳动合同制（长期）",dat03:20080731,z00hrjg:"山东**",z00hrxdmc:"劳动组织",z00hrhtqxl:"无固定期限",dat04:19980716,gbort:"山东济南",icnum:"3************6",trfgr:"**",trfst:"**",age:1,gl:23,z00hrjszgm:"高****师",z00hrqdfs:"评定",z00hrjszgj:"副高级",dwywlb:20320918,dwywlbjc:"/",bmlb:"/",bmlbjc:"/",nsjgfl:"/",nsjgfljc:"/",dwpx:1,bmpx:"26.0",zjpx:13,ygxzcode:1,ryztcode:11,enamejc:"ls",telphone:"18******",z00hrjkzk:"良好",address:"地球",zhicheng:"高****师",racky:1,pcode:1,z00hrygxs:1,z00hrygxz:1,gwpx:" ",zjdate:"20191101.0",orgshort:"山东****",name:"李三"})
-        |
-        |create(p3:Person{pernr:"00000003",z00hrssdwid:15,z00hrssdw:"国网山东省电力**",zpcodet:"中共党员",gbdat:"1******9",ename:"王三",z00hrssbmid:9930,z00hrssbm:"人资部",z00hrssbzid:60007429,z00hrssbz:"市中****班",z05hrycxygxz:"中央全民",begda1:20150610,gesch:1,plstx:"市*****长",z00hrryztxt:"在岗工作",dat01:20170801,zrackyt:"汉族",z00hrxdjb:"/",z00hrygxst:"劳动合同制（长期）",dat03:20170801,z00hrjg:"山东**",z00hrxdmc:"劳动组织",z00hrhtqxl:"有固定期限",dat04:20170801,gbort:"山东济南",icnum:"3************3",trfgr:"**",trfst:"**",age:1,gl:4,z00hrjszgm:"高****师",z00hrqdfs:"认定",z00hrjszgj:"初级",dwywlb:20250731,dwywlbjc:"/",bmlb:"/",bmlbjc:"/",nsjgfl:"/",nsjgfljc:"/",dwpx:94,bmpx:"/",zjpx:99,ygxzcode:1,ryztcode:11,enamejc:"ws",telphone:"18******",z00hrjkzk:" ",address:"地球",zhicheng:"高****师",racky:1,pcode:1,z00hrygxs:1,z00hrygxz:1,gwpx:"02",zjdate:"/",orgshort:"山东****",name:"王三"})
-        |
-        |create(n4:Education{insti:"格迈纳尔中学",name:"格迈纳尔中学"})
-        |
-        |create(n5:Education{insti:"山东电力高等专科学校",name:"山东电力高等专科学校"})
-        |
-        |create(n6:Education{insti:"西安科技大学",name:"西安科技大学"})
-        |
-        |create(n7:Education{insti:"北京大学",name:"北京大学"})
-        |
-        |create(n8:Education{insti:"山东大学",name:"山东大学"})
-        |
-        |create(n9:Education{insti:"西安交通大学",name:"西安交通大学"})
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000001"}), (n{insti:"北京大学"})
-        |create(p)-[r:教育经历{endda:20170619,begda:20140901,slart:10,insti:"北京大学",ausbi:7,slabs:17,z00hrxy:"政府管理学院",z00hrzymc:"公共管理",z00hrxwmc:"公共管理硕士专业学位"}]->(n)
-        |
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000001"}), (n{insti:"西安交通大学"})
-        |create(p)-[r:教育经历{endda:20090701,begda:20050901,slart:20,insti:"西安交通大学",ausbi:1,slabs:21,z00hrxy:" ",z00hrzymc:"电气工程及其自动化",z00hrxwmc:"工学学士学位"}]->(n)
-        |
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000002"}), (n{insti:"西安科技大学"})
-        |create(p)-[r:教育经历{endda:20140625,begda:20110301,slart:10,insti:"西安科技大学",ausbi:7,slabs:17,z00hrxy:"工商管理",z00hrzymc:"工商管理",z00hrxwmc:"工商管理硕士专业学位"}]->(n)
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000002"}), (n{insti:"山东电力高等专科学校"})
-        |create(p)-[r:教育经历{endda:19980701,begda:19950901,slart:30,insti:"山东电力高等专科学校",ausbi:1,slabs:31,z00hrxy:" ",z00hrzymc:"电厂热能动力工程",z00hrxwmc:" "}]->(n)
-        |
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000003"}), (n{insti:"格迈纳尔中学"})
-        |create(p)-[r:教育经历{endda:20130609,begda:20100907,slart:60,insti:"格迈纳尔中学",ausbi:1,slabs:61,z00hrxy:" ",z00hrzymc:" ",z00hrxwmc:" "}]->(n)
-        |
-        |""".stripMargin
-    )
-
-    db.cypher(
-      """
-        |match(p{pernr:"00000003"}), (n{insti:"山东大学"})
-        |create(p)-[r:教育经历{endda:20170630,begda:20130907,slart:20,insti:"山东大学",ausbi:1,slabs:21,z00hrxy:" ",z00hrzymc:"电气工程及其自动化",z00hrxwmc:"工学学士学位"}]->(n)
-        |""".stripMargin
-    )
+        |create (n1)-[r:LOVE{year:2000}]->(n2)
+        |create (n1)-[r:LOVE{year:2022}]->(n3)
+        |""".stripMargin)
 
     val res =
       db.cypher("""
-                |match(p:Person)-[r]->(m:Education) where r.z00hrxwmc="公共管理硕士专业学位" return p,r,m
+                |match(p:Person)-[r]->(m:Person) where r.year=2022 return p,r,m
                 |""".stripMargin).records().toList
     Assert.assertEquals(1, res.size)
   }
