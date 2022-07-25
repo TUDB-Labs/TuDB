@@ -28,7 +28,7 @@
         <scala.binary.version>2.12</scala.binary.version>
         <scala.compat.version>2.12</scala.compat.version>
         <netty.version>4.1.17.Final</netty.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.2</junit.version>
         <rocksdb.version>6.29.4.1</rocksdb.version>
         <scala-logging.version>3.8.0</scala-logging.version>
         <logback.version>1.2.11</logback.version>
