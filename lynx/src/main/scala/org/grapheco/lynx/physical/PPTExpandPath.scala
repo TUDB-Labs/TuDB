@@ -3,26 +3,25 @@ package org.grapheco.lynx.physical
 import org.grapheco.lynx.{AbstractPPTNode, DataFrame, ExecutionContext, LynxType, NodeFilter, PPTNode, PhysicalPlannerContext, RelationshipFilter}
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxPath
-import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
-import org.grapheco.tudb.exception.{TuDBError, TuDBException}
+import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern, Range, RelTypeName, RelationshipPattern, SemanticDirection}
-import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
+import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship, ListType}
 
 /**
   *@author:John117
-  *@createDate:2022/7/20
-  *@description: refer to PPTRelationshipScan
+  *@createDate:2022/7/25
+  *@description: move from physical
   */
-case class PhysicalExpandFromNode(
-    leftNodeName: String,
+case class PPTExpandPath(
     rel: RelationshipPattern,
-    rightNode: NodePattern,
-    direction: SemanticDirection
+    rightNode: NodePattern
   )(implicit in: PPTNode,
     val plannerContext: PhysicalPlannerContext)
   extends AbstractPPTNode {
-
   override val children: Seq[PPTNode] = Seq(in)
+
+  override def withChildren(children0: Seq[PPTNode]): PPTExpandPath =
+    PPTExpandPath(rel, rightNode)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val RelationshipPattern(
@@ -47,9 +46,6 @@ case class PhysicalExpandFromNode(
     in.schema ++ schema0
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PhysicalExpandFromNode =
-    PhysicalExpandFromNode(leftNodeName, rel, rightNode, direction)(children0.head, plannerContext)
-
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df = in.execute(ctx)
     val RelationshipPattern(
@@ -57,7 +53,7 @@ case class PhysicalExpandFromNode(
       types: Seq[RelTypeName],
       length: Option[Option[Range]],
       properties: Option[Expression],
-      direction2: SemanticDirection,
+      direction: SemanticDirection,
       legacyTypeSeparator: Boolean,
       baseRel: Option[LogicalVariable]
     ) = rel
@@ -68,19 +64,23 @@ case class PhysicalExpandFromNode(
       baseNode2: Option[LogicalVariable]
     ) = rightNode
 
-    val schema0 = if (length.isEmpty) {
-      Seq(
-        variable.map(_.name).getOrElse(s"__RELATIONSHIP_${rel.hashCode}") -> CTRelationship,
-        var2.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
-      )
-    } else {
-      Seq(
-        variable.map(_.name).getOrElse(s"__RELATIONSHIP_LIST_${rel.hashCode}") -> CTList(
-          CTRelationship
-        ),
-        var2.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
-      )
+    val schema0 = {
+      if (length.isEmpty) {
+        Seq(
+          variable.map(_.name).getOrElse(s"__RELATIONSHIP_${rel.hashCode}") -> CTRelationship,
+          var2.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+        )
+      } else {
+        Seq(
+          variable.map(_.name).getOrElse(s"__RELATIONSHIP_LIST_${rel.hashCode}") -> CTList(
+            CTRelationship
+          ),
+          var2.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+        )
+      }
     }
+
+    implicit val ec = ctx.expressionContext
 
     val (lowerLimit, upperLimit) = length match {
       case None       => (1, 1)
@@ -94,24 +94,13 @@ case class PhysicalExpandFromNode(
       }
     }
 
-    implicit val ec = ctx.expressionContext
-
     DataFrame(
       df.schema ++ schema0,
       () => {
         df.records.flatMap { record0 =>
-          val recordMap = df.schema.map(f => f._1).zip(record0).toMap
-          val fromNode = recordMap.getOrElse(
-            leftNodeName,
-            throw new TuDBException(
-              TuDBError.LYNX_WRONG_ARGUMENT,
-              s"no argument named $leftNodeName"
-            )
-          )
-
-          graphModel
+          val data = graphModel
             .expand(
-              fromNode.asInstanceOf[LynxNode],
+              record0.last.asInstanceOf[LynxNode],
               RelationshipFilter(
                 types.map(_.name).map(LynxRelationshipType),
                 properties
@@ -132,15 +121,19 @@ case class PhysicalExpandFromNode(
               lowerLimit,
               upperLimit
             )
-            .map(triple => {
-              if (length.isEmpty)
-                record0 ++ Seq(triple.head.storedRelation, triple.head.endNode)
-              else
-                record0 ++ Seq(LynxPath(triple), triple.last.endNode)
-            })
+          val relCypherType = schema0.head._2
+          relCypherType match {
+            // process relationship Path to support like (q)-[r1:KNOW]->(a)-[r2:TYPE]->(b)
+            case r @ CTRelationship => {
+              data.map(f => record0 ++ Seq(f.head.storedRelation, f.head.endNode))
+            }
+            // process relationship Path to support like (q)-[r1:KNOW]->(a)-[r2:TYPE*1..3]->(b)
+            case rs @ ListType(CTRelationship) => {
+              data.map(f => record0 ++ Seq(LynxPath(f), f.last.endNode))
+            }
+          }
         }
       }
     )
   }
-
 }
