@@ -113,10 +113,20 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
               referenceExpressionArray.append(not)
             else noReferenceExpressionArray.append(not)
           }
-          case e @ Equals(Variable(name1), Variable(name2)) => {
-            if (Seq(name1, name2).intersect(referenceSchema).nonEmpty)
-              referenceExpressionArray.append(not)
-            else noReferenceExpressionArray.append(not)
+          case e @ Equals(lhs, rhs) => {
+            (lhs, rhs) match {
+              case (Variable(name1), Variable(name2)) => {
+                if (Seq(name1, name2).intersect(referenceSchema).nonEmpty)
+                  referenceExpressionArray.append(not)
+                else noReferenceExpressionArray.append(not)
+              }
+              case (Property(Variable(name1), PropertyKeyName(name2)), Variable(name3)) => {
+                if (Seq(name1, name3).intersect(referenceSchema).nonEmpty)
+                  referenceExpressionArray.append(not)
+                else noReferenceExpressionArray.append(not)
+              }
+              case _ => noReferenceExpressionArray.append(not)
+            }
           }
         }
       }
