@@ -4,15 +4,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
-import org.grapheco.tudb.commons.{HopUtils, PathUtils}
 import org.grapheco.tudb.facade.helper.{ExpandFromNodeHelper, PathHelper}
-import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 import org.grapheco.tudb.store.meta.TuDBStatistics
 import org.grapheco.tudb.store.node._
 import org.grapheco.tudb.store.relationship._
 import org.opencypher.v9_0.expressions.SemanticDirection
 
-import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 
 /** @ClassName GraphFacade
@@ -42,64 +39,7 @@ class GraphFacade(
     *  @return Triples after expansion and filter
     */
   override def expand(
-      nodeId: LynxId,
-      relationshipFilter: RelationshipFilter,
-      endNodeFilter: NodeFilter,
-      direction: SemanticDirection
-    ): Iterator[PathTriple] = {
-    // TODO:  use properties in endNodeFilter to index node.
-    // The expand relationship may not contain the relationship type,
-    // or may query like this:
-    // 1. (a)-[r:FRIEND]->(b)
-    // 2. (a)-[r:FRIEND|KNOW]->(b)
-    val relationshipTypes = relationshipFilter.types.map(t => t.value)
-    if (relationshipTypes.nonEmpty) {
-      relationshipTypes
-        .flatMap(rType => {
-          (direction match {
-            case SemanticDirection.OUTGOING =>
-              findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-                .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
-                )
-            case SemanticDirection.INCOMING =>
-              findInRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-                .map(r =>
-                  PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
-                )
-            case SemanticDirection.BOTH =>
-              findOutRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-                .map(r => PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
-                ) ++
-                findInRelations(nodeId.toLynxInteger.value, relationStore.getRelationTypeId(rType))
-                  .map(r =>
-                    PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
-                  )
-          }).filter(p => endNodeFilter.matches(p.endNode))
-        })
-        .toIterator
-    } else {
-      (direction match {
-        case SemanticDirection.OUTGOING =>
-          findOutRelations(nodeId.toLynxInteger.value).map(r =>
-            PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
-          )
-        case SemanticDirection.INCOMING =>
-          findInRelations(nodeId.toLynxInteger.value).map(r =>
-            PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
-          )
-        case SemanticDirection.BOTH =>
-          findOutRelations(nodeId.toLynxInteger.value).map(r =>
-            PathTriple(nodeAt(r.from).get, relationshipAt(r.id).get, nodeAt(r.to).get)
-          ) ++
-            findInRelations(nodeId.toLynxInteger.value).map(r =>
-              PathTriple(nodeAt(r.to).get, relationshipAt(r.id).get, nodeAt(r.from).get, true)
-            )
-      }).filter(p => endNodeFilter.matches(p.endNode))
-    }
-  }
-
-  override def nodeLengthExpand(
-      startNode: LynxNode,
+      node: LynxNode,
       relationshipFilter: RelationshipFilter,
       endNodeFilter: NodeFilter,
       direction: SemanticDirection,
@@ -107,14 +47,15 @@ class GraphFacade(
       upperLimit: Int
     ): Iterator[Seq[PathTriple]] = {
     val helper = new ExpandFromNodeHelper(this)
+
     (lowerLimit, upperLimit) match {
       case (1, 1) =>
         helper
-          .getExpandPathWithoutLength(startNode, relationshipFilter, endNodeFilter, direction)
+          .getExpandPathWithoutLength(node, relationshipFilter, endNodeFilter, direction)
           .map(Seq(_))
       case _ =>
         helper.getExpandPathsWithLength(
-          startNode,
+          node,
           relationshipFilter,
           endNodeFilter,
           direction,

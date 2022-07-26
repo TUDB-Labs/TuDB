@@ -1,6 +1,7 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.RemoveNullProject.optimizeBottomUp
+import org.grapheco.lynx.physical.PPTExpandPath
 import org.grapheco.lynx.rules.{ExtractJoinReferenceRule, JoinToExpandRule}
 import org.opencypher.v9_0.ast.AliasedReturnItem
 import org.opencypher.v9_0.expressions.{Ands, Equals, Expression, FunctionInvocation, HasLabels, In, LabelName, Literal, LogicalVariable, MapExpression, NodePattern, Not, Ors, PatternExpression, Property, PropertyKeyName, RegexMatch, RelTypeName, RelationshipPattern, Variable}
