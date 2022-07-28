@@ -220,7 +220,7 @@ service RelationshipService {
   rpc GetRelationship(RelationshipGetRequest) returns (RelationshipGetResponse) {
   }
 
-  rpc Lists(RelationshipListRequest) returns (RelationshipListResponse) {
+  rpc ListRelationships(RelationshipListRequest) returns (RelationshipListResponse) {
   }
 
   rpc DeleteRelationship(RelationshipDeleteRequest) returns (RelationshipDeleteResponse) {

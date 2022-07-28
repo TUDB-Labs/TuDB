@@ -597,14 +597,14 @@ trait GraphModel {
     * @param direction The direction of expansion, INCOMING, OUTGOING or BOTH
     * @return Triples after expansion
     */
-  def expand(nodeId: LynxId, direction: SemanticDirection): Iterator[PathTriple] = {
+  def expand(node: LynxNode, direction: SemanticDirection): Iterator[PathTriple] = {
     direction match {
       case BOTH =>
         relationships()
           .flatMap(item => Seq(item, item.revert))
-          .filter(r => r.startNode.id == nodeId || r.endNode.id == nodeId)
-      case INCOMING => relationships().map(_.revert).filter(_.endNode.id == nodeId)
-      case OUTGOING => relationships().filter(_.startNode.id == nodeId)
+          .filter(r => r.startNode.id == node.id || r.endNode.id == node.id)
+      case INCOMING => relationships().map(_.revert).filter(_.endNode.id == node.id)
+      case OUTGOING => relationships().filter(_.startNode.id == node.id)
     }
   }
 
@@ -616,33 +616,6 @@ trait GraphModel {
     * @return Triples after expansion and filter
     */
   def expand(
-      nodeId: LynxId,
-      relationshipFilter: RelationshipFilter,
-      endNodeFilter: NodeFilter,
-      direction: SemanticDirection
-    ): Iterator[PathTriple] = {
-    expand(nodeId, direction).filter { pathTriple =>
-      direction match {
-        case SemanticDirection.OUTGOING =>
-          relationshipFilter.matches(pathTriple.storedRelation) && endNodeFilter.matches(
-            pathTriple.endNode
-          )
-        case SemanticDirection.INCOMING =>
-          relationshipFilter.matches(pathTriple.storedRelation) && endNodeFilter.matches(
-            pathTriple.startNode
-          )
-        case SemanticDirection.BOTH =>
-          relationshipFilter.matches(pathTriple.storedRelation) &&
-            (
-              endNodeFilter.matches(pathTriple.startNode) || endNodeFilter.matches(
-                pathTriple.endNode
-              )
-            )
-      }
-    }
-  }
-
-  def nodeLengthExpand(
       node: LynxNode,
       relationshipFilter: RelationshipFilter,
       endNodeFilter: NodeFilter,
@@ -650,17 +623,25 @@ trait GraphModel {
       lowerLimit: Int,
       upperLimit: Int
     ): Iterator[Seq[PathTriple]] = {
-    // default impl, bad impl.
-    (direction match {
-      case BOTH =>
-        relationships()
-          .filter(p => p.startNode.id == node.id)
-          .flatMap(item => Seq(item, item.revert))
-      case INCOMING => relationships().filter(p => p.endNode.id == node.id).map(_.revert)
-      case OUTGOING => relationships().filter(p => p.startNode.id == node.id)
-    }).filter {
-        case PathTriple(startNode, rel, endNode, _) =>
-          relationshipFilter.matches(rel) && endNodeFilter.matches(endNode)
+    expand(node, direction)
+      .filter { pathTriple =>
+        direction match {
+          case SemanticDirection.OUTGOING =>
+            relationshipFilter.matches(pathTriple.storedRelation) && endNodeFilter.matches(
+              pathTriple.endNode
+            )
+          case SemanticDirection.INCOMING =>
+            relationshipFilter.matches(pathTriple.storedRelation) && endNodeFilter.matches(
+              pathTriple.startNode
+            )
+          case SemanticDirection.BOTH =>
+            relationshipFilter.matches(pathTriple.storedRelation) &&
+              (
+                endNodeFilter.matches(pathTriple.startNode) || endNodeFilter.matches(
+                  pathTriple.endNode
+                )
+              )
+        }
       }
       .map(Seq(_))
   }
