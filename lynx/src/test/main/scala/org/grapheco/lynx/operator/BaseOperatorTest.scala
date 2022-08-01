@@ -31,9 +31,6 @@ class BaseOperatorTest {
   val expressionEvaluator: ExpressionEvaluator =
     new DefaultExpressionEvaluator(model, typeSystem, procedure)
 
-  val runnerContext =
-    CypherRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
-
   val ctx = ExecutionContext(null, null, Map.empty)
 
   case class TestId(value: Long) extends LynxId {
