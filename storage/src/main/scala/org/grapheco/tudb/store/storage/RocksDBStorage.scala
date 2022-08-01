@@ -43,7 +43,7 @@ object RocksDBStorage extends LazyLogging {
 
       try {
         new RocksDBStorage(
-          RocksDB.open(RocksDBStorageConfig.getHighPerConfig(createIfMissing), path)
+          RocksDB.open(RocksDBStorageConfig.getHighPerformanceConfig(createIfMissing), path)
         )
       } catch {
         case ex: Exception =>
