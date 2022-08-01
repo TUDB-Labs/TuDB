@@ -15,12 +15,12 @@ case class NodeScanOperator(
     pattern: NodePattern,
     graphModel: GraphModel,
     ee: ExpressionEvaluator,
-    _ec: ExpressionContext)
+    eContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq.empty
 
   override val expressionEvaluator: ExpressionEvaluator = ee
-  override val ec: ExpressionContext = _ec
+  override val ec: ExpressionContext = eContext
 
   var schema: Seq[(String, LynxType)] = Seq.empty
   var dataSource: Iterator[RowBatch] = Iterator.empty

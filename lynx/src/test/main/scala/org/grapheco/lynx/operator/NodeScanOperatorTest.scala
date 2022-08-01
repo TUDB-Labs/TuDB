@@ -1,4 +1,4 @@
-package org.grapheco.lynx.executor
+package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.operator.{NodeScanOperator}
 import org.grapheco.lynx.types.LynxValue
