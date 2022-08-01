@@ -62,7 +62,7 @@ object RocksDBStorageConfig {
     * @param createIfMissing
     * @return
     */
-  def getHighPerConfig(createIfMissing: Boolean): Options = {
+  def getHighPerformanceConfig(createIfMissing: Boolean): Options = {
     val options: Options = new Options()
     val tableConfig = new BlockBasedTableConfig()
 
