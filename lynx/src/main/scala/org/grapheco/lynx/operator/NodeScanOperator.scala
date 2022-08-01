@@ -14,13 +14,12 @@ import org.opencypher.v9_0.util.symbols.CTNode
 case class NodeScanOperator(
     pattern: NodePattern,
     graphModel: GraphModel,
-    ee: ExpressionEvaluator,
-    eContext: ExpressionContext)
+    expr_evaluator: ExpressionEvaluator,
+    expr_context: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq.empty
-
-  override val expressionEvaluator: ExpressionEvaluator = ee
-  override val ec: ExpressionContext = eContext
+  override val exprEvaluator: ExpressionEvaluator = expr_evaluator
+  override val exprContext: ExpressionContext = expr_context
 
   var schema: Seq[(String, LynxType)] = Seq.empty
   var dataSource: Iterator[RowBatch] = Iterator.empty
@@ -28,13 +27,13 @@ case class NodeScanOperator(
   // prepare data
   override def openImpl(): Unit = {
     val NodePattern(
-      Some(var0: LogicalVariable),
+      Some(nodeVariable: LogicalVariable),
       labels: Seq[LabelName],
       properties: Option[Expression],
       baseNode: Option[LogicalVariable]
     ) = pattern
 
-    schema = Seq(var0.name -> CTNode)
+    schema = Seq(nodeVariable.name -> CTNode)
 
     val nodeLabels = {
       if (labels.nonEmpty) labels.map(_.name).map(LynxNodeLabel)
@@ -46,7 +45,7 @@ case class NodeScanOperator(
           nodeLabels,
           properties
             .map(prop =>
-              eval(prop)(ec)
+              evalExpr(prop)(exprContext)
                 .asInstanceOf[LynxMap]
                 .value
                 .map(kv => (LynxPropertyKey(kv._1), kv._2))
@@ -54,13 +53,9 @@ case class NodeScanOperator(
             .getOrElse(Map.empty)
         )
       )
-      .grouped(dataBatchSize)
+      .grouped(numRowsPerBatch)
       .map(node => Seq(node))
       .map(f => RowBatch(f))
-  }
-
-  override def hasNext(): Boolean = {
-    dataSource.hasNext
   }
 
   override def getNextImpl(): RowBatch = {

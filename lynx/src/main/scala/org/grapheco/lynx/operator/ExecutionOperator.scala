@@ -1,45 +1,41 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.types.LynxValue
-import org.opencypher.v9_0.ast.ReturnItem
 import org.opencypher.v9_0.expressions.Expression
-import scala.collection.mutable
 
 /**
-  *@author:John117
-  *@createDate:2022/7/29
-  *@description:
+  * This interface is the parent of the rest of operators.
+  * The execution flow for all the children operators are: open() --> getNext() --> close()
   */
 trait ExecutionOperator extends TreeNode {
   override type SerialType = ExecutionOperator
 
-  val dataBatchSize = 1
+  val numRowsPerBatch = 1
 
-  val expressionEvaluator: ExpressionEvaluator
-  val ec: ExpressionContext
+  val exprEvaluator: ExpressionEvaluator
+  val exprContext: ExpressionContext
 
-  def eval(expr: Expression)(implicit ec: ExpressionContext): LynxValue =
-    expressionEvaluator.eval(expr)
+  def evalExpr(expr: Expression)(implicit exprContext: ExpressionContext): LynxValue =
+    exprEvaluator.eval(expr)
 
   // prepare for processing
   def open(): Unit = {
     openImpl()
   }
-  // impl by concrete operators
+  // to be implemented by concrete operators
   def openImpl(): Unit
-
-  def hasNext(): Boolean
 
   // empty RowBatch means the end of output
   def getNext(): RowBatch = {
     getNextImpl()
   }
-  // impl by concrete operators
+  // to be implemented by concrete operators
   def getNextImpl(): RowBatch
 
   def close(): Unit = {
     closeImpl()
   }
+  // to be implemented by concrete operators
   def closeImpl(): Unit
 
   def outputSchema(): Seq[(String, LynxType)]
