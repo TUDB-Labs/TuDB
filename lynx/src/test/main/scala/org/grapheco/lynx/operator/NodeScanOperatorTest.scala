@@ -1,5 +1,6 @@
 package org.grapheco.lynx.operator
 
+import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
 import org.grapheco.lynx.operator.NodeScanOperator
 import org.grapheco.lynx.types.LynxValue
@@ -10,6 +11,7 @@ import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, 
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 
 /**
   *@author:John117
@@ -47,10 +49,12 @@ class NodeScanOperatorTest extends BaseOperatorTest {
 
     val resultData = getOperatorData(variable, labels, propertiesExpression)
     Assert.assertEquals(4, resultData.length)
-    Assert.assertEquals(node1, resultData(0).batchData.head.head)
-    Assert.assertEquals(node2, resultData(1).batchData.head.head)
-    Assert.assertEquals(node3, resultData(2).batchData.head.head)
-    Assert.assertEquals(node4, resultData(3).batchData.head.head)
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node2, node1, node3, node4).asJava,
+        resultData.flatMap(f => f.batchData.flatten).toList.asJava
+      )
+    )
   }
 
   @Test
@@ -82,8 +86,12 @@ class NodeScanOperatorTest extends BaseOperatorTest {
     val resultData = getOperatorData(variable, labels, propertiesExpression)
 
     Assert.assertEquals(2, resultData.length)
-    Assert.assertEquals(node3, resultData.head.batchData.head.head)
-    Assert.assertEquals(node4, resultData.last.batchData.head.head)
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node3, node4).asJava,
+        resultData.flatMap(f => f.batchData.flatten).toList.asJava
+      )
+    )
   }
 
   @Test

@@ -14,12 +14,12 @@ import org.opencypher.v9_0.util.symbols.CTNode
 case class NodeScanOperator(
     pattern: NodePattern,
     graphModel: GraphModel,
-    expr_evaluator: ExpressionEvaluator,
-    expr_context: ExpressionContext)
+    expressionEvaluator: ExpressionEvaluator,
+    expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq.empty
-  override val exprEvaluator: ExpressionEvaluator = expr_evaluator
-  override val exprContext: ExpressionContext = expr_context
+  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
+  override val exprContext: ExpressionContext = expressionContext
 
   var schema: Seq[(String, LynxType)] = Seq.empty
   var dataSource: Iterator[RowBatch] = Iterator.empty
