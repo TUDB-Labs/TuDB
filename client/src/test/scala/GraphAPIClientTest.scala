@@ -53,10 +53,32 @@ class GraphAPIClientTest {
       client.shutdown()
     }
   }
+
   @Test
   def testCreateNode(): Unit = {
     val node = Core.Node.newBuilder().setName("n1").build()
     val createdNode = client.createNode(node)
-    Assert.assertSame(node, createdNode)
+    Assert.assertEquals(node.getName, createdNode.getName)
   }
+
+  // TODO: Uncomment these when the methods have been implemented.
+//  @Test
+//  def testGetNode(): Unit = {
+//    val obtainedNode = client.getNode("n1")
+//    Assert.assertEquals("n1", obtainedNode.getName)
+//  }
+//
+//  @Test
+//  def testDeleteNode(): Unit = {
+//    client.deleteNode("n1")
+//    Assert.assertEquals(null, client.getNode("n1"))
+//  }
+//
+//  @Test
+//  def testListNodes(): Unit = {
+//    client.createNode(Core.Node.newBuilder().setName("n1").build())
+//    client.createNode(Core.Node.newBuilder().setName("n2").build())
+//    val nodes = client.listNodes()
+//    Assert.assertEquals(2, nodes.length)
+//  }
 }
