@@ -276,6 +276,32 @@ For nodes, there are also additional flags:
 For both nodes and relationships, we also need to provide `--graph <graph_name>` to associate with a graph when running the queries.
 
 
+## Implementation Plan
+
+Some decisions after discussions:
+
+1. The current protobuf definition for core objects are unnecessarily complex and designed to support Gremlin in the future. However,
+   we'd like to simplify the implementation of the service so that those definitions (e.g. Node and Relationship) are as close to
+   the current storage API as possible. For example, Element and Property are unnecessary and can be removed for the initial implementation.
+   We can revisit them later once we re-evaluate whether/how to support Gremlin.
+2. `GraphService`, `NodeService`, and `RelationshipService` focus on providing simple get/create/list methods that can be used for REST/CLI/Python clients.
+   They will be implemented based on storage APIs. However, if users want to perform complex queries, the existing `TuDBServer` will be leveraged instead.
+
+The implementation plan for the Scala gRPC services consists of the following tasks:
+
+1. Add get/create/list methods in `GraphService`, `NodeService`, and `RelationshipService` that implement `GraphServiceGrpc.GraphServiceImplBase` (without integration with storage yet).
+2. Implement `NodeService` that uses `NodeStoreAPI`. For each node, we will include a `graph_id` in `StoredNodeWithProperty`'s properties so that later
+   we can use it to look up nodes that belong to a graph in `GraphService`.
+3. Implement `RelationshipService` that uses `RelationshipStoreAPI`. Similarly, we will include a reference to the graph it belongs to in `StoredRelationshipWithProperty`'s properties.
+4. Implement `GraphService` that constructs a graph object with the list of nodes and relationships. Since the graph can get extremely large, we will support parameters
+   like `nodeCount` and `relationshipCount` similar to Neo4j's [`graph.list()`](https://neo4j.com/docs/graph-data-science/current/graph-list/) method to allow getting a subset of the nodes
+   and relationships.
+
+The next phase of the development will be building the RESTful, CLI and Python interfaces based on the gRPC services implemented above.
+1. RESTful APIs can be generated via [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway). We can [automatically generate OpenAPI spec](https://bbengfort.github.io/2021/01/grpc-openapi-docs/) as well.
+2. CLI will be built in Scala that invokes the gRPC services.
+3. Python interface will be implemented in Python via gRPC calls to the running Scala gRPC services.
+
 ## References
 
 * [Gremlin structure APIs](https://github.com/apache/tinkerpop/tree/master/gremlin-core/src/main/java/org/apache/tinkerpop/gremlin/structure)
