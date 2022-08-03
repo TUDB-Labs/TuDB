@@ -57,6 +57,8 @@ class BaseOperatorTest {
     override def keys: Seq[LynxPropertyKey] = props.keys.toSeq
   }
 
+  case class TestPathTriple(leftNode: TestNode, rel: TestRelationship, rightNode: TestNode) {}
+
   val all_nodes: mutable.ArrayBuffer[TestNode] = mutable.ArrayBuffer()
 
   val all_rels: mutable.ArrayBuffer[TestRelationship] = mutable.ArrayBuffer()
