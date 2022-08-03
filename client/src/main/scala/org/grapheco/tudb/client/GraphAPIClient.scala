@@ -23,7 +23,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
       response.getNode
     } else {
       logger.info(f"Failed to create node ${node.getName}: ${response.getStatus.getMessage}")
-      new Core.Node()
+      null
     }
   }
 
@@ -35,7 +35,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
       response.getNode
     } else {
       logger.info(f"Failed to get node $name: ${response.getStatus.getMessage}")
-      new Core.Node()
+      null
     }
   }
 
@@ -58,7 +58,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
       response.getNodesList.asScala.toList
     } else {
       logger.info(f"Failed to list nodes")
-      List(new Core.Node())
+      null
     }
   }
 
