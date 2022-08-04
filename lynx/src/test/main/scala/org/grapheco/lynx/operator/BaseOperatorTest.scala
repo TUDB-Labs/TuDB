@@ -6,6 +6,8 @@ import org.grapheco.lynx.{CachedQueryParser, ContextualNodeInputRef, CypherRunne
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
+import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, NodePattern, PropertyKeyName, Variable}
+import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable
 
@@ -15,6 +17,8 @@ import scala.collection.mutable
   *@description:
   */
 class BaseOperatorTest {
+  val defaultPosition = InputPosition(0, 0, 0)
+
   val typeSystem = new DefaultTypeSystem()
   val procedure = new DefaultProcedureRegistry(
     typeSystem,
@@ -313,5 +317,22 @@ class BaseOperatorTest {
         PathTriple(nodeAt(rel.startNodeId).get, rel, nodeAt(rel.endNodeId).get)
       )
 
+  }
+
+  def prepareDefaultNodeScanOperator(
+      schemaName: String,
+      labelNames: Seq[String],
+      properties: Seq[(PropertyKeyName, Expression)]
+    ): NodeScanOperator = {
+    val variable = Option(Variable(schemaName)(defaultPosition))
+    val labels = labelNames.map(name => LabelName(name)(defaultPosition))
+    val propertiesExpression = Option(
+      MapExpression(
+        properties
+      )(defaultPosition)
+    )
+    val pattern = NodePattern(variable, labels, propertiesExpression)(defaultPosition)
+    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
+    operator
   }
 }

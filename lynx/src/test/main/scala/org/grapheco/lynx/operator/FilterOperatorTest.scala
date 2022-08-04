@@ -6,7 +6,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.expressions.{GreaterThan, LabelName, MapExpression, NodePattern, Property, PropertyKeyName, SignedDecimalIntegerLiteral, Variable}
+import org.opencypher.v9_0.expressions.{Expression, GreaterThan, LabelName, MapExpression, NodePattern, Property, PropertyKeyName, SignedDecimalIntegerLiteral, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable.ArrayBuffer
@@ -39,13 +39,13 @@ class FilterOperatorTest extends BaseOperatorTest {
   def testFilterNodeByAge(): Unit = {
     val filterExpr = GreaterThan(
       Property(
-        Variable("n")(InputPosition(0, 0, 0)),
-        PropertyKeyName("age")(InputPosition(0, 0, 0))
-      )(InputPosition(0, 0, 0)),
-      SignedDecimalIntegerLiteral("10")(InputPosition(0, 0, 0))
-    )(InputPosition(0, 0, 0))
+        Variable("n")(defaultPosition),
+        PropertyKeyName("age")(defaultPosition)
+      )(defaultPosition),
+      SignedDecimalIntegerLiteral("10")(defaultPosition)
+    )(defaultPosition)
 
-    val nodeScanOperator = prepareNodeScanOperator()
+    val nodeScanOperator = prepareDefaultNodeScanOperator("n", Seq("Person"), Seq.empty)
     val filterOperator =
       FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
 
@@ -68,16 +68,30 @@ class FilterOperatorTest extends BaseOperatorTest {
     )
   }
 
-  def prepareNodeScanOperator(): NodeScanOperator = {
-    val variable = Option(Variable("n")(InputPosition(0, 0, 0)))
-    val labels = Seq(LabelName("Person")(InputPosition(0, 0, 0)))
-    val propertiesExpression = Option(
-      MapExpression(
-        Seq.empty
-      )(InputPosition(0, 0, 0))
-    )
-    val pattern = NodePattern(variable, labels, propertiesExpression)(InputPosition(0, 0, 0))
-    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
-    operator
+  @Test
+  def testFilterAndNoDataPassed(): Unit = {
+    val filterExpr = GreaterThan(
+      Property(
+        Variable("n")(defaultPosition),
+        PropertyKeyName("age")(defaultPosition)
+      )(defaultPosition),
+      SignedDecimalIntegerLiteral("1000")(defaultPosition)
+    )(defaultPosition)
+
+    val nodeScanOperator = prepareDefaultNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val filterOperator =
+      FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+
+    val result = ArrayBuffer[RowBatch]()
+    filterOperator.open()
+
+    var data = filterOperator.getNext()
+    while (data.batchData.nonEmpty) {
+      result.append(data)
+      data = filterOperator.getNext()
+    }
+    filterOperator.close()
+
+    Assert.assertEquals(0, result.length)
   }
 }
