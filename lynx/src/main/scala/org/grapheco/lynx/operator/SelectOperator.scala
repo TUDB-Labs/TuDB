@@ -18,6 +18,7 @@ case class SelectOperator(
 
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = Seq(in)
 
   var inSchemaWithIndex: Map[String, (CypherType, Int)] = Map.empty
   var outPutSchema: Seq[(String, CypherType)] = Seq.empty
