@@ -49,15 +49,7 @@ class FilterOperatorTest extends BaseOperatorTest {
     val filterOperator =
       FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
 
-    val result = ArrayBuffer[RowBatch]()
-    filterOperator.open()
-
-    var data = filterOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      result.append(data)
-      data = filterOperator.getNext()
-    }
-    filterOperator.close()
+    val result = getOperatorAllOutputs(filterOperator)
 
     Assert.assertEquals(2, result.length)
     Assert.assertTrue(
@@ -82,15 +74,7 @@ class FilterOperatorTest extends BaseOperatorTest {
     val filterOperator =
       FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
 
-    val result = ArrayBuffer[RowBatch]()
-    filterOperator.open()
-
-    var data = filterOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      result.append(data)
-      data = filterOperator.getNext()
-    }
-    filterOperator.close()
+    val result = getOperatorAllOutputs(filterOperator)
 
     Assert.assertEquals(0, result.length)
   }
