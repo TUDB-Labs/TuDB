@@ -6,10 +6,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.expressions.{LabelName, MapExpression, NodePattern, Property, PropertyKeyName, Variable}
-import org.opencypher.v9_0.util.InputPosition
-
-import scala.collection.mutable.ArrayBuffer
+import org.opencypher.v9_0.expressions.{Property, PropertyKeyName, Variable}
 import scala.collection.JavaConverters._
 
 /**
@@ -36,28 +33,28 @@ class ProjectOperatorTest extends BaseOperatorTest {
   all_nodes.append(node1, node2, node3)
 
   @Test
-  def testProjectSingleProperty(): Unit = {
-    val inOperator = prepareNodeScanOperator()
+  def testProjectSelectedSingleProperty(): Unit = {
+    val inOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val projectColumn = Seq(
       (
         "n.name",
         Property(
-          Variable("n")(InputPosition(0, 0, 0)),
-          PropertyKeyName("name")(InputPosition(0, 0, 0))
-        )(InputPosition(0, 0, 0))
+          Variable("n")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
       )
     )
     val projectOperator =
-      ProjectOperator(inOperator, projectColumn, model, expressionEvaluator, ctx.expressionContext)
+      ProjectOperator(
+        inOperator,
+        Seq(("n.name", Option("n.name"))),
+        projectColumn,
+        model,
+        expressionEvaluator,
+        ctx.expressionContext
+      )
 
-    val result = ArrayBuffer.empty[RowBatch]
-    projectOperator.open()
-
-    var data = projectOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      result.append(data)
-      data = projectOperator.getNext()
-    }
+    val result = getOperatorAllOutputs(projectOperator)
 
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
@@ -68,49 +65,64 @@ class ProjectOperatorTest extends BaseOperatorTest {
   }
 
   @Test
-  def testProjectMultipleProperty(): Unit = {
-    val inOperator = prepareNodeScanOperator()
+  def testProjectSelectedMultipleProperty(): Unit = {
+    val inOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val projectColumn = Seq(
       (
         "n.name",
         Property(
-          Variable("n")(InputPosition(0, 0, 0)),
-          PropertyKeyName("name")(InputPosition(0, 0, 0))
-        )(InputPosition(0, 0, 0))
+          Variable("n")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
       ),
       (
         "n.age",
         Property(
-          Variable("n")(InputPosition(0, 0, 0)),
-          PropertyKeyName("age")(InputPosition(0, 0, 0))
-        )(InputPosition(0, 0, 0))
+          Variable("n")(defaultPosition),
+          PropertyKeyName("age")(defaultPosition)
+        )(defaultPosition)
       )
     )
     val projectOperator =
-      ProjectOperator(inOperator, projectColumn, model, expressionEvaluator, ctx.expressionContext)
+      ProjectOperator(
+        inOperator,
+        Seq(("n.name", Option("n.name")), ("n.age", Option("n.age"))),
+        projectColumn,
+        model,
+        expressionEvaluator,
+        ctx.expressionContext
+      )
 
-    val result = ArrayBuffer.empty[RowBatch]
-    projectOperator.open()
-
-    var data = projectOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      result.append(data)
-      data = projectOperator.getNext()
-    }
+    val result = getOperatorAllOutputs(projectOperator)
 
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
         List(List("Alex", 10L).asJava, List("Bob", null).asJava, List("Cat", 20L).asJava).asJava,
-        result.flatMap(batch => batch.batchData.map(f => f.map(ff => ff.value).asJava)).asJava
+        seqAsJavaList(
+          result.flatMap(batch => batch.batchData.map(f => f.map(ff => ff.value).asJava))
+        )
       )
     )
   }
 
-  def prepareNodeScanOperator(): NodeScanOperator = {
-    val pattern = NodePattern(Option(Variable("n")(InputPosition(0, 0, 0))), Seq.empty, None)(
-      InputPosition(0, 0, 0)
+  @Test
+  def testNoProjectSelect(): Unit = {
+    val inOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val projectOperator =
+      ProjectOperator(
+        inOperator,
+        Seq(("n", Option("n"))),
+        Seq.empty,
+        model,
+        expressionEvaluator,
+        ctx.expressionContext
+      )
+    val result = getOperatorAllOutputs(projectOperator)
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node1, node2, node3).asJava,
+        seqAsJavaList(result.flatMap(batch => batch.batchData.flatten))
+      )
     )
-    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
-    operator
   }
 }
