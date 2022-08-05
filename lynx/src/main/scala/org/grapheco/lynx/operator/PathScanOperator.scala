@@ -10,9 +10,14 @@ import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship, ListTyp
 /**
   *@author:John117
   *@createDate:2022/8/1
-  *@description:
+  *@description: PathScanOperator is used to query path in DB,
+  *               path has two kind of triple:
+  *                  1. single relationship: [leftNode, relationship, rightNode]:
+  *                        It means that there is a relationship from leftNode to reach rightNode.
+  *                  2. multiple relationships in the middle: [leftNode, relationship*, rightNode]
+  *                        It means that rightNode can be reached via a multi-hop path from leftNode.
   */
-case class RelationshipScanOperator(
+case class PathScanOperator(
     rel: RelationshipPattern,
     leftNode: NodePattern,
     rightNode: NodePattern,
@@ -32,22 +37,22 @@ case class RelationshipScanOperator(
       relVariable: Option[LogicalVariable],
       types: Seq[RelTypeName],
       length: Option[Option[Range]],
-      props2: Option[Expression],
+      relProps: Option[Expression],
       direction: SemanticDirection,
       legacyTypeSeparator: Boolean,
       baseRel: Option[LogicalVariable]
     ) = rel
     val NodePattern(
       leftNodeVariable,
-      labels1: Seq[LabelName],
-      props1: Option[Expression],
-      baseNode1: Option[LogicalVariable]
+      leftNodeLabels: Seq[LabelName],
+      leftNodeProps: Option[Expression],
+      leftBaseNode: Option[LogicalVariable]
     ) = leftNode
     val NodePattern(
       rightNodeVariable,
-      labels3: Seq[LabelName],
-      props3: Option[Expression],
-      baseNode3: Option[LogicalVariable]
+      rightNodeLabels: Seq[LabelName],
+      rightNodeProps: Option[Expression],
+      rightBaseNode: Option[LogicalVariable]
     ) = rightNode
 
     schema = {
@@ -68,7 +73,7 @@ case class RelationshipScanOperator(
       }
     }
 
-    val (lowerLimit, upperLimit) = length match {
+    val (minLength, maxLength) = length match {
       case None       => (1, 1)
       case Some(None) => (1, Int.MaxValue)
       case Some(Some(Range(a, b))) => {
@@ -83,8 +88,8 @@ case class RelationshipScanOperator(
     val data = graphModel
       .paths(
         NodeFilter(
-          labels1.map(labelName => labelName.name).map(LynxNodeLabel),
-          props1
+          leftNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
+          leftNodeProps
             .map(expr =>
               evalExpr(expr)(exprContext)
                 .asInstanceOf[LynxMap]
@@ -95,7 +100,7 @@ case class RelationshipScanOperator(
         ),
         RelationshipFilter(
           types.map(relTypeName => relTypeName.name).map(LynxRelationshipType),
-          props2
+          relProps
             .map(expr =>
               evalExpr(expr)(exprContext)
                 .asInstanceOf[LynxMap]
@@ -105,8 +110,8 @@ case class RelationshipScanOperator(
             .getOrElse(Map.empty)
         ),
         NodeFilter(
-          labels3.map(labelName => labelName.name).map(LynxNodeLabel),
-          props3
+          rightNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
+          rightNodeProps
             .map(expr =>
               evalExpr(expr)(exprContext)
                 .asInstanceOf[LynxMap]
@@ -116,8 +121,8 @@ case class RelationshipScanOperator(
             .getOrElse(Map.empty)
         ),
         direction,
-        Option(upperLimit),
-        Option(lowerLimit)
+        Option(maxLength),
+        Option(minLength)
       )
 
     val relCypherType = schema(1)._2 // get relationship's CT-Type: is CTRelationship or ListType(CTRelationship)

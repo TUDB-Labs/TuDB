@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
   *@createDate:2022/8/2
   *@description:
   */
-class RelationshipScanOperatorTest extends BaseOperatorTest {
+class PathScanOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
     Seq(LynxNodeLabel("Person")),
@@ -59,17 +59,17 @@ class RelationshipScanOperatorTest extends BaseOperatorTest {
 
   @Test
   def testRelationshipScan(): Unit = {
-    val leftPattern = NodePattern(None, Seq.empty, None)(InputPosition(0, 0, 0))
-    val rightPattern = NodePattern(None, Seq.empty, None)(InputPosition(0, 0, 0))
+    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
     val relPattern = RelationshipPattern(
       None,
-      Seq(RelTypeName("KNOW")(InputPosition(0, 0, 0))),
+      Seq(RelTypeName("KNOW")(defaultPosition)),
       None,
       None,
       SemanticDirection.OUTGOING
-    )(InputPosition(0, 0, 0))
+    )(defaultPosition)
 
-    val relationshipScanOperator = RelationshipScanOperator(
+    val relationshipScanOperator = PathScanOperator(
       relPattern,
       leftPattern,
       rightPattern,
@@ -77,14 +77,7 @@ class RelationshipScanOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val resultData = ArrayBuffer[RowBatch]()
-    relationshipScanOperator.open()
-    var data = relationshipScanOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      resultData.append(data)
-      data = relationshipScanOperator.getNext()
-    }
-    relationshipScanOperator.close()
+    val resultData = getOperatorAllOutputs(relationshipScanOperator)
 
     val target = List(TestPathTriple(node1, rel1, node2), TestPathTriple(node2, rel2, node3)).asJava
     val searched = resultData
@@ -103,26 +96,26 @@ class RelationshipScanOperatorTest extends BaseOperatorTest {
 
   @Test
   def testRelationshipScanWithRelationFilter(): Unit = {
-    val leftPattern = NodePattern(None, Seq.empty, None)(InputPosition(0, 0, 0))
-    val rightPattern = NodePattern(None, Seq.empty, None)(InputPosition(0, 0, 0))
+    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
     val relPattern = RelationshipPattern(
       None,
-      Seq(RelTypeName("KNOW")(InputPosition(0, 0, 0))),
+      Seq(RelTypeName("KNOW")(defaultPosition)),
       None,
       Option(
         MapExpression(
           Seq(
             (
-              PropertyKeyName("year")(InputPosition(0, 0, 0)),
-              SignedDecimalIntegerLiteral("2021")(InputPosition(0, 0, 0))
+              PropertyKeyName("year")(defaultPosition),
+              SignedDecimalIntegerLiteral("2021")(defaultPosition)
             )
           )
-        )(InputPosition(0, 0, 0))
+        )(defaultPosition)
       ),
       SemanticDirection.OUTGOING
-    )(InputPosition(0, 0, 0))
+    )(defaultPosition)
 
-    val relationshipScanOperator = RelationshipScanOperator(
+    val relationshipScanOperator = PathScanOperator(
       relPattern,
       leftPattern,
       rightPattern,
@@ -130,14 +123,7 @@ class RelationshipScanOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val resultData = ArrayBuffer[RowBatch]()
-    relationshipScanOperator.open()
-    var data = relationshipScanOperator.getNext()
-    while (data.batchData.nonEmpty) {
-      resultData.append(data)
-      data = relationshipScanOperator.getNext()
-    }
-    relationshipScanOperator.close()
+    val resultData = getOperatorAllOutputs(relationshipScanOperator)
 
     val target = List(TestPathTriple(node2, rel2, node3)).asJava
     val searched = resultData
