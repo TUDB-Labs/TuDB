@@ -2,12 +2,15 @@ package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, ContextualNodeInputRef, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExpressionEvaluator, GraphModel, Index, IndexManager, NodeFilter, NodeInput, NodeInputRef, PathTriple, PhysicalPlannerContext, QueryParser, RelationshipInput, Statistics, StoredNodeInputRef, WriteTask}
+import org.grapheco.lynx.{CachedQueryParser, ContextualNodeInputRef, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, GraphModel, Index, IndexManager, NodeFilter, NodeInput, NodeInputRef, PathTriple, PhysicalPlannerContext, QueryParser, RelationshipInput, RowBatch, Statistics, StoredNodeInputRef, WriteTask}
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
+import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, NodePattern, PropertyKeyName, Variable}
+import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 /**
   *@author:John117
@@ -15,6 +18,8 @@ import scala.collection.mutable
   *@description:
   */
 class BaseOperatorTest {
+  val defaultPosition = InputPosition(0, 0, 0)
+
   val typeSystem = new DefaultTypeSystem()
   val procedure = new DefaultProcedureRegistry(
     typeSystem,
@@ -315,5 +320,34 @@ class BaseOperatorTest {
         PathTriple(nodeAt(rel.startNodeId).get, rel, nodeAt(rel.endNodeId).get)
       )
 
+  }
+
+  def getOperatorAllOutputs(operator: ExecutionOperator): Array[RowBatch] = {
+    val result = ArrayBuffer[RowBatch]()
+    operator.open()
+    var data = operator.getNext()
+    while (data.batchData.nonEmpty) {
+      result.append(data)
+      data = operator.getNext()
+    }
+    operator.close()
+    result.toArray
+  }
+
+  def prepareNodeScanOperator(
+      schemaName: String,
+      labelNames: Seq[String],
+      properties: Seq[(PropertyKeyName, Expression)]
+    ): NodeScanOperator = {
+    val variable = Option(Variable(schemaName)(defaultPosition))
+    val labels = labelNames.map(name => LabelName(name)(defaultPosition))
+    val propertiesExpression = Option(
+      MapExpression(
+        properties
+      )(defaultPosition)
+    )
+    val pattern = NodePattern(variable, labels, propertiesExpression)(defaultPosition)
+    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
+    operator
   }
 }
