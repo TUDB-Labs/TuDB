@@ -33,7 +33,13 @@ case class FilterOperator(
   override def getNextImpl(): RowBatch = {
     while (outputRows.length < numRowsPerBatch) {
       val inputRows = in.getNext()
-      if (inputRows.batchData.isEmpty) return RowBatch(Seq.empty)
+      if (inputRows.batchData.isEmpty) {
+        if (outputRows.nonEmpty) {
+          val remainingData = outputRows.toArray.toSeq
+          outputRows.clear()
+          return RowBatch(remainingData)
+        } else return RowBatch(Seq.empty)
+      }
       inputRows.batchData.foreach(inputRow => {
         evalExpr(filterExpr)(exprContext.withVars(columnNames.zip(inputRow).toMap)) match {
           case LynxBoolean(passFilter) => if (passFilter) outputRows.append(inputRow)
