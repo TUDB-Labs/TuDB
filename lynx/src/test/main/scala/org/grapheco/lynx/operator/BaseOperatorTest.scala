@@ -319,7 +319,7 @@ class BaseOperatorTest {
 
   }
 
-  def prepareDefaultNodeScanOperator(
+  def prepareNodeScanOperator(
       schemaName: String,
       labelNames: Seq[String],
       properties: Seq[(PropertyKeyName, Expression)]
