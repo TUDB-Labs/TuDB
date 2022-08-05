@@ -54,11 +54,7 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
 
     val hasReference = table1.schema.map(f => f._1).intersect(table2.schema.map(f => f._1))
 
-    if (hasReference.size > 1)
-      throw new TuDBException(
-        TuDBError.UNKNOWN_ERROR,
-        "Not support this kind of Cypher, Please report this issue."
-      )
+    if (hasReference.size > 1) return pptJoin // not process this kind of cypher, wait to check.
 
     if (hasReference.nonEmpty) {
       table1 match {
