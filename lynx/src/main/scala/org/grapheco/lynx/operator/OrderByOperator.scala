@@ -33,15 +33,7 @@ case class OrderByOperator(
 
   override def openImpl(): Unit = {
     in.open()
-
-    val collectedData: ArrayBuffer[RowBatch] = ArrayBuffer.empty
-    // get all data to sort
-    var data = in.getNext()
-    while (data.batchData.nonEmpty) {
-      collectedData.append(data)
-      data = in.getNext()
-    }
-    val allData = collectedData.flatMap(rowData => rowData.batchData)
+    val allData = getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
     val schemaWithIndex = in.outputSchema().zipWithIndex.map(x => x._1._1 -> (x._1._2, x._2)).toMap
     allGroupedSortedData = allData
       .sortWith((a, b) => sortByItem(a, b, sortItems, schemaWithIndex)) // maybe it's a bad sort method.
