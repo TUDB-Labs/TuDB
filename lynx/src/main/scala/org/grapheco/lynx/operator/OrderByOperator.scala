@@ -66,7 +66,7 @@ case class OrderByOperator(
       schema: Map[String, (CypherType, Int)]
     ): Boolean = {
     // [true,true] means current expression cannot sort the two data.
-    // The first true/false determines whether all the expression can sorted the two data.
+    // The first true/false means the compare result(.sortWith is a asc method, true means the two data is asc).
     // The second true/false determines whether the next expression is required. (true means require).
     val comparedResult = items.foldLeft((true, true)) { (result, item) =>
       {
