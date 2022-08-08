@@ -25,15 +25,14 @@ case class OrderByOperator(
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
 
-  var sortItems: Seq[(Expression, OrderByType)] = Seq.empty
+  var sortItems: Seq[(Expression, OrderByType)] = sortItem.map {
+    case AscSortItem(expression)  => (expression, OrderByType.ASC)
+    case DescSortItem(expression) => (expression, OrderByType.DESC)
+  }
   var allGroupedSortedData: Iterator[Array[Seq[LynxValue]]] = Iterator.empty
 
   override def openImpl(): Unit = {
     in.open()
-    sortItems = sortItem.map {
-      case AscSortItem(expression)  => (expression, OrderByType.ASC)
-      case DescSortItem(expression) => (expression, OrderByType.DESC)
-    }
 
     val collectedData: ArrayBuffer[RowBatch] = ArrayBuffer.empty
     // get all data to sort
