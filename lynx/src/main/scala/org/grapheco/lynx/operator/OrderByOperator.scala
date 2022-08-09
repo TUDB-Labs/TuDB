@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@author:John117
   *@createDate:2022/8/4
-  *@description:
+  *@description: This operator is used to sort data by specified expressions.
   */
 case class OrderByOperator(
     sortItem: Seq[SortItem],
