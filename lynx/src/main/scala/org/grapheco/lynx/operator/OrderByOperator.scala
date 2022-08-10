@@ -64,31 +64,29 @@ case class OrderByOperator(
       {
         result match {
           case (true, true) => { // means previous expression cannot compare two value
-            val ev1 = expressionEvaluator.eval(item._1)(
+            val evaluatedValue1 = expressionEvaluator.eval(item._1)(
               expressionContext.withVars(schema.zip(a).toMap)
             )
-            val ev2 = expressionEvaluator.eval(item._1)(
+            val evaluatedValue2 = expressionEvaluator.eval(item._1)(
               expressionContext.withVars(schema.zip(b).toMap)
             )
             item._2 match {
               // LynxNull = MAX
               case OrderByType.ASC => {
-                if (ev1 == LynxNull && ev2 != LynxNull) (false, false)
-                else if (ev1 == LynxNull && ev2 == LynxNull) (true, true)
-                else if (ev1 != LynxNull && ev2 == LynxNull) (true, false)
-                else (ev1 <= ev2, ev1 == ev2)
+                if (evaluatedValue1 == LynxNull && evaluatedValue2 != LynxNull) (false, false)
+                else if (evaluatedValue1 == LynxNull && evaluatedValue2 == LynxNull) (true, true)
+                else if (evaluatedValue1 != LynxNull && evaluatedValue2 == LynxNull) (true, false)
+                else (evaluatedValue1 <= evaluatedValue2, evaluatedValue1 == evaluatedValue2)
               }
               case OrderByType.DESC => {
-                if (ev1 == LynxNull && ev2 != LynxNull) (true, false)
-                else if (ev1 == LynxNull && ev2 == LynxNull) (true, true)
-                else if (ev1 != LynxNull && ev2 == LynxNull) (false, false)
-                else (ev1 >= ev2, ev1 == ev2)
+                if (evaluatedValue1 == LynxNull && evaluatedValue2 != LynxNull) (true, false)
+                else if (evaluatedValue1 == LynxNull && evaluatedValue2 == LynxNull) (true, true)
+                else if (evaluatedValue1 != LynxNull && evaluatedValue2 == LynxNull) (false, false)
+                else (evaluatedValue1 >= evaluatedValue2, evaluatedValue1 == evaluatedValue2)
               }
             }
           }
-          case (true, false)  => (true, false)
-          case (false, true)  => (false, true)
-          case (false, false) => (false, false)
+          case _ => result
         }
       }
     }
