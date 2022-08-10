@@ -3,7 +3,7 @@ package org.grapheco.lynx.operator
 import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxNull
-import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, RowBatch}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.ast.{AscSortItem, DescSortItem, SortItem}
 import org.opencypher.v9_0.expressions.Expression
 
@@ -28,20 +28,20 @@ case class OrderByOperator(
   }
 
   var allGroupedSortedData: Iterator[Array[Seq[LynxValue]]] = Iterator.empty
-  var hasPullData: Boolean = false
+  var hasPulledData: Boolean = false
 
   override def openImpl(): Unit = {
     in.open()
   }
 
   override def getNextImpl(): RowBatch = {
-    if (!hasPullData) {
+    if (!hasPulledData) {
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
       val schemaName = in.outputSchema().map(x => x._1)
       allGroupedSortedData = allData
         .sortWith((a, b) => sortByItem(a, b, sortItems, schemaName)) // maybe it's a bad sort method.
         .grouped(numRowsPerBatch)
-      hasPullData = true
+      hasPulledData = true
     }
     if (allGroupedSortedData.nonEmpty) RowBatch(allGroupedSortedData.next())
     else RowBatch(Seq.empty)

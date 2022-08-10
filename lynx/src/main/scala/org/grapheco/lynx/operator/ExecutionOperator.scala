@@ -3,8 +3,6 @@ package org.grapheco.lynx
 import org.grapheco.lynx.types.LynxValue
 import org.opencypher.v9_0.expressions.Expression
 
-import scala.collection.mutable.ArrayBuffer
-
 /**
   * This interface is the parent of the rest of operators.
   * The execution flow for all the children operators are: open() --> getNext() --> close()
