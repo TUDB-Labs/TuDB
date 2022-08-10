@@ -8,11 +8,6 @@ import org.junit.{Assert, Test}
 import org.opencypher.v9_0.expressions.SignedDecimalIntegerLiteral
 import scala.collection.JavaConverters._
 
-/**
-  *@author:John117
-  *@createDate:2022/8/10
-  *@description:
-  */
 class SkipOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
