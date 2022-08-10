@@ -11,7 +11,6 @@ import org.opencypher.v9_0.util.symbols.CypherType
 case class SelectOperator(
     columnsToSelect: Seq[(String, Option[String])],
     in: ExecutionOperator,
-    graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {

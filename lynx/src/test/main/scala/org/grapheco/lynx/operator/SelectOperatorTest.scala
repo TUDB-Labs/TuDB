@@ -41,7 +41,6 @@ class SelectOperatorTest extends BaseOperatorTest {
     val selectOperator = SelectOperator(
       Seq(("n", Option("n"))),
       nodeScanOperator,
-      model,
       expressionEvaluator,
       ctx.expressionContext
     )
