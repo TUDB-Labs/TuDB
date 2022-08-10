@@ -56,7 +56,6 @@ class OrderByOperatorTest extends BaseOperatorTest {
     val sortOperator = OrderByOperator(
       sortItems,
       nodeScanOperator,
-      model,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -87,7 +86,6 @@ class OrderByOperatorTest extends BaseOperatorTest {
     val sortOperator = OrderByOperator(
       sortItems,
       nodeScanOperator,
-      model,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -113,7 +111,6 @@ class OrderByOperatorTest extends BaseOperatorTest {
     val sortOperator = OrderByOperator(
       sortItems,
       nodeScanOperator,
-      model,
       expressionEvaluator,
       ctx.expressionContext
     )

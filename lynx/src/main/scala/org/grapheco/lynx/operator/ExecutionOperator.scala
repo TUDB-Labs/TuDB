@@ -41,18 +41,6 @@ trait ExecutionOperator extends TreeNode {
   def closeImpl(): Unit
 
   def outputSchema(): Seq[(String, LynxType)]
-
-  def getOperatorAllOutputs(operator: ExecutionOperator): Array[RowBatch] = {
-    val result = ArrayBuffer[RowBatch]()
-    operator.open()
-    var data = operator.getNext()
-    while (data.batchData.nonEmpty) {
-      result.append(data)
-      data = operator.getNext()
-    }
-    operator.close()
-    result.toArray
-  }
 }
 
 case class RowBatch(batchData: Seq[Seq[LynxValue]]) {}
