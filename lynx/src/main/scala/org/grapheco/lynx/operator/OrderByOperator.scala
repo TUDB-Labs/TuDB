@@ -37,8 +37,9 @@ case class OrderByOperator(
   override def getNextImpl(): RowBatch = {
     if (!hasPullData) {
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
+      val schemaName = in.outputSchema().map(x => x._1)
       allGroupedSortedData = allData
-        .sortWith((a, b) => sortByItem(a, b, sortItems, in.outputSchema().map(x => x._1))) // maybe it's a bad sort method.
+        .sortWith((a, b) => sortByItem(a, b, sortItems, schemaName)) // maybe it's a bad sort method.
         .grouped(numRowsPerBatch)
       hasPullData = true
     }
