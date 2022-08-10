@@ -47,7 +47,7 @@ class ProjectOperatorTest extends BaseOperatorTest {
       )
     )
     val projectOperator =
-      ProjectOperator(inOperator, projectColumn, model, expressionEvaluator, ctx.expressionContext)
+      ProjectOperator(inOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
     val result = ArrayBuffer.empty[RowBatch]
     projectOperator.open()
@@ -86,7 +86,7 @@ class ProjectOperatorTest extends BaseOperatorTest {
       )
     )
     val projectOperator =
-      ProjectOperator(inOperator, projectColumn, model, expressionEvaluator, ctx.expressionContext)
+      ProjectOperator(inOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
     val result = ArrayBuffer.empty[RowBatch]
     projectOperator.open()
