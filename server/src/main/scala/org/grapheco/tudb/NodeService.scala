@@ -8,17 +8,24 @@ import org.grapheco.tudb.store.node.{NodeStoreAPI, StoredNodeWithProperty}
 class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
   extends NodeServiceGrpc.NodeServiceImplBase {
 
-  def convertToGrpcNode(rawNode: StoredNodeWithProperty): Core.Node = {
-    Core.Node
+  def ConvertToGrpcNode(rawNode: StoredNodeWithProperty): Core.Node = {
+    val nodeBuilder: Core.Node.Builder = Core.Node
       .newBuilder()
-      .setId(1)
-      //      .addAllLabels(rawNode.labelIds.toIterable)
-      //    rawNode.properties.values.foreach(prop => {
-      //      Core.Property.newBuilder().setKey(prop.).setValue().build()
-      //      node.setProperties()
-      //    })
-      // .setLabels(0, rawNode.properties(0).toString)
-      .build()
+      .setNodeId(rawNode.id)
+
+    rawNode.properties
+      .foreach(kv => {
+        println(kv._1)
+        println(kv._2)
+        val prop = Core.Property
+          .newBuilder()
+          .setInd(kv._1)
+          .setValue(kv._2.toString)
+          .build()
+        nodeBuilder.addProperties(prop)
+      })
+    // .setLabels(0, rawNode.properties(0).toString)
+    nodeBuilder.build()
   }
 
   override def createNode(
@@ -40,7 +47,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
     nodeStoreAPI.addNode(storedNode)
     val resp: Core.NodeCreateResponse = Core.NodeCreateResponse
       .newBuilder()
-      .setNode(convertToGrpcNode(storedNode))
+      .setNode(ConvertToGrpcNode(storedNode))
       .setStatus(status)
       .build()
     responseObserver.onNext(resp)
@@ -58,7 +65,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .build()
     val resp: Core.NodeGetResponse = Core.NodeGetResponse
       .newBuilder()
-      .setNode(convertToGrpcNode(nodeStoreAPI.getNodeById(1L).get))
+      .setNode(ConvertToGrpcNode(nodeStoreAPI.getNodeById(1L).get))
       .setStatus(status)
       .build()
     responseObserver.onNext(resp)
@@ -90,7 +97,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
     val nodes = nodeStoreAPI
       .allNodes()
       .map(rawNode => {
-        convertToGrpcNode(rawNode)
+        ConvertToGrpcNode(rawNode)
       })
     val status = Core.GenericResponseStatus
       .newBuilder()

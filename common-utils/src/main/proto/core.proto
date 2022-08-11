@@ -19,12 +19,13 @@ message Element {
 // Property holds a key-value pair that's associated with an element.
 message Property {
   int32 ind = 1;
-  google.protobuf.Any value = 3;
+  // TODO: Check if we can use google.protobuf.Any
+  string value = 3;
 }
 
 // Graph is a collection of nodes and relationships.
 message Graph {
-  int32 id = 1;
+  int64 id = 1;
   string name = 2;
   repeated Node nodes = 3;
   repeated Relationship relationships = 4;
@@ -33,9 +34,9 @@ message Graph {
 // Node extends Element and connects to relationships.
 message Node {
   // The following fields are inherited from Element but we write them here explicitly since proto3 does not support inheritance.
-  int32 node_id = 1;
+  int64 node_id = 1;
   string name = 2;
-  int32 graph_id = 3; // The graph ID associated with this node.
+  int64 graph_id = 3; // The graph ID associated with this node.
   repeated Property properties = 4;
 
   repeated int32 labelIds = 5;
@@ -48,7 +49,7 @@ message Relationship {
   // The following fields are inherited from Element but we write them here explicitly since proto3 does not support inheritance.
   string id = 1;
   string name = 2;
-  int32 graph_id = 3; // The graph ID associated with this relationship.
+  int64 graph_id = 3; // The graph ID associated with this relationship.
   repeated Property properties = 4;
 
   Node start_node = 5;
