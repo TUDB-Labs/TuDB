@@ -139,7 +139,7 @@ message NodeCreateResponse {
 };
 
 message NodeGetRequest {
-  string name = 1;
+  int64 node_id = 1;
 };
 
 message NodeGetResponse {

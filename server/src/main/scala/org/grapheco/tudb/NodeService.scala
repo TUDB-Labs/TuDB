@@ -1,32 +1,13 @@
 package org.grapheco.tudb
 
 import io.grpc.stub.StreamObserver
+import org.grapheco.tudb.NodeService.{ConvertToGrpcNode, ConvertToStoredNode}
 import org.grapheco.tudb.core.{Core, NodeServiceGrpc}
 import org.grapheco.tudb.serializer.NodeSerializer
 import org.grapheco.tudb.store.node.{NodeStoreAPI, StoredNodeWithProperty}
 
 class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
   extends NodeServiceGrpc.NodeServiceImplBase {
-
-  def ConvertToGrpcNode(rawNode: StoredNodeWithProperty): Core.Node = {
-    val nodeBuilder: Core.Node.Builder = Core.Node
-      .newBuilder()
-      .setNodeId(rawNode.id)
-
-    rawNode.properties
-      .foreach(kv => {
-        println(kv._1)
-        println(kv._2)
-        val prop = Core.Property
-          .newBuilder()
-          .setInd(kv._1)
-          .setValue(kv._2.toString)
-          .build()
-        nodeBuilder.addProperties(prop)
-      })
-    // .setLabels(0, rawNode.properties(0).toString)
-    nodeBuilder.build()
-  }
 
   override def createNode(
       request: Core.NodeCreateRequest,
@@ -38,16 +19,11 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .setExitCode(0)
       .build()
     // TODO: Create node and persist in DB and set status
-    val labelIds1: Array[Int] = Array(1, 2)
-    val props1: Map[Int, Any] =
-      Map(1 -> 1L, 2 -> "bluejoe", 3 -> 1979.12, 4 -> "cnic")
-    val node1InBytes: Array[Byte] =
-      NodeSerializer.encodeNodeWithProperties(1L, labelIds1, props1)
-    val storedNode = new StoredNodeWithProperty(1L, labelIds1, node1InBytes)
-    nodeStoreAPI.addNode(storedNode)
+
+    nodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
     val resp: Core.NodeCreateResponse = Core.NodeCreateResponse
       .newBuilder()
-      .setNode(ConvertToGrpcNode(storedNode))
+      .setNode(request.getNode)
       .setStatus(status)
       .build()
     responseObserver.onNext(resp)
@@ -65,7 +41,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .build()
     val resp: Core.NodeGetResponse = Core.NodeGetResponse
       .newBuilder()
-      .setNode(ConvertToGrpcNode(nodeStoreAPI.getNodeById(1L).get))
+      .setNode(ConvertToGrpcNode(nodeStoreAPI.getNodeById(request.getNodeId).get))
       .setStatus(status)
       .build()
     responseObserver.onNext(resp)
@@ -110,5 +86,36 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
     })
     responseObserver.onNext(resp.setStatus(status).build())
     responseObserver.onCompleted()
+  }
+}
+
+object NodeService {
+  def ConvertToGrpcNode(rawNode: StoredNodeWithProperty): Core.Node = {
+    val nodeBuilder: Core.Node.Builder = Core.Node
+      .newBuilder()
+      .setNodeId(rawNode.id)
+
+    rawNode.properties
+      .foreach(kv => {
+        val prop = Core.Property
+          .newBuilder()
+          .setInd(kv._1)
+          .setValue(kv._2.toString)
+          .build()
+        nodeBuilder.addProperties(prop)
+      })
+    // .setLabels(0, rawNode.properties(0).toString)
+    nodeBuilder.build()
+  }
+
+  def ConvertToStoredNode(node: Core.Node): StoredNodeWithProperty = {
+    val labelIds = Array(1, 2)
+    var rawProps = Map[Int, String]()
+    node.getPropertiesList.forEach(prop => {
+      rawProps += (prop.getInd -> prop.getValue)
+    })
+    val nodeInBytes: Array[Byte] =
+      NodeSerializer.encodeNodeWithProperties(1L, labelIds, rawProps)
+    new StoredNodeWithProperty(1L, labelIds, nodeInBytes)
   }
 }

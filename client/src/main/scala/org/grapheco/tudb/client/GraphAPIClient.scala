@@ -27,14 +27,14 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
     }
   }
 
-  def getNode(name: String): Core.Node = {
+  def getNode(id: Long): Core.Node = {
     val request: Core.NodeGetRequest =
-      Core.NodeGetRequest.newBuilder().setName(name).build()
+      Core.NodeGetRequest.newBuilder().setNodeId(id).build()
     val response = nodeServiceBlockingStub.getNode(request)
     if (response.getStatus.getExitCode == 0) {
       response.getNode
     } else {
-      logger.info(f"Failed to get node $name: ${response.getStatus.getMessage}")
+      logger.info(f"Failed to get node $id: ${response.getStatus.getMessage}")
       null
     }
   }
