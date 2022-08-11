@@ -156,7 +156,7 @@ message NodeListResponse {
 };
 
 message NodeDeleteRequest {
-  string name = 1;
+  int64 node_id = 1;
 };
 
 message NodeDeleteResponse {

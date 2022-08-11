@@ -57,14 +57,7 @@ class GraphAPIClientTest {
   }
 
   @Test
-  def testCreateNode(): Unit = {
-    val node = Core.Node.newBuilder().setName("n1").build()
-    val createdNode = client.createNode(node)
-    Assert.assertEquals(node.getName, createdNode.getName)
-  }
-
-  @Test
-  def testGetNode(): Unit = {
+  def testCreateAndGetNode(): Unit = {
     val labelIds1: Array[Int] = Array(1, 2)
     val props1: Map[Int, Any] =
       Map(1 -> 1L, 2 -> "bluejoe", 3 -> 1979.12, 4 -> "cnic")
@@ -72,26 +65,40 @@ class GraphAPIClientTest {
       NodeSerializer.encodeNodeWithProperties(1L, labelIds1, props1)
     val storedNode = new StoredNodeWithProperty(1L, labelIds1, node1InBytes)
     val node: Core.Node = NodeService.ConvertToGrpcNode(storedNode)
-    client.createNode(node)
+    val createdNode = client.createNode(node)
+    Assert.assertEquals(1, createdNode.getNodeId)
+    Assert.assertEquals("1", createdNode.getProperties(0).getValue)
+    Assert.assertEquals("bluejoe", createdNode.getProperties(1).getValue)
+    Assert.assertEquals("1979.12", createdNode.getProperties(2).getValue)
+    Assert.assertEquals("cnic", createdNode.getProperties(3).getValue)
+
     val obtainedNode = client.getNode(1)
     Assert.assertEquals(1, obtainedNode.getNodeId)
     Assert.assertEquals("1", obtainedNode.getProperties(0).getValue)
     Assert.assertEquals("bluejoe", obtainedNode.getProperties(1).getValue)
     Assert.assertEquals("1979.12", obtainedNode.getProperties(2).getValue)
     Assert.assertEquals("cnic", obtainedNode.getProperties(3).getValue)
+
+    // TODO: Test case for non-existing node
   }
-//
-//  @Test
-//  def testDeleteNode(): Unit = {
-//    client.deleteNode("n1")
-//    Assert.assertEquals(null, client.getNode("n1"))
-//  }
-//
+
 //  @Test
 //  def testListNodes(): Unit = {
-//    client.createNode(Core.Node.newBuilder().setName("n1").build())
-//    client.createNode(Core.Node.newBuilder().setName("n2").build())
 //    val nodes = client.listNodes()
-//    Assert.assertEquals(2, nodes.length)
+//    Assert.assertEquals(1, nodes.length)
+//    val obtainedNode = nodes.head
+//    Assert.assertEquals(1, obtainedNode.getNodeId)
+//    Assert.assertEquals("1", obtainedNode.getProperties(0).getValue)
+//    Assert.assertEquals("bluejoe", obtainedNode.getProperties(1).getValue)
+//    Assert.assertEquals("1979.12", obtainedNode.getProperties(2).getValue)
+//    Assert.assertEquals("cnic", obtainedNode.getProperties(3).getValue)
 //  }
+
+  @Test
+  def testDeleteNode(): Unit = {
+    client.deleteNode(1)
+    // TODO: Check if node still exists
+    // TODO: Delete non-existing node
+//    client.deleteNode(2)
+  }
 }

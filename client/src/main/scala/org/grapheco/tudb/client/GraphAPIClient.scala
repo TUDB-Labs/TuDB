@@ -31,6 +31,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
     val request: Core.NodeGetRequest =
       Core.NodeGetRequest.newBuilder().setNodeId(id).build()
     val response = nodeServiceBlockingStub.getNode(request)
+    // TODO: Need to check whether the node is null. response.hasNode
     if (response.getStatus.getExitCode == 0) {
       response.getNode
     } else {
@@ -39,14 +40,14 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
     }
   }
 
-  def deleteNode(name: String) {
+  def deleteNode(id: Long) {
     val request: Core.NodeDeleteRequest =
-      Core.NodeDeleteRequest.newBuilder().setName(name).build()
+      Core.NodeDeleteRequest.newBuilder().setNodeId(id).build()
     val response = nodeServiceBlockingStub.deleteNode(request)
     if (response.getStatus.getExitCode == 0) {
-      logger.info(f"Successfully deleted node $name")
+      logger.info(f"Successfully deleted node $id")
     } else {
-      logger.info(f"Failed to delete node $name: ${response.getStatus.getMessage}")
+      logger.info(f"Failed to delete node $id: ${response.getStatus.getMessage}")
     }
   }
 

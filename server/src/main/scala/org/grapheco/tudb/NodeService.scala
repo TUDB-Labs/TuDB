@@ -6,6 +6,8 @@ import org.grapheco.tudb.core.{Core, NodeServiceGrpc}
 import org.grapheco.tudb.serializer.NodeSerializer
 import org.grapheco.tudb.store.node.{NodeStoreAPI, StoredNodeWithProperty}
 
+// TODO: All messages and exit codes are hard-coded to be successful since NodeStoreAPI does not provide
+//   a way to access the statuses.
 class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
   extends NodeServiceGrpc.NodeServiceImplBase {
 
@@ -18,8 +20,6 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .setMessage("successfully created node")
       .setExitCode(0)
       .build()
-    // TODO: Create node and persist in DB and set status
-
     nodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
     val resp: Core.NodeCreateResponse = Core.NodeCreateResponse
       .newBuilder()
@@ -52,7 +52,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeDeleteRequest,
       responseObserver: StreamObserver[Core.NodeDeleteResponse]
     ): Unit = {
-//    nodeStoreAPI.deleteNode(request.getNodeId)
+    nodeStoreAPI.deleteNode(request.getNodeId)
     val status = Core.GenericResponseStatus
       .newBuilder()
       .setMessage("successfully deleted node")
@@ -70,6 +70,8 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeListRequest,
       responseObserver: StreamObserver[Core.NodeListResponse]
     ): Unit = {
+    // TODO: Debug why this is 0.
+    println(nodeStoreAPI.allNodes().length)
     val nodes = nodeStoreAPI
       .allNodes()
       .map(rawNode => {
@@ -80,11 +82,12 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .setMessage("successfully listed nodes")
       .setExitCode(0)
       .build()
-    val resp: Core.NodeListResponse.Builder = Core.NodeListResponse.newBuilder()
+    val respBuilder: Core.NodeListResponse.Builder = Core.NodeListResponse.newBuilder()
     nodes.foreach(node => {
-      resp.addNodes(node)
+      respBuilder.addNodes(node)
     })
-    responseObserver.onNext(resp.setStatus(status).build())
+    val resp = respBuilder.setStatus(status).build()
+    responseObserver.onNext(resp)
     responseObserver.onCompleted()
   }
 }
@@ -109,13 +112,14 @@ object NodeService {
   }
 
   def ConvertToStoredNode(node: Core.Node): StoredNodeWithProperty = {
+    // TODO: Support labelIds
     val labelIds = Array(1, 2)
     var rawProps = Map[Int, String]()
     node.getPropertiesList.forEach(prop => {
       rawProps += (prop.getInd -> prop.getValue)
     })
     val nodeInBytes: Array[Byte] =
-      NodeSerializer.encodeNodeWithProperties(1L, labelIds, rawProps)
+      NodeSerializer.encodeNodeWithProperties(node.getNodeId, labelIds, rawProps)
     new StoredNodeWithProperty(1L, labelIds, nodeInBytes)
   }
 }
