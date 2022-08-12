@@ -36,9 +36,8 @@ class LimitOperatorTest extends BaseOperatorTest {
   @Test
   def testLimitData(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
-    val limitExpr = SignedDecimalIntegerLiteral("2")(defaultPosition)
     val skipOperator =
-      LimitOperator(limitExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      LimitOperator(2, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(

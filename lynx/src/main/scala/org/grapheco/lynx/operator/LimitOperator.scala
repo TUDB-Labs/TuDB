@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
   *@description: This operator is used to limit return data. eg: [1,2,3,4], limit 2, then return [1, 2]
   */
 case class LimitOperator(
-    limitExpr: Expression,
+    limitDataSize: Int,
     in: ExecutionOperator,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -25,34 +25,18 @@ case class LimitOperator(
 
   override def openImpl(): Unit = {
     in.open()
-
-    val evalValue = evalExpr(limitExpr)(exprContext)
-    evalValue match {
-      case n: LynxNumber => {
-        val num = n.value.asInstanceOf[Number].intValue()
-        if (num >= 0) limitNum = num
-        else
-          throw new TuDBException(
-            TuDBError.LYNX_WRONG_NUMBER_OF_ARGUMENT,
-            s"Invalid input '$num', must be a positive integer."
-          )
-      }
-      case n =>
-        throw new TuDBException(
-          TuDBError.LYNX_WRONG_NUMBER_OF_ARGUMENT,
-          s"Invalid input '${n.value}', must be a positive integer."
-        )
-    }
   }
 
   override def getNextImpl(): RowBatch = {
     if (!isFinishLimit) {
       val allLimitedDataArray: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
-      val batchNum = limitNum / numRowsPerBatch
-      val offsetNum = limitNum % numRowsPerBatch
-      for (i <- 1 to batchNum) allLimitedDataArray.append(in.getNext().batchData: _*)
-      if (offsetNum != 0) allLimitedDataArray.append(in.getNext().batchData.slice(0, offsetNum): _*)
-      allGroupedLimitedDataArray = allLimitedDataArray.grouped(numRowsPerBatch)
+      var dataBatch = in.getNext().batchData
+      while (dataBatch.nonEmpty && allLimitedDataArray.length < limitDataSize) {
+        allLimitedDataArray.append(dataBatch: _*)
+        dataBatch = in.getNext().batchData
+      }
+      allGroupedLimitedDataArray =
+        allLimitedDataArray.slice(0, limitDataSize).grouped(numRowsPerBatch)
       isFinishLimit = true
     }
     if (allGroupedLimitedDataArray.nonEmpty) RowBatch(allGroupedLimitedDataArray.next())
