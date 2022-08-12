@@ -15,12 +15,12 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeCreateRequest,
       responseObserver: StreamObserver[Core.NodeCreateResponse]
     ): Unit = {
+    nodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
     val status = Core.GenericResponseStatus
       .newBuilder()
-      .setMessage("successfully created node")
+      .setMessage(f"successfully created node ${request.getNode.getNodeId}")
       .setExitCode(0)
       .build()
-    nodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
     val resp: Core.NodeCreateResponse = Core.NodeCreateResponse
       .newBuilder()
       .setNode(request.getNode)
@@ -36,7 +36,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
     ): Unit = {
     val status = Core.GenericResponseStatus
       .newBuilder()
-      .setMessage("successfully got node")
+      .setMessage(f"successfully got node ${request.getNodeId}")
       .setExitCode(0)
       .build()
     val resp: Core.NodeGetResponse = Core.NodeGetResponse
@@ -55,7 +55,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
     nodeStoreAPI.deleteNode(request.getNodeId)
     val status = Core.GenericResponseStatus
       .newBuilder()
-      .setMessage("successfully deleted node")
+      .setMessage(f"successfully deleted node ${request.getNodeId}")
       .setExitCode(0)
       .build()
     val resp: Core.NodeDeleteResponse = Core.NodeDeleteResponse
@@ -70,8 +70,6 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeListRequest,
       responseObserver: StreamObserver[Core.NodeListResponse]
     ): Unit = {
-    // TODO: Debug why this is 0.
-    println(nodeStoreAPI.allNodes().length)
     val nodes = nodeStoreAPI
       .allNodes()
       .map(rawNode => {
@@ -98,28 +96,31 @@ object NodeService {
       .newBuilder()
       .setNodeId(rawNode.id)
 
-    rawNode.properties
-      .foreach(kv => {
-        val prop = Core.Property
-          .newBuilder()
-          .setInd(kv._1)
-          .setValue(kv._2.toString)
-          .build()
-        nodeBuilder.addProperties(prop)
-      })
-    // .setLabels(0, rawNode.properties(0).toString)
+    rawNode.properties.foreach(kv => {
+      val prop = Core.Property
+        .newBuilder()
+        .setInd(kv._1)
+        .setValue(kv._2.toString)
+        .build()
+      nodeBuilder.addProperties(prop)
+    })
+    rawNode.labelIds.foreach(labelID => {
+      nodeBuilder.addLabelIds(labelID)
+    })
     nodeBuilder.build()
   }
 
   def ConvertToStoredNode(node: Core.Node): StoredNodeWithProperty = {
-    // TODO: Support labelIds
-    val labelIds = Array(1, 2)
     var rawProps = Map[Int, String]()
     node.getPropertiesList.forEach(prop => {
       rawProps += (prop.getInd -> prop.getValue)
     })
+    var labelIds = Array[Int]()
+    node.getLabelIdsList.forEach(labelId => {
+      labelIds :+= labelId.toInt
+    })
     val nodeInBytes: Array[Byte] =
       NodeSerializer.encodeNodeWithProperties(node.getNodeId, labelIds, rawProps)
-    new StoredNodeWithProperty(1L, labelIds, nodeInBytes)
+    new StoredNodeWithProperty(node.getNodeId, labelIds, nodeInBytes)
   }
 }
