@@ -29,17 +29,16 @@ case class SkipOperator(
 
   override def getNextImpl(): RowBatch = {
     if (!isSkipped) {
-      val remainDataArray: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
-
-      val skipBatch = skipLength / numRowsPerBatch
-      val offsetNum = skipLength % numRowsPerBatch
-      for (i <- 1 to skipBatch) in.getNext()
-      if (offsetNum != 0)
-        remainDataArray.append(in.getNext().batchData.slice(offsetNum + 1, numRowsPerBatch): _*)
-
+      val tmpDataArray: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
+      var hasNextData = true
+      while (tmpDataArray.length <= skipLength && hasNextData) {
+        val data = in.getNext()
+        if (data.batchData.isEmpty) hasNextData = false
+        tmpDataArray.append(data.batchData: _*)
+      }
       isSkipped = true
-      if (remainDataArray.nonEmpty) RowBatch(remainDataArray)
-      else in.getNext()
+      if (tmpDataArray.length <= skipLength) in.getNext()
+      else RowBatch(tmpDataArray.slice(skipLength, tmpDataArray.length))
     } else in.getNext()
   }
 
