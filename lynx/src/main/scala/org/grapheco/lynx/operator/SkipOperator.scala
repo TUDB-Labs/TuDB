@@ -12,7 +12,7 @@ import scala.collection.mutable.ArrayBuffer
   *@description: This operator is used to skip data. eg: [1,2,3,4], skip 2, then return [3,4]
   */
 case class SkipOperator(
-    skipExpr: Expression,
+    skipDataSize: Int,
     in: ExecutionOperator,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -20,43 +20,29 @@ case class SkipOperator(
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
 
-  var skipLength: Int = 0
   val outputRows: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
   var isSkipped: Boolean = false
-
+  var skippedDataSize: Int = 0
   override def openImpl(): Unit = {
     in.open()
-    val evalValue = evalExpr(skipExpr)(exprContext)
-    evalValue match {
-      case n: LynxNumber => {
-        val num = n.value.asInstanceOf[Number].intValue()
-        if (num >= 0) skipLength = num
-        else
-          throw new TuDBException(
-            TuDBError.LYNX_WRONG_NUMBER_OF_ARGUMENT,
-            s"Invalid input '$num', must be a positive integer."
-          )
-      }
-      case n =>
-        throw new TuDBException(
-          TuDBError.LYNX_WRONG_NUMBER_OF_ARGUMENT,
-          s"Invalid input '${n.value}', must be a positive integer."
-        )
-    }
   }
 
   override def getNextImpl(): RowBatch = {
     if (!isSkipped) {
-      val tmpDataArray: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
-      var hasNextData = true
-      while (tmpDataArray.length <= skipLength && hasNextData) {
-        val data = in.getNext()
-        if (data.batchData.isEmpty) hasNextData = false
-        tmpDataArray.append(data.batchData: _*)
+      var dataBatch = in.getNext().batchData
+      var returnData: Seq[Seq[LynxValue]] = Seq.empty
+      while (dataBatch.nonEmpty && skippedDataSize <= skipDataSize) {
+        val length = dataBatch.length
+        val tmpLength = skippedDataSize + length
+        if (tmpLength <= skipDataSize) dataBatch = in.getNext().batchData
+        else {
+          val offset = skipDataSize - skippedDataSize
+          returnData = dataBatch.slice(offset, dataBatch.length)
+        }
+        skippedDataSize = tmpLength
       }
       isSkipped = true
-      if (tmpDataArray.length <= skipLength) in.getNext()
-      else RowBatch(tmpDataArray.slice(skipLength, tmpDataArray.length))
+      RowBatch(returnData)
     } else in.getNext()
   }
 

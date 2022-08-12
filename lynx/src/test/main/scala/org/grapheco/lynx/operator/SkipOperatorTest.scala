@@ -34,9 +34,8 @@ class SkipOperatorTest extends BaseOperatorTest {
   @Test
   def testSkipData(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
-    val skipExpr = SignedDecimalIntegerLiteral("2")(defaultPosition)
     val skipOperator =
-      SkipOperator(skipExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      SkipOperator(2, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
@@ -51,9 +50,8 @@ class SkipOperatorTest extends BaseOperatorTest {
   @Test
   def testSkipLargeThanDataSize(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
-    val skipExpr = SignedDecimalIntegerLiteral("20")(defaultPosition)
     val skipOperator =
-      SkipOperator(skipExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      SkipOperator(20000, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
