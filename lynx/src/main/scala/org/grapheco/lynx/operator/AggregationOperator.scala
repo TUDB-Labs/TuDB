@@ -6,9 +6,10 @@ import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvalua
 import org.opencypher.v9_0.ast.ReturnItem
 
 /**
-  *@description: This operator is used to group data by specified expressions.
+  *@description: This operator groups the input from `in` by keys of `aggregationItems`
+  *                and evaluates aggregations by values of `aggregationItems`.
   */
-case class GroupByOperator(
+case class AggregationOperator(
     aggregationItems: Seq[ReturnItem],
     groupingItems: Seq[ReturnItem],
     in: ExecutionOperator,
@@ -18,8 +19,8 @@ case class GroupByOperator(
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
 
-  val aggregationExpr = aggregationItems.map(x => x.name -> x.expression)
-  val groupingExpr = groupingItems.map(x => x.name -> x.expression)
+  val aggregationExprs = aggregationItems.map(x => x.name -> x.expression)
+  val groupingExprs = groupingItems.map(x => x.name -> x.expression)
 
   var schema: Seq[(String, LynxType)] = Seq.empty
 
@@ -28,7 +29,7 @@ case class GroupByOperator(
 
   override def openImpl(): Unit = {
     in.open()
-    schema = (aggregationExpr ++ groupingExpr).map(col =>
+    schema = (aggregationExprs ++ groupingExprs).map(col =>
       col._1 -> expressionEvaluator.typeOf(col._2, in.outputSchema().toMap)
     )
   }
@@ -37,21 +38,21 @@ case class GroupByOperator(
     if (!hasPulledData) {
       val columnNames = in.outputSchema().map(f => f._1)
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
-      val result = if (groupingExpr.nonEmpty) {
+      val result = if (groupingExprs.nonEmpty) {
         allData
           .map(record => {
             val recordCtx = exprContext.withVars(columnNames.zip(record).toMap)
-            groupingExpr.map(col => evalExpr(col._2)(recordCtx)) -> recordCtx
+            groupingExprs.map(col => evalExpr(col._2)(recordCtx)) -> recordCtx
           })
           .toSeq // each row point to a recordCtx
           // group by record
-          .groupBy(recordAndEc => recordAndEc._1)
+          .groupBy(recordAndExprCtx => recordAndExprCtx._1)
           // each grouped record --> multiple recordCtx
-          .mapValues(recordAndEc => recordAndEc.map(rc => rc._2))
+          .mapValues(recordAndExprCtx => recordAndExprCtx.map(rc => rc._2))
           .map {
             case (groupingValue, recordCtx) =>
               groupingValue ++ {
-                aggregationExpr.map {
+                aggregationExprs.map {
                   case (name, expr) =>
                     expressionEvaluator.aggregateEval(expr)(recordCtx)
                 }
@@ -61,7 +62,7 @@ case class GroupByOperator(
         val allRecordContext = allData.map { record =>
           expressionContext.withVars(columnNames.zip(record).toMap)
         }.toSeq
-        Iterator(aggregationExpr.map {
+        Iterator(aggregationExprs.map {
           case (name, expression) =>
             expressionEvaluator.aggregateEval(expression)(allRecordContext)
         })
