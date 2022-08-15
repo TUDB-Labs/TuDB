@@ -17,6 +17,7 @@ case class LimitOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
+  override val children: Seq[ExecutionOperator] = Seq(in)
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
 
