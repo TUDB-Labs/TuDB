@@ -84,7 +84,7 @@ class AggregatingFunctions {
     */
   @LynxProcedure(name = "count") //TODO count() is complex
   def count(args: Seq[LynxList]): LynxInteger = {
-    LynxInteger(args.head.value.length)
+    LynxInteger(args.head.value.count(value => value != LynxNull))
   }
 
   /** Returns the maximum value in a set of values.
