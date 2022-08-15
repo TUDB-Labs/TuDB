@@ -1,0 +1,80 @@
+package org.grapheco.lynx.operator
+
+import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.operator.utils.JoinType
+import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
+import org.junit.{Assert, Test}
+
+import scala.collection.JavaConverters._
+
+/**
+  *@author:John117
+  *@createDate:2022/8/11
+  *@description:
+  */
+class JoinOperatorTest extends BaseOperatorTest {
+  val node1 = TestNode(
+    TestId(1L),
+    Seq(LynxNodeLabel("Person")),
+    Map(LynxPropertyKey("name") -> LynxValue("Alex"))
+  )
+  val node2 = TestNode(
+    TestId(2L),
+    Seq(LynxNodeLabel("Person")),
+    Map(LynxPropertyKey("name") -> LynxValue("Bob"))
+  )
+  val node3 = TestNode(
+    TestId(3L),
+    Seq(LynxNodeLabel("Person")),
+    Map(LynxPropertyKey("name") -> LynxValue("Cat"))
+  )
+  val node4 = TestNode(
+    TestId(4L),
+    Seq(LynxNodeLabel("City")),
+    Map(LynxPropertyKey("name") -> LynxValue("Beijing"))
+  )
+  val node5 = TestNode(
+    TestId(5L),
+    Seq(LynxNodeLabel("City")),
+    Map(LynxPropertyKey("name") -> LynxValue("Chengdu"))
+  )
+  all_nodes.append(node1, node2, node3, node4, node5)
+
+  @Test
+  def testCartesianProduct(): Unit = {
+    val smallTable = prepareNodeScanOperator("city", Seq("City"), Seq.empty)
+    val largeTable = prepareNodeScanOperator("person", Seq("Person"), Seq.empty)
+    val joinOperator = JoinOperator(
+      smallTable,
+      largeTable,
+      JoinType.CartesianProduct,
+      Seq.empty,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val res = getOperatorAllOutputs(joinOperator)
+      .map(f => f.batchData.map(f => f.asJava).asJava)
+      .toList
+      .asJava
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(
+          List(
+            List(node4, node1).asJava,
+            List(node5, node1).asJava
+          ).asJava,
+          List(
+            List(node4, node2).asJava,
+            List(node5, node2).asJava
+          ).asJava,
+          List(
+            List(node4, node3).asJava,
+            List(node5, node3).asJava
+          ).asJava
+        ).asJava,
+        res
+      )
+    )
+  }
+}
