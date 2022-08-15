@@ -19,28 +19,32 @@ case class LimitOperator(
   extends ExecutionOperator {
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
-  var limitNum: Int = 0
-  var isFinishLimit: Boolean = false
-  var allGroupedLimitedDataArray: Iterator[Seq[Seq[LynxValue]]] = Iterator.empty
+
+  var isLimitDone: Boolean = false
+  var countLimitNum: Int = 0
 
   override def openImpl(): Unit = {
     in.open()
   }
 
   override def getNextImpl(): RowBatch = {
-    if (!isFinishLimit) {
-      val allLimitedDataArray: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
-      var dataBatch = in.getNext().batchData
-      while (dataBatch.nonEmpty && allLimitedDataArray.length < limitDataSize) {
-        allLimitedDataArray.append(dataBatch: _*)
-        dataBatch = in.getNext().batchData
+    if (!isLimitDone) {
+      val dataBatch = in.getNext()
+      if (dataBatch.batchData.nonEmpty) {
+        val currentLength = countLimitNum + dataBatch.batchData.length
+        if (currentLength <= limitDataSize) {
+          countLimitNum = currentLength
+          dataBatch
+        } else {
+          isLimitDone = true
+          val offset = limitDataSize - currentLength
+          RowBatch(dataBatch.batchData.slice(0, offset))
+        }
+      } else {
+        isLimitDone = true
+        RowBatch(Seq.empty)
       }
-      allGroupedLimitedDataArray =
-        allLimitedDataArray.slice(0, limitDataSize).grouped(numRowsPerBatch)
-      isFinishLimit = true
-    }
-    if (allGroupedLimitedDataArray.nonEmpty) RowBatch(allGroupedLimitedDataArray.next())
-    else RowBatch(Seq.empty)
+    } else RowBatch(Seq.empty)
   }
 
   override def closeImpl(): Unit = {}
