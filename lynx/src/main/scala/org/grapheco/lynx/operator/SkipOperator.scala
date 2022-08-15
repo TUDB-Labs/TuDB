@@ -1,11 +1,7 @@
 package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.LynxNumber
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
-import org.grapheco.tudb.exception.{TuDBError, TuDBException}
-import org.opencypher.v9_0.expressions.Expression
-
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -21,14 +17,14 @@ case class SkipOperator(
   override val exprContext: ExpressionContext = expressionContext
 
   val outputRows: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
-  var isSkipped: Boolean = false
-  var skippedDataSize: Int = 0
+  var isSkipDone: Boolean = false
   override def openImpl(): Unit = {
     in.open()
   }
 
   override def getNextImpl(): RowBatch = {
-    if (!isSkipped) {
+    if (!isSkipDone) {
+      var skippedDataSize: Int = 0
       var dataBatch = in.getNext().batchData
       var returnData: Seq[Seq[LynxValue]] = Seq.empty
       while (dataBatch.nonEmpty && skippedDataSize <= skipDataSize) {
@@ -37,11 +33,11 @@ case class SkipOperator(
         if (tmpLength <= skipDataSize) dataBatch = in.getNext().batchData
         else {
           val offset = skipDataSize - skippedDataSize
-          returnData = dataBatch.slice(offset, dataBatch.length)
+          returnData = dataBatch.slice(offset, length)
         }
         skippedDataSize = tmpLength
       }
-      isSkipped = true
+      isSkipDone = true
       RowBatch(returnData)
     } else in.getNext()
   }
