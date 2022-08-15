@@ -14,7 +14,7 @@ Please install the following before walking through the rest of this guide:
 ### Maven Configuration
 
 Modify your Maven configurations in `~/.m2/settings.xml` to add the private servers and mirrors that this project
-depends on:
+depends on (note that Aliyun Maven Central mirror is only necessary for developers in China):
 
 ```xml
 <settings>
