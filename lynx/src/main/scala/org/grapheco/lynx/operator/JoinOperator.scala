@@ -1,11 +1,8 @@
 package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.operator.join.{CartesianProduct, JoinMethods, JoinType, ValueHashJoin}
-import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.expressions.Expression
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
   *@description: This operator is used to join two operators.
@@ -20,6 +17,7 @@ case class JoinOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
+  override val children: Seq[ExecutionOperator] = Seq(smallTable, largeTable)
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
 
