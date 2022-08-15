@@ -1,6 +1,6 @@
 package org.grapheco.lynx.operator
 
-import org.grapheco.lynx.operator.utils.{CartesianProduct, JoinMethods, JoinType}
+import org.grapheco.lynx.operator.join.{CartesianProduct, JoinMethods, JoinType}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.expressions.Expression

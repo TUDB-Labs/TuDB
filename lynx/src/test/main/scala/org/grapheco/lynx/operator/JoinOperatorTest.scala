@@ -1,7 +1,7 @@
 package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.operator.utils.JoinType
+import org.grapheco.lynx.operator.join.JoinType
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}

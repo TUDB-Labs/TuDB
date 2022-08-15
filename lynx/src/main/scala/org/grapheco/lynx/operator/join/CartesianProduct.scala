@@ -1,7 +1,8 @@
-package org.grapheco.lynx.operator.utils
+package org.grapheco.lynx.operator.join
 
-import org.grapheco.lynx.{ExecutionOperator, RowBatch}
+import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.{ExecutionOperator, RowBatch}
 
 /**
   *@description: A table N rows, B table M rows, then CartesianProduct will product N * M rows data.

@@ -1,4 +1,4 @@
-package org.grapheco.lynx.operator.utils
+package org.grapheco.lynx.operator.join
 
 /**
   *@description: List Join Types.
