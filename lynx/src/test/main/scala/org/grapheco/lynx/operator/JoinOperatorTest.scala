@@ -110,8 +110,17 @@ class JoinOperatorTest extends BaseOperatorTest {
       ctx.expressionContext
     )
     val res = getOperatorAllOutputs(joinOperator)
-    res.foreach(batch => {
-      println(batch)
-    })
+      .map(f => f.batchData.map(f => f.asJava).asJava)
+      .toList
+      .asJava
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(
+          List(List(node4, node2).asJava).asJava,
+          List(List(node5, node3).asJava).asJava
+        ).asJava,
+        res
+      )
+    )
   }
 }
