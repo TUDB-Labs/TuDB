@@ -5,6 +5,7 @@ import org.grapheco.lynx.operator.join.JoinType
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
+import org.opencypher.v9_0.expressions.{Equals, Property, PropertyKeyName, Variable}
 
 import scala.collection.JavaConverters._
 
@@ -17,17 +18,26 @@ class JoinOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
     Seq(LynxNodeLabel("Person")),
-    Map(LynxPropertyKey("name") -> LynxValue("Alex"))
+    Map(
+      LynxPropertyKey("name") -> LynxValue("Alex"),
+      LynxPropertyKey("city") -> LynxValue("NewYork")
+    )
   )
   val node2 = TestNode(
     TestId(2L),
     Seq(LynxNodeLabel("Person")),
-    Map(LynxPropertyKey("name") -> LynxValue("Bob"))
+    Map(
+      LynxPropertyKey("name") -> LynxValue("Bob"),
+      LynxPropertyKey("city") -> LynxValue("Beijing")
+    )
   )
   val node3 = TestNode(
     TestId(3L),
     Seq(LynxNodeLabel("Person")),
-    Map(LynxPropertyKey("name") -> LynxValue("Cat"))
+    Map(
+      LynxPropertyKey("name") -> LynxValue("Cat"),
+      LynxPropertyKey("city") -> LynxValue("Chengdu")
+    )
   )
   val node4 = TestNode(
     TestId(4L),
@@ -76,5 +86,32 @@ class JoinOperatorTest extends BaseOperatorTest {
         res
       )
     )
+  }
+
+  @Test
+  def testValueHashJoin(): Unit = {
+    val filterExpr = Equals(
+      Property(Variable("person")(defaultPosition), PropertyKeyName("city")(defaultPosition))(
+        defaultPosition
+      ),
+      Property(Variable("city")(defaultPosition), PropertyKeyName("name")(defaultPosition))(
+        defaultPosition
+      )
+    )(defaultPosition)
+
+    val smallTable = prepareNodeScanOperator("city", Seq("City"), Seq.empty)
+    val largeTable = prepareNodeScanOperator("person", Seq("Person"), Seq.empty)
+    val joinOperator = JoinOperator(
+      smallTable,
+      largeTable,
+      JoinType.ValueHashJoin,
+      Seq(filterExpr),
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val res = getOperatorAllOutputs(joinOperator)
+    res.foreach(batch => {
+      println(batch)
+    })
   }
 }

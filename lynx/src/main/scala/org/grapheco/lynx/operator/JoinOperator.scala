@@ -1,6 +1,6 @@
 package org.grapheco.lynx.operator
 
-import org.grapheco.lynx.operator.join.{CartesianProduct, JoinMethods, JoinType}
+import org.grapheco.lynx.operator.join.{CartesianProduct, JoinMethods, JoinType, ValueHashJoin}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.expressions.Expression
@@ -36,7 +36,14 @@ case class JoinOperator(
         joinMethods = new CartesianProduct(smallTable, largeTable)
       }
       case JoinType.ValueHashJoin => {
-        ???
+        joinMethods = new ValueHashJoin(
+          smallTable,
+          largeTable,
+          filterExpression,
+          joinedSchema.map(f => f._1),
+          exprEvaluator,
+          exprContext
+        )
       }
     }
   }
