@@ -8,7 +8,7 @@ import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
   * @Date: Created at 21:19 2022/4/12
   * @Modified By:
   */
-object TuStoreContext extends ContextMap {
+object TuDBStoreContext extends ContextMap {
 
   def setNodeStoreAPI(nodeStoreAPI: NodeStoreAPI) =
     super.put("nodeStoreAPI", nodeStoreAPI)

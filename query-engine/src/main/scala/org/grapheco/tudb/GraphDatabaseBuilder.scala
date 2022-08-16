@@ -59,8 +59,8 @@ object GraphDatabaseBuilder extends StrictLogging {
       relMetaDB
     )
 
-    TuStoreContext.setNodeStoreAPI(nodeStoreAPI)
-    TuStoreContext.setRelationshipAPI(relationStoreAPI)
+    TuDBStoreContext.setNodeStoreAPI(nodeStoreAPI)
+    TuDBStoreContext.setRelationshipAPI(relationStoreAPI)
     val statistics = new TuDBStatistics(dataPath, rocksdbConfPath)
     statistics.init()
     new GraphFacade(

@@ -5,7 +5,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
-import org.grapheco.tudb.TuStoreContext
+import org.grapheco.tudb.TuDBStoreContext
 import org.grapheco.tudb.serializer.{BaseSerializer, ByteUtils}
 import org.grapheco.tudb.store.meta.TuDBStatistics._
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
@@ -197,7 +197,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
 
   override def numNodeByLabel(labelName: LynxNodeLabel): Long =
     getNodeLabelCount(
-      TuStoreContext.getNodeStoreAPI.getLabelId(labelName.value).get
+      TuDBStoreContext.getNodeStoreAPI.getLabelId(labelName.value).get
     ).getOrElse(0)
 
   // todo: Impl this func.
@@ -211,14 +211,14 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
 
   override def numRelationshipByType(typeName: LynxRelationshipType): Long =
     getRelationTypeCount(
-      TuStoreContext.getRelationshipAPI.getRelationTypeId(typeName.value).get
+      TuDBStoreContext.getRelationshipAPI.getRelationTypeId(typeName.value).get
     ).getOrElse(0)
 
   def getNodeCountByLabel(): LynxMap = {
     LynxMap(_nodeCountByLabel.map {
       case (key, value) =>
         (
-          TuStoreContext.getNodeStoreAPI
+          TuDBStoreContext.getNodeStoreAPI
             .getLabelName(key)
             .getOrElse("unknown"),
           LynxInteger(value)
@@ -230,7 +230,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
     LynxMap(_relationCountByType.map {
       case (key, value) =>
         (
-          TuStoreContext.getRelationshipAPI
+          TuDBStoreContext.getRelationshipAPI
             .getRelationTypeName(key)
             .getOrElse("unknown"),
           LynxInteger(value)
