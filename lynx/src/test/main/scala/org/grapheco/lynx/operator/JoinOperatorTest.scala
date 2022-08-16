@@ -9,11 +9,6 @@ import org.opencypher.v9_0.expressions.{Equals, Property, PropertyKeyName, Varia
 
 import scala.collection.JavaConverters._
 
-/**
-  *@author:John117
-  *@createDate:2022/8/11
-  *@description:
-  */
 class JoinOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
