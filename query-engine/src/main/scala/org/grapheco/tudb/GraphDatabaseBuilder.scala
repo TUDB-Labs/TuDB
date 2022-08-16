@@ -6,6 +6,7 @@ import org.grapheco.tudb.store.meta.{DBNameMap, TuDBStatistics}
 import org.grapheco.tudb.store.node.NodeStoreAPI
 import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.RocksDBStorage
+import org.grapheco.tudb.TuDBStoreContext
 
 import java.io.File
 
@@ -35,7 +36,7 @@ object GraphDatabaseBuilder extends StrictLogging {
 
     val nodeMetaDB =
       RocksDBStorage.getDB(s"${dataPath}/${DBNameMap.nodeMetaDB}")
-    val nodeStoreAPI = new NodeStoreAPI(
+    TuDBStoreContext.initializeNodeStoreAPI(
       s"${dataPath}/${DBNameMap.nodeDB}",
       "default",
       s"${dataPath}/${DBNameMap.nodeLabelDB}",
@@ -47,7 +48,7 @@ object GraphDatabaseBuilder extends StrictLogging {
 
     val relMetaDB =
       RocksDBStorage.getDB(s"${dataPath}/${DBNameMap.relationMetaDB}")
-    val relationStoreAPI = new RelationshipStoreAPI(
+    TuDBStoreContext.initializeRelationshipStoreAPI(
       s"${dataPath}/${DBNameMap.relationDB}",
       "default",
       s"${dataPath}/${DBNameMap.inRelationDB}",
@@ -59,13 +60,9 @@ object GraphDatabaseBuilder extends StrictLogging {
       relMetaDB
     )
 
-    TuStoreContext.setNodeStoreAPI(nodeStoreAPI)
-    TuStoreContext.setRelationshipAPI(relationStoreAPI)
     val statistics = new TuDBStatistics(dataPath, rocksdbConfPath)
     statistics.init()
     new GraphFacade(
-      nodeStoreAPI,
-      relationStoreAPI,
       statistics,
       {}
     )

@@ -5,6 +5,7 @@ import org.grapheco.tudb.store.meta.DBNameMap
 import org.grapheco.tudb.store.node.NodeStoreAPI
 import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
+import org.grapheco.tudb.TuDBStoreContext
 
 /** @program: TuDB-Embedded
   * @description:
@@ -15,14 +16,11 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean) extends La
   private var nodeMetaDB: KeyValueDB = _
   private var relationMetaDB: KeyValueDB = _
 
-  private var nodeStore: NodeStoreAPI = _
-  private var relationshipStore: RelationshipStoreAPI = _
-
   private def initDB(): Unit = {
     nodeMetaDB = RocksDBStorage.getDB(s"${dbPath}/${DBNameMap.nodeMetaDB}")
     relationMetaDB = RocksDBStorage.getDB(s"${dbPath}/${DBNameMap.relationMetaDB}")
 
-    nodeStore = new NodeStoreAPI(
+    TuDBStoreContext.initializeNodeStoreAPI(
       s"${dbPath}/${DBNameMap.nodeDB}",
       "default",
       s"${dbPath}/${DBNameMap.nodeLabelDB}",
@@ -31,7 +29,7 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean) extends La
       "tudb://index?type=dummy",
       dbPath
     )
-    relationshipStore = new RelationshipStoreAPI(
+    TuDBStoreContext.initializeRelationshipStoreAPI(
       s"${dbPath}/${DBNameMap.relationDB}",
       "default",
       s"${dbPath}/${DBNameMap.inRelationDB}",
@@ -50,8 +48,8 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean) extends La
     )
     println()
     initDB()
-    val nodePerformance = new NodePerformance(nodeStore, testScanAllNodeData)
-    val relationPerformance = new RelationPerformance(relationshipStore)
+    val nodePerformance = new NodePerformance(TuDBStoreContext.getNodeStoreAPI, testScanAllNodeData)
+    val relationPerformance = new RelationPerformance(TuDBStoreContext.getRelationshipAPI)
 
     logger.info(
       "============================= Start [NodeStoreAPI] Test ============================="
@@ -70,7 +68,7 @@ class PerformanceRunner(dbPath: String, testScanAllNodeData: Boolean) extends La
   }
 
   private def closeDB(): Unit = {
-    nodeStore.close()
-    relationshipStore.close()
+    TuDBStoreContext.getNodeStoreAPI.close()
+    TuDBStoreContext.getRelationshipAPI.close()
   }
 }
