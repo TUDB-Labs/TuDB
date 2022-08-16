@@ -5,6 +5,7 @@ import org.grapheco.tudb.store.meta.{DBNameMap, TuDBStatistics}
 import org.grapheco.tudb.store.node.NodeStoreAPI
 import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.RocksDBStorage
+import org.grapheco.tudb.TuDBStoreContext
 import org.junit.{After, Assert, Before, Test}
 
 import java.io.File
@@ -18,9 +19,6 @@ class TestImporter {
   def getRootPath = System.getProperty("user.dir")
   val _dbPath = s"${getRootPath}/testImporter/test.db"
 
-  var nodeStore: NodeStoreAPI = _
-  var relationshipStore: RelationshipStoreAPI = _
-
   @Before
   def init(): Unit = {
     val f = new File(_dbPath)
@@ -30,8 +28,8 @@ class TestImporter {
 
   @After
   def clean(): Unit = {
-    nodeStore.close()
-    relationshipStore.close()
+    TuDBStoreContext.getNodeStoreAPI.close()
+    TuDBStoreContext.getRelationshipAPI.close()
     val f = new File(_dbPath)
     if (f.exists()) FileUtils.deleteDirectory(f)
   }
@@ -68,7 +66,7 @@ class TestImporter {
     statisticDB.init()
 
     val nodeMetaDB = RocksDBStorage.getDB(s"${_dbPath}/${DBNameMap.nodeMetaDB}")
-    nodeStore = new NodeStoreAPI(
+    TuDBStoreContext.initializeNodeStoreAPI(
       s"${_dbPath}/${DBNameMap.nodeDB}",
       "default",
       s"${_dbPath}/${DBNameMap.nodeLabelDB}",
@@ -77,12 +75,12 @@ class TestImporter {
       "tudb://index?type=dummy",
       _dbPath
     )
-    Assert.assertEquals(862, nodeStore.allNodes().size)
+    Assert.assertEquals(862, TuDBStoreContext.getNodeStoreAPI.allNodes().size)
     Assert.assertEquals(862, statisticDB.nodeCount)
 
     val relationMetaDB =
       RocksDBStorage.getDB(s"${_dbPath}/${DBNameMap.relationMetaDB}")
-    relationshipStore = new RelationshipStoreAPI(
+    TuDBStoreContext.initializeRelationshipStoreAPI(
       s"${_dbPath}/${DBNameMap.relationDB}",
       "default",
       s"${_dbPath}/${DBNameMap.inRelationDB}",
@@ -93,8 +91,9 @@ class TestImporter {
       "default",
       relationMetaDB
     )
-    Assert.assertEquals(821, relationshipStore.allRelations().size)
+    Assert.assertEquals(821, TuDBStoreContext.getRelationshipAPI.allRelations().size)
     Assert.assertEquals(821, statisticDB.relationCount)
+    val nodeStore: NodeStoreAPI = TuDBStoreContext.getNodeStoreAPI
     // meta test
     val node = nodeStore.getNodeById(801030792151560L).get
     val labelId = nodeStore.getLabelId("comment").get
@@ -115,6 +114,8 @@ class TestImporter {
         propId5
       )
     )
+
+    val relationshipStore: RelationshipStoreAPI = TuDBStoreContext.getRelationshipAPI
 
     val r1 = relationshipStore.getRelationById(1961).get
     val rTypeId = relationshipStore.getRelationTypeId("hasCreator").get
