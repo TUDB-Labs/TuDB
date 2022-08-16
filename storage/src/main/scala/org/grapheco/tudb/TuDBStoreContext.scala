@@ -4,11 +4,7 @@ import org.grapheco.tudb.store.node.NodeStoreAPI
 import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.KeyValueDB
 
-/** @Author: Airzihao
- * @Description:
- * @Date: Created at 21:19 2022/4/12
- * @Modified By:
- */
+
 object TuDBStoreContext extends ContextMap {
 
   def initializeNodeStoreAPI(nodeDBPath: String,
