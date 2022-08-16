@@ -34,6 +34,20 @@ class LimitOperatorTest extends BaseOperatorTest {
   all_nodes.append(node1, node2, node3, node4)
 
   @Test
+  def testLimitZeroData(): Unit = {
+    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val skipOperator =
+      LimitOperator(0, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+    val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List.empty.asJava,
+        result
+      )
+    )
+  }
+
+  @Test
   def testLimitData(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
     val skipOperator =
@@ -44,6 +58,25 @@ class LimitOperatorTest extends BaseOperatorTest {
         List(
           node1,
           node2
+        ).asJava,
+        result
+      )
+    )
+  }
+
+  @Test
+  def testLimitDataSizeBiggerThanDataSize(): Unit = {
+    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val skipOperator =
+      LimitOperator(20, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+    val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(
+          node1,
+          node2,
+          node3,
+          node4
         ).asJava,
         result
       )
