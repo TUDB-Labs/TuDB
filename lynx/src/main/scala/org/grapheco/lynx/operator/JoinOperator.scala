@@ -6,8 +6,6 @@ import org.opencypher.v9_0.expressions.Expression
 
 /**
   *@description: This operator is used to join two operators.
-  *              But we don't process the situation: two operators have some same schema,
-  *              this kind of join will be optimized to expand.
   */
 case class JoinOperator(
     smallTable: ExecutionOperator,
