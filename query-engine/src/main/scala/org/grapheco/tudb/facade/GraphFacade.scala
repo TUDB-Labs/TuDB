@@ -19,11 +19,11 @@ import scala.language.implicitConversions
   * @Date 2022/3/24
   * @Version 0.1
   */
-class GraphFacade(
-    tuDBStatistics: TuDBStatistics,
-    onClose: => Unit)
+class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
   extends LazyLogging
   with GraphModel {
+
+  var _storageCtx = new TuDBStoreContext()
 
   /**
     * Expand function for cypher like (a)-[r1]-(b)-[r2]-(c)
@@ -106,37 +106,37 @@ class GraphFacade(
   override def statistics: TuDBStatistics = tuDBStatistics
 
   private def nodeLabelNameToId(name: String): Option[Int] = {
-    val nodeLabelId: Option[Int] = TuDBStoreContext.getNodeStoreAPI.getLabelId(name)
+    val nodeLabelId: Option[Int] = _storageCtx.getNodeStoreAPI.getLabelId(name)
     nodeLabelId match {
       case Some(labelId) => Some(labelId)
       case None => {
-        TuDBStoreContext.getNodeStoreAPI.addLabel(name)
-        TuDBStoreContext.getNodeStoreAPI.getLabelId(name)
+        _storageCtx.getNodeStoreAPI.addLabel(name)
+        _storageCtx.getNodeStoreAPI.getLabelId(name)
       }
     }
   }
 
   private def nodePropNameToId(name: String): Option[Int] = {
-    val propId = TuDBStoreContext.getNodeStoreAPI.getPropertyKeyId(name)
+    val propId = _storageCtx.getNodeStoreAPI.getPropertyKeyId(name)
     propId match {
       case Some(propertyId) => Some(propertyId)
       case None => {
-        TuDBStoreContext.getNodeStoreAPI.addPropertyKey(name)
-        TuDBStoreContext.getNodeStoreAPI.getPropertyKeyId(name)
+        _storageCtx.getNodeStoreAPI.addPropertyKey(name)
+        _storageCtx.getNodeStoreAPI.getPropertyKeyId(name)
       }
     }
   }
 
   def relTypeNameToId(name: String): Option[Int] =
-    TuDBStoreContext.getRelationshipAPI.getRelationTypeId(name)
+    _storageCtx.getRelationshipAPI.getRelationTypeId(name)
 
   private def relPropNameToId(name: String): Option[Int] = {
-    val relPropId = TuDBStoreContext.getRelationshipAPI.getPropertyKeyId(name)
+    val relPropId = _storageCtx.getRelationshipAPI.getPropertyKeyId(name)
     relPropId match {
       case Some(propertyId) => Some(propertyId)
       case None =>
-        TuDBStoreContext.getRelationshipAPI.addPropertyKey(name)
-        TuDBStoreContext.getRelationshipAPI.getPropertyKeyId(name)
+        _storageCtx.getRelationshipAPI.addPropertyKey(name)
+        _storageCtx.getRelationshipAPI.getPropertyKeyId(name)
     }
   }
 
@@ -144,45 +144,45 @@ class GraphFacade(
       fromNodeId: Long,
       edgeType: Option[Int] = None
     ): Iterator[StoredRelationship] = {
-    TuDBStoreContext.getRelationshipAPI.findOutRelations(fromNodeId, edgeType)
+    _storageCtx.getRelationshipAPI.findOutRelations(fromNodeId, edgeType)
   }
   def findInRelations(
       endNodeId: Long,
       edgeType: Option[Int] = None
     ): Iterator[StoredRelationship] = {
-    TuDBStoreContext.getRelationshipAPI.findInRelations(endNodeId, edgeType)
+    _storageCtx.getRelationshipAPI.findInRelations(endNodeId, edgeType)
   }
 
   private def mapLynxNodeLabel(id: Int): LynxNodeLabel =
-    TuDBStoreContext.getNodeStoreAPI
+    _storageCtx.getNodeStoreAPI
       .getLabelName(id)
       .map(LynxNodeLabel)
       .getOrElse(LynxNodeLabel("unknown"))
 
   private def mapLynxRelationshipType(id: Int): LynxRelationshipType =
-    TuDBStoreContext.getRelationshipAPI
+    _storageCtx.getRelationshipAPI
       .getRelationTypeName(id)
       .map(LynxRelationshipType)
       .getOrElse(LynxRelationshipType("unknown"))
 
   private def mapLynxPropKeyOfNodes(id: Int): LynxPropertyKey =
-    TuDBStoreContext.getNodeStoreAPI
+    _storageCtx.getNodeStoreAPI
       .getPropertyKeyName(id)
       .map(LynxPropertyKey)
       .getOrElse(LynxPropertyKey("unknown"))
 
   private def mapLynxPropKeyOfRelationships(id: Int): LynxPropertyKey =
-    TuDBStoreContext.getRelationshipAPI
+    _storageCtx.getRelationshipAPI
       .getPropertyKeyName(id)
       .map(LynxPropertyKey)
       .getOrElse(LynxPropertyKey("unknown"))
 
   private def addNode(id: Option[Long], labels: Seq[String], nodeProps: Map[String, Any]): Long = {
-    val nodeId = id.getOrElse(TuDBStoreContext.getNodeStoreAPI.newNodeId())
-    val labelIds = labels.map(TuDBStoreContext.getNodeStoreAPI.addLabel).toArray
+    val nodeId = id.getOrElse(_storageCtx.getNodeStoreAPI.newNodeId())
+    val labelIds = labels.map(_storageCtx.getNodeStoreAPI.addLabel).toArray
     val props: Map[Int, Any] =
-      nodeProps.map(kv => (TuDBStoreContext.getNodeStoreAPI.addPropertyKey(kv._1), kv._2))
-    TuDBStoreContext.getNodeStoreAPI.addNode(nodeId, labelIds, props)
+      nodeProps.map(kv => (_storageCtx.getNodeStoreAPI.addPropertyKey(kv._1), kv._2))
+    _storageCtx.getNodeStoreAPI.addNode(nodeId, labelIds, props)
     tuDBStatistics.increaseNodeCount(1)
     labelIds.foreach(tuDBStatistics.increaseNodeLabelCount(_, 1))
     nodeId
@@ -195,14 +195,14 @@ class GraphFacade(
       to: Long,
       relProps: Map[String, Any]
     ): Long = {
-    val rid = id.getOrElse(TuDBStoreContext.getRelationshipAPI.newRelationId())
-    val typeId = TuDBStoreContext.getRelationshipAPI.addRelationType(label)
+    val rid = id.getOrElse(_storageCtx.getRelationshipAPI.newRelationId())
+    val typeId = _storageCtx.getRelationshipAPI.addRelationType(label)
     val props = relProps.map {
       case (key, value) =>
-        (TuDBStoreContext.getRelationshipAPI.addPropertyKey(key), value)
+        (_storageCtx.getRelationshipAPI.addPropertyKey(key), value)
     }
     //    val rel = new StoredRelationshipWithProperty(rid, from, to, labelId, props)
-    TuDBStoreContext.getRelationshipAPI.addRelationship(rid, from, to, typeId, props)
+    _storageCtx.getRelationshipAPI.addRelationship(rid, from, to, typeId, props)
     tuDBStatistics.increaseRelationCount(1)
     tuDBStatistics.increaseRelationTypeCount(typeId, 1)
     rid
@@ -224,7 +224,7 @@ class GraphFacade(
       rel.id,
       rel.from,
       rel.to,
-      TuDBStoreContext.getRelationshipAPI.getRelationTypeName(rel.typeId).map(LynxRelationshipType),
+      _storageCtx.getRelationshipAPI.getRelationTypeName(rel.typeId).map(LynxRelationshipType),
       rel.properties.toSeq.map {
         case (keyId, value) =>
           (mapLynxPropKeyOfRelationships(keyId).value, LynxValue(value))
@@ -233,14 +233,14 @@ class GraphFacade(
   }
 
   def nodeAt(id: Long): Option[TuNode] =
-    TuDBStoreContext.getNodeStoreAPI.getNodeById(id).map(mapNode)
+    _storageCtx.getNodeStoreAPI.getNodeById(id).map(mapNode)
 
   def nodeAt(lynxId: LynxId): Option[TuNode] = nodeAt(
     lynxId.toLynxInteger.value
   )
 
   def relationshipAt(id: Long): Option[TuRelationship] =
-    TuDBStoreContext.getRelationshipAPI.getRelationById(id).map(mapRelation)
+    _storageCtx.getRelationshipAPI.getRelationById(id).map(mapRelation)
 
   def relationshipAt(lynxId: LynxId): Option[TuRelationship] =
     relationshipAt(lynxId.toLynxInteger.value)
@@ -263,7 +263,7 @@ class GraphFacade(
     * @return An Iterator of all nodes.
     */
   override def nodes(): Iterator[LynxNode] =
-    TuDBStoreContext.getNodeStoreAPI.allNodes().map(mapNode).asInstanceOf[Iterator[LynxNode]]
+    _storageCtx.getNodeStoreAPI.allNodes().map(mapNode).asInstanceOf[Iterator[LynxNode]]
 
   /** Filter nodes based on conditions
     * can use index engine  speed up property filter
@@ -275,17 +275,17 @@ class GraphFacade(
     //ugly impl: The getOrElse(-1) and filter(labelId > 0) is to avoid querying a unexisting label.
     var indexData: Iterator[LynxNode] = null
     //if has index engine and  need filter property , use index filter
-    if (TuDBStoreContext.getNodeStoreAPI.hasIndex()) {
+    if (_storageCtx.getNodeStoreAPI.hasIndex()) {
       if (nodeFilter.properties.nonEmpty) { //use index
         indexData = nodeFilter.properties
           .map(property =>
-            TuDBStoreContext.getNodeStoreAPI.getNodeIdByProperty(
-              TuDBStoreContext.getNodeStoreAPI.getPropertyKeyId(property._1.value).getOrElse(0),
+            _storageCtx.getNodeStoreAPI.getNodeIdByProperty(
+              _storageCtx.getNodeStoreAPI.getPropertyKeyId(property._1.value).getOrElse(0),
               property._2.value
             )
           )
           .flatten
-          .map(nodeId => TuDBStoreContext.getNodeStoreAPI.getNodeById(nodeId).map(mapNode))
+          .map(nodeId => _storageCtx.getNodeStoreAPI.getNodeById(nodeId).map(mapNode))
           .filter(_.nonEmpty)
           .map(_.get.asInstanceOf[LynxNode])
           .filter(tuNode => nodeFilter.matches(tuNode))
@@ -295,7 +295,9 @@ class GraphFacade(
     if (indexData != null) indexData
     else { // else load all data and filter it
       val labelIds: Seq[Int] = nodeFilter.labels
-        .map(lynxNodeLabel => TuDBStoreContext.getNodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
+        .map(lynxNodeLabel =>
+          _storageCtx.getNodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1)
+        )
       if (labelIds.isEmpty) {
         //  TODO: could use index without label?
         nodes().filter(p => nodeFilter.matches(p)) // no label, scan db to filter properties.
@@ -305,7 +307,7 @@ class GraphFacade(
         // get min label
         val minLabelId =
           labelIds.map(lId => statistics.getNodeLabelCount(lId).get -> lId).minBy(f => f._1)._2
-        TuDBStoreContext.getNodeStoreAPI
+        _storageCtx.getNodeStoreAPI
           .getNodesByLabel(minLabelId)
           .map(mapNode)
           .filter(tuNode => nodeFilter.matches(tuNode))
@@ -318,7 +320,7 @@ class GraphFacade(
     * @return An Iterator of PathTriple
     */
   override def relationships(): Iterator[PathTriple] =
-    TuDBStoreContext.getRelationshipAPI
+    _storageCtx.getRelationshipAPI
       .allRelations(true)
       .map(rel =>
         PathTriple(
@@ -339,7 +341,7 @@ class GraphFacade(
         case (valueName, input) =>
           valueName ->
             TuNode(
-              TuDBStoreContext.getNodeStoreAPI.newNodeId(),
+              _storageCtx.getNodeStoreAPI.newNodeId(),
               input.labels,
               input.props.map(kv => (kv._1.value, kv._2))
             )
@@ -354,7 +356,7 @@ class GraphFacade(
         relationshipsInput.map {
           case (valueName, input) =>
             valueName -> TuRelationship(
-              TuDBStoreContext.getRelationshipAPI.newRelationId(),
+              _storageCtx.getRelationshipAPI.newRelationId(),
               localNodeRef(input.startNodeRef).value,
               localNodeRef(input.endNodeRef).value,
               input.types.headOption,
@@ -383,11 +385,11 @@ class GraphFacade(
     }
 
     override def deleteRelations(ids: Iterator[LynxId]): Unit = ids.foreach { id =>
-      TuDBStoreContext.getRelationshipAPI.deleteRelation(id.value.asInstanceOf[Long])
+      _storageCtx.getRelationshipAPI.deleteRelation(id.value.asInstanceOf[Long])
     }
 
     override def deleteNodes(ids: Seq[LynxId]): Unit =
-      TuDBStoreContext.getNodeStoreAPI.deleteNodes(ids.map(_.value.asInstanceOf[Long]).iterator)
+      _storageCtx.getNodeStoreAPI.deleteNodes(ids.map(_.value.asInstanceOf[Long]).iterator)
 
     override def setNodesProperties(
         nodeIds: Iterator[LynxId],
@@ -396,13 +398,13 @@ class GraphFacade(
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       data.foreach {
         case (key, value) =>
-          TuDBStoreContext.getNodeStoreAPI.nodeSetProperty(
+          _storageCtx.getNodeStoreAPI.nodeSetProperty(
             id.toLynxInteger.value,
             nodePropNameToId(key.value).get,
             value
           )
       }
-      TuDBStoreContext.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
+      _storageCtx.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
     }
 
     override def setNodesLabels(
@@ -410,12 +412,12 @@ class GraphFacade(
         labels: Array[LynxNodeLabel]
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       labels.foreach { label =>
-        TuDBStoreContext.getNodeStoreAPI.nodeAddLabel(
+        _storageCtx.getNodeStoreAPI.nodeAddLabel(
           id.toLynxInteger.value,
           nodeLabelNameToId(label.value).get
         )
       }
-      TuDBStoreContext.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
+      _storageCtx.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
     }
 
     override def setRelationshipsProperties(
@@ -424,20 +426,20 @@ class GraphFacade(
       ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       data.foreach {
         case (key, value) =>
-          TuDBStoreContext.getRelationshipAPI.relationSetProperty(
+          _storageCtx.getRelationshipAPI.relationSetProperty(
             id.toLynxInteger.value,
             relPropNameToId(key.value).get,
             value
           )
       }
-      TuDBStoreContext.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
+      _storageCtx.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
 
     override def setRelationshipsType(
         relationshipIds: Iterator[LynxId],
         typeName: LynxRelationshipType
       ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
-      TuDBStoreContext.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
+      _storageCtx.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
 
     override def removeNodesProperties(
@@ -445,12 +447,12 @@ class GraphFacade(
         data: Array[LynxPropertyKey]
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       data.foreach { key =>
-        TuDBStoreContext.getNodeStoreAPI.nodeRemoveProperty(
+        _storageCtx.getNodeStoreAPI.nodeRemoveProperty(
           id.toLynxInteger.value,
           nodePropNameToId(key.value).get
         )
       }
-      TuDBStoreContext.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
+      _storageCtx.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
     }
 
     override def removeNodesLabels(
@@ -458,12 +460,12 @@ class GraphFacade(
         labels: Array[LynxNodeLabel]
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
       labels.foreach { label =>
-        TuDBStoreContext.getNodeStoreAPI.nodeRemoveLabel(
+        _storageCtx.getNodeStoreAPI.nodeRemoveLabel(
           id.toLynxInteger.value,
           nodeLabelNameToId(label.value).get
         )
       }
-      TuDBStoreContext.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
+      _storageCtx.getNodeStoreAPI.getNodeById(id.toLynxInteger.v).map(mapNode)
     }
 
     override def removeRelationshipsProperties(
@@ -471,12 +473,12 @@ class GraphFacade(
         data: Array[LynxPropertyKey]
       ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       data.foreach { key =>
-        TuDBStoreContext.getRelationshipAPI.relationRemoveProperty(
+        _storageCtx.getRelationshipAPI.relationRemoveProperty(
           id.toLynxInteger.value,
           relPropNameToId(key.value).get
         )
       }
-      TuDBStoreContext.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
+      _storageCtx.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
 
     override def removeRelationshipsType(
@@ -484,7 +486,7 @@ class GraphFacade(
         typeName: LynxRelationshipType
       ): Iterator[Option[LynxRelationship]] = relationshipIds.map { id =>
       // fixme
-      TuDBStoreContext.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
+      _storageCtx.getRelationshipAPI.getRelationById(id.toLynxInteger.value).map(mapRelation)
     }
 
     /** Commit write tasks. It is called at the end of the statement.
@@ -503,8 +505,8 @@ class GraphFacade(
     runner.run(query, param)
 
   def close(): Unit = {
-    TuDBStoreContext.getNodeStoreAPI.close()
-    TuDBStoreContext.getRelationshipAPI.close()
+    _storageCtx.getNodeStoreAPI.close()
+    _storageCtx.getRelationshipAPI.close()
     tuDBStatistics.close()
   }
 }

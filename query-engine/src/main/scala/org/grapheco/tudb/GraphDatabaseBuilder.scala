@@ -3,10 +3,7 @@ package org.grapheco.tudb
 import com.typesafe.scalalogging.StrictLogging
 import org.grapheco.tudb.facade.GraphFacade
 import org.grapheco.tudb.store.meta.{DBNameMap, TuDBStatistics}
-import org.grapheco.tudb.store.node.NodeStoreAPI
-import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.RocksDBStorage
-import org.grapheco.tudb.TuDBStoreContext
 
 import java.io.File
 
@@ -17,6 +14,7 @@ import java.io.File
   */
 object GraphDatabaseBuilder extends StrictLogging {
 
+  var storageCtx = new TuDBStoreContext()
   def newEmbeddedDatabase(
       dataPath: String,
       indexUri: String,
@@ -36,7 +34,7 @@ object GraphDatabaseBuilder extends StrictLogging {
 
     val nodeMetaDB =
       RocksDBStorage.getDB(s"${dataPath}/${DBNameMap.nodeMetaDB}")
-    TuDBStoreContext.initializeNodeStoreAPI(
+    storageCtx.initializeNodeStoreAPI(
       s"${dataPath}/${DBNameMap.nodeDB}",
       "default",
       s"${dataPath}/${DBNameMap.nodeLabelDB}",
@@ -48,7 +46,7 @@ object GraphDatabaseBuilder extends StrictLogging {
 
     val relMetaDB =
       RocksDBStorage.getDB(s"${dataPath}/${DBNameMap.relationMetaDB}")
-    TuDBStoreContext.initializeRelationshipStoreAPI(
+    storageCtx.initializeRelationshipStoreAPI(
       s"${dataPath}/${DBNameMap.relationDB}",
       "default",
       s"${dataPath}/${DBNameMap.inRelationDB}",

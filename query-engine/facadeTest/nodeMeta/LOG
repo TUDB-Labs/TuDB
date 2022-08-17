@@ -1,0 +1,105 @@
+2022/08/16-23:00:02.654635 13094174720 RocksDB version: 7.4.4
+2022/08/16-23:00:02.654670 13094174720 Git sha e656fa3d196c5b4c8a77255db1e6cd36a7ded348
+2022/08/16-23:00:02.654672 13094174720 Compile date 2022-07-19 08:49:59
+2022/08/16-23:00:02.654673 13094174720 DB SUMMARY
+2022/08/16-23:00:02.654674 13094174720 DB Session ID:  66IPMBHM8HA90ZBACC9G
+2022/08/16-23:00:02.654692 13094174720 SST files in /Users/yuan.tang/repos/TuDB/query-engine/facadeTest/nodeMeta dir, Total Num: 0, files: 
+2022/08/16-23:00:02.654693 13094174720 Write Ahead Log file in /Users/yuan.tang/repos/TuDB/query-engine/facadeTest/nodeMeta: 
+2022/08/16-23:00:02.654694 13094174720                         Options.error_if_exists: 0
+2022/08/16-23:00:02.654696 13094174720                       Options.create_if_missing: 1
+2022/08/16-23:00:02.654696 13094174720                         Options.paranoid_checks: 1
+2022/08/16-23:00:02.654697 13094174720             Options.flush_verify_memtable_count: 1
+2022/08/16-23:00:02.654698 13094174720                               Options.track_and_verify_wals_in_manifest: 0
+2022/08/16-23:00:02.654699 13094174720        Options.verify_sst_unique_id_in_manifest: 0
+2022/08/16-23:00:02.654700 13094174720                                     Options.env: 0x12ea0dd28
+2022/08/16-23:00:02.654701 13094174720                                      Options.fs: PosixFileSystem
+2022/08/16-23:00:02.654702 13094174720                                Options.info_log: 0x7fb7df732500
+2022/08/16-23:00:02.654702 13094174720                Options.max_file_opening_threads: 16
+2022/08/16-23:00:02.654703 13094174720                              Options.statistics: 0x0
+2022/08/16-23:00:02.654704 13094174720                               Options.use_fsync: 0
+2022/08/16-23:00:02.654705 13094174720                       Options.max_log_file_size: 0
+2022/08/16-23:00:02.654706 13094174720                  Options.max_manifest_file_size: 1073741824
+2022/08/16-23:00:02.654707 13094174720                   Options.log_file_time_to_roll: 0
+2022/08/16-23:00:02.654707 13094174720                       Options.keep_log_file_num: 1000
+2022/08/16-23:00:02.654708 13094174720                    Options.recycle_log_file_num: 0
+2022/08/16-23:00:02.654709 13094174720                         Options.allow_fallocate: 1
+2022/08/16-23:00:02.654710 13094174720                        Options.allow_mmap_reads: 0
+2022/08/16-23:00:02.654710 13094174720                       Options.allow_mmap_writes: 0
+2022/08/16-23:00:02.654711 13094174720                        Options.use_direct_reads: 0
+2022/08/16-23:00:02.654712 13094174720                        Options.use_direct_io_for_flush_and_compaction: 1
+2022/08/16-23:00:02.654713 13094174720          Options.create_missing_column_families: 0
+2022/08/16-23:00:02.654714 13094174720                              Options.db_log_dir: 
+2022/08/16-23:00:02.654714 13094174720                                 Options.wal_dir: 
+2022/08/16-23:00:02.654715 13094174720                Options.table_cache_numshardbits: 6
+2022/08/16-23:00:02.654716 13094174720                         Options.WAL_ttl_seconds: 0
+2022/08/16-23:00:02.654717 13094174720                       Options.WAL_size_limit_MB: 0
+2022/08/16-23:00:02.654717 13094174720                        Options.max_write_batch_group_size_bytes: 1048576
+2022/08/16-23:00:02.654718 13094174720             Options.manifest_preallocation_size: 4194304
+2022/08/16-23:00:02.654719 13094174720                     Options.is_fd_close_on_exec: 1
+2022/08/16-23:00:02.654720 13094174720                   Options.advise_random_on_open: 1
+2022/08/16-23:00:02.654721 13094174720                   Options.experimental_mempurge_threshold: 0.000000
+2022/08/16-23:00:02.654723 13094174720                    Options.db_write_buffer_size: 0
+2022/08/16-23:00:02.654724 13094174720                    Options.write_buffer_manager: 0x7fb7df734c80
+2022/08/16-23:00:02.654725 13094174720         Options.access_hint_on_compaction_start: 1
+2022/08/16-23:00:02.654726 13094174720           Options.random_access_max_buffer_size: 1048576
+2022/08/16-23:00:02.654726 13094174720                      Options.use_adaptive_mutex: 0
+2022/08/16-23:00:02.654737 13094174720                            Options.rate_limiter: 0x0
+2022/08/16-23:00:02.654738 13094174720     Options.sst_file_manager.rate_bytes_per_sec: 0
+2022/08/16-23:00:02.654739 13094174720                       Options.wal_recovery_mode: 2
+2022/08/16-23:00:02.654740 13094174720                  Options.enable_thread_tracking: 0
+2022/08/16-23:00:02.654741 13094174720                  Options.enable_pipelined_write: 0
+2022/08/16-23:00:02.654742 13094174720                  Options.unordered_write: 0
+2022/08/16-23:00:02.654742 13094174720         Options.allow_concurrent_memtable_write: 1
+2022/08/16-23:00:02.654743 13094174720      Options.enable_write_thread_adaptive_yield: 1
+2022/08/16-23:00:02.654744 13094174720             Options.write_thread_max_yield_usec: 100
+2022/08/16-23:00:02.654745 13094174720            Options.write_thread_slow_yield_usec: 3
+2022/08/16-23:00:02.654746 13094174720                               Options.row_cache: None
+2022/08/16-23:00:02.654746 13094174720                              Options.wal_filter: None
+2022/08/16-23:00:02.654747 13094174720             Options.avoid_flush_during_recovery: 0
+2022/08/16-23:00:02.654748 13094174720             Options.allow_ingest_behind: 0
+2022/08/16-23:00:02.654749 13094174720             Options.two_write_queues: 0
+2022/08/16-23:00:02.654749 13094174720             Options.manual_wal_flush: 0
+2022/08/16-23:00:02.654750 13094174720             Options.wal_compression: 0
+2022/08/16-23:00:02.654751 13094174720             Options.atomic_flush: 0
+2022/08/16-23:00:02.654752 13094174720             Options.avoid_unnecessary_blocking_io: 0
+2022/08/16-23:00:02.654753 13094174720                 Options.persist_stats_to_disk: 0
+2022/08/16-23:00:02.654753 13094174720                 Options.write_dbid_to_manifest: 0
+2022/08/16-23:00:02.654754 13094174720                 Options.log_readahead_size: 0
+2022/08/16-23:00:02.654755 13094174720                 Options.file_checksum_gen_factory: Unknown
+2022/08/16-23:00:02.654756 13094174720                 Options.best_efforts_recovery: 0
+2022/08/16-23:00:02.654757 13094174720                Options.max_bgerror_resume_count: 2147483647
+2022/08/16-23:00:02.654758 13094174720            Options.bgerror_resume_retry_interval: 1000000
+2022/08/16-23:00:02.654759 13094174720             Options.allow_data_in_errors: 0
+2022/08/16-23:00:02.654759 13094174720             Options.db_host_id: __hostname__
+2022/08/16-23:00:02.654760 13094174720             Options.enforce_single_del_contracts: true
+2022/08/16-23:00:02.654761 13094174720             Options.max_background_jobs: 4
+2022/08/16-23:00:02.654762 13094174720             Options.max_background_compactions: -1
+2022/08/16-23:00:02.654763 13094174720             Options.max_subcompactions: 1
+2022/08/16-23:00:02.654763 13094174720             Options.avoid_flush_during_shutdown: 0
+2022/08/16-23:00:02.654764 13094174720           Options.writable_file_max_buffer_size: 1048576
+2022/08/16-23:00:02.654765 13094174720             Options.delayed_write_rate : 16777216
+2022/08/16-23:00:02.654766 13094174720             Options.max_total_wal_size: 0
+2022/08/16-23:00:02.654767 13094174720             Options.delete_obsolete_files_period_micros: 21600000000
+2022/08/16-23:00:02.654768 13094174720                   Options.stats_dump_period_sec: 600
+2022/08/16-23:00:02.654768 13094174720                 Options.stats_persist_period_sec: 600
+2022/08/16-23:00:02.654769 13094174720                 Options.stats_history_buffer_size: 1048576
+2022/08/16-23:00:02.654770 13094174720                          Options.max_open_files: -1
+2022/08/16-23:00:02.654771 13094174720                          Options.bytes_per_sync: 0
+2022/08/16-23:00:02.654772 13094174720                      Options.wal_bytes_per_sync: 0
+2022/08/16-23:00:02.654772 13094174720                   Options.strict_bytes_per_sync: 0
+2022/08/16-23:00:02.654773 13094174720       Options.compaction_readahead_size: 2097152
+2022/08/16-23:00:02.654774 13094174720                  Options.max_background_flushes: -1
+2022/08/16-23:00:02.654781 13094174720 Compression algorithms supported:
+2022/08/16-23:00:02.654783 13094174720 	kZSTD supported: 1
+2022/08/16-23:00:02.654783 13094174720 	kZlibCompression supported: 1
+2022/08/16-23:00:02.654784 13094174720 	kXpressCompression supported: 0
+2022/08/16-23:00:02.654785 13094174720 	kSnappyCompression supported: 1
+2022/08/16-23:00:02.654786 13094174720 	kZSTDNotFinalCompression supported: 1
+2022/08/16-23:00:02.654787 13094174720 	kLZ4HCCompression supported: 1
+2022/08/16-23:00:02.654788 13094174720 	kLZ4Compression supported: 1
+2022/08/16-23:00:02.654789 13094174720 	kBZip2Compression supported: 1
+2022/08/16-23:00:02.654790 13094174720 Fast CRC32 supported: Not supported on x86
+2022/08/16-23:00:02.654791 13094174720 DMutex implementation: pthread_mutex_t
+2022/08/16-23:00:02.654821 13094174720 [WARN] [/db_impl/db_impl_open.cc:2054] DB::Open() failed: IO error: lock hold by current process, acquire time 1660705198 acquiring thread 13094174720: /Users/yuan.tang/repos/TuDB/query-engine/facadeTest/nodeMeta/LOCK: No locks available
+2022/08/16-23:00:02.654828 13094174720 [/db_impl/db_impl.cc:480] Shutdown: canceling all background work
+2022/08/16-23:00:02.654840 13094174720 [/db_impl/db_impl.cc:710] Shutdown complete

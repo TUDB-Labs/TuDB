@@ -42,6 +42,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
     mutable.Map[Int, Long]()
   private var _propertyCountByIndex: mutable.Map[Int, Long] =
     mutable.Map[Int, Long]()
+  private var _storageCtx = new TuDBStoreContext()
 
   def getNodeLabelCountMap: Map[Int, Long] = _nodeCountByLabel.toMap
   def getRelationTypeCountMap: Map[Int, Long] = _relationCountByType.toMap
@@ -197,7 +198,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
 
   override def numNodeByLabel(labelName: LynxNodeLabel): Long =
     getNodeLabelCount(
-      TuDBStoreContext.getNodeStoreAPI.getLabelId(labelName.value).get
+      _storageCtx.getNodeStoreAPI.getLabelId(labelName.value).get
     ).getOrElse(0)
 
   // todo: Impl this func.
@@ -211,14 +212,14 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
 
   override def numRelationshipByType(typeName: LynxRelationshipType): Long =
     getRelationTypeCount(
-      TuDBStoreContext.getRelationshipAPI.getRelationTypeId(typeName.value).get
+      _storageCtx.getRelationshipAPI.getRelationTypeId(typeName.value).get
     ).getOrElse(0)
 
   def getNodeCountByLabel(): LynxMap = {
     LynxMap(_nodeCountByLabel.map {
       case (key, value) =>
         (
-          TuDBStoreContext.getNodeStoreAPI
+          _storageCtx.getNodeStoreAPI
             .getLabelName(key)
             .getOrElse("unknown"),
           LynxInteger(value)
@@ -230,7 +231,7 @@ class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends l
     LynxMap(_relationCountByType.map {
       case (key, value) =>
         (
-          TuDBStoreContext.getRelationshipAPI
+          _storageCtx.getRelationshipAPI
             .getRelationTypeName(key)
             .getOrElse("unknown"),
           LynxInteger(value)

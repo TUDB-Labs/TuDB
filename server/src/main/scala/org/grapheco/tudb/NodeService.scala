@@ -4,18 +4,18 @@ import io.grpc.stub.StreamObserver
 import org.grapheco.tudb.NodeService.{ConvertToGrpcNode, ConvertToStoredNode}
 import org.grapheco.tudb.core.{Core, NodeServiceGrpc}
 import org.grapheco.tudb.serializer.NodeSerializer
-import org.grapheco.tudb.store.node.{NodeStoreAPI, StoredNodeWithProperty}
+import org.grapheco.tudb.store.node.StoredNodeWithProperty
 
 // TODO: All messages and exit codes are hard-coded to be successful since NodeStoreAPI does not provide
 //   a way to access the statuses.
-class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
+class NodeService(dbPath: String, indexUri: String, storageContext: TuDBStoreContext)
   extends NodeServiceGrpc.NodeServiceImplBase {
 
   override def createNode(
       request: Core.NodeCreateRequest,
       responseObserver: StreamObserver[Core.NodeCreateResponse]
     ): Unit = {
-    nodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
+    storageContext.getNodeStoreAPI.addNode(ConvertToStoredNode(request.getNode))
     val status = Core.GenericResponseStatus
       .newBuilder()
       .setMessage(f"successfully created node ${request.getNode.getNodeId}")
@@ -41,7 +41,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       .build()
     val resp: Core.NodeGetResponse = Core.NodeGetResponse
       .newBuilder()
-      .setNode(ConvertToGrpcNode(nodeStoreAPI.getNodeById(request.getNodeId).get))
+      .setNode(ConvertToGrpcNode(storageContext.getNodeStoreAPI.getNodeById(request.getNodeId).get))
       .setStatus(status)
       .build()
     responseObserver.onNext(resp)
@@ -52,7 +52,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeDeleteRequest,
       responseObserver: StreamObserver[Core.NodeDeleteResponse]
     ): Unit = {
-    nodeStoreAPI.deleteNode(request.getNodeId)
+    storageContext.getNodeStoreAPI.deleteNode(request.getNodeId)
     val status = Core.GenericResponseStatus
       .newBuilder()
       .setMessage(f"successfully deleted node ${request.getNodeId}")
@@ -70,7 +70,7 @@ class NodeService(dbPath: String, indexUri: String, nodeStoreAPI: NodeStoreAPI)
       request: Core.NodeListRequest,
       responseObserver: StreamObserver[Core.NodeListResponse]
     ): Unit = {
-    val nodes = nodeStoreAPI
+    val nodes = storageContext.getNodeStoreAPI
       .allNodes()
       .map(rawNode => {
         ConvertToGrpcNode(rawNode)

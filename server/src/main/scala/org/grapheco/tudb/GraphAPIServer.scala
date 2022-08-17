@@ -8,7 +8,6 @@ import org.grapheco.tudb.common.utils.LogUtil
 import org.grapheco.tudb.store.meta.DBNameMap
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.TuDBStoreContext
 import org.slf4j.LoggerFactory
 
 import java.io.File
@@ -23,7 +22,8 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
   TuDBInstanceContext.setDataPath(s"$outputRoot")
   val metaDB: KeyValueDB =
     RocksDBStorage.getDB(s"$outputRoot/${DBNameMap.nodeMetaDB}")
-  TuDBStoreContext.initializeNodeStoreAPI(
+  val storageCtx = new TuDBStoreContext()
+  storageCtx.initializeNodeStoreAPI(
     s"$outputRoot/${DBNameMap.nodeDB}",
     "default",
     s"$outputRoot/${DBNameMap.nodeLabelDB}",
@@ -36,9 +36,13 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
   private val _port: Int = serverContext.getPort
   private val _server: Server = SNettyServerBuilder
     .forPort(_port)
-    .addService(new NodeService(
-      serverContext.getDataPath, serverContext.getIndexUri, TuDBStoreContext.getNodeStoreAPI
-    ))
+    .addService(
+      new NodeService(
+        serverContext.getDataPath,
+        serverContext.getIndexUri,
+        storageCtx
+      )
+    )
     .build()
 
   def start(): Unit = {
@@ -55,7 +59,7 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
   }
 
   def shutdown(): Unit = {
-    TuDBStoreContext.getNodeStoreAPI.close()
+    storageCtx.getNodeStoreAPI.close()
     metaDB.close()
     val file: File = new File(s"$outputRoot")
     if (file.exists()) FileUtils.deleteDirectory(file)
