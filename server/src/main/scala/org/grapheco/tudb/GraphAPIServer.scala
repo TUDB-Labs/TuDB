@@ -36,9 +36,13 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
   private val _port: Int = serverContext.getPort
   private val _server: Server = SNettyServerBuilder
     .forPort(_port)
-    .addService(new NodeService(
-      serverContext.getDataPath, serverContext.getIndexUri, TuDBStoreContext.getNodeStoreAPI
-    ))
+    .addService(
+      new NodeService(
+        serverContext.getDataPath,
+        serverContext.getIndexUri,
+        TuDBStoreContext.getNodeStoreAPI
+      )
+    )
     .build()
 
   def start(): Unit = {
