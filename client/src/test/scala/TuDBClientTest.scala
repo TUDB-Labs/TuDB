@@ -16,7 +16,7 @@ import java.io.File
   */
 object TuDBClientTest {
   val testConnectionPort = 7601
-  val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
+  val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpaceTuDBClient/testBase"
   TuDBInstanceContext.setDataPath(dbPath)
 
   val serverContext = new TuDBServerContext()
