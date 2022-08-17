@@ -20,13 +20,13 @@ class TuDBClient(host: String, port: Int) {
   var blockingStub: TuQueryServiceBlockingStub = null
 
   try {
-    channel =
-      NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
+    channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
     blockingStub = TuQueryServiceGrpc.newBlockingStub(channel)
   } catch {
-    case _: Throwable =>  if (channel != null) {
-      channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
-    }
+    case _: Throwable =>
+      if (channel != null) {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+      }
   }
 
   def query(stat: String): String = {
