@@ -27,12 +27,12 @@ class TuDBServer(serverContext: TuDBServerContext) extends LazyLogging {
   def start(): Unit = {
     _server.start()
     LogUtil.info(LOGGER, "TuDB server started successfully")
-//    Runtime.getRuntime.addShutdownHook(new Thread() {
-//      override def run(): Unit = {
-//        _server.shutdown()
-//      }
-//    })
-//    _server.awaitTermination()
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        _server.shutdown()
+      }
+    })
+    _server.awaitTermination()
   }
 
   def shutdown(): Unit = {
