@@ -53,7 +53,7 @@ class JoinOperatorTest extends BaseOperatorTest {
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
-      JoinType.CartesianProduct,
+      JoinType.DEFAULT,
       Seq.empty,
       expressionEvaluator,
       ctx.expressionContext
@@ -62,6 +62,7 @@ class JoinOperatorTest extends BaseOperatorTest {
       .map(f => f.batchData.map(f => f.asJava).asJava)
       .toList
       .asJava
+    println(res)
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
         List(
@@ -99,7 +100,7 @@ class JoinOperatorTest extends BaseOperatorTest {
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
-      JoinType.ValueHashJoin,
+      JoinType.DEFAULT,
       Seq(filterExpr),
       expressionEvaluator,
       ctx.expressionContext
