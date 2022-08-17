@@ -7,12 +7,7 @@ import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvalua
 import org.opencypher.v9_0.expressions.{Expression, Property}
 
 /**
-  *@description: When two table have properties reference, valueHashJoin is required.
-  *    like:
-  *         match (n:Person)
-  *         match (m:City)
-  *         where m.name=n.city
-  *         return n,m
+  *@description:
   */
 case class DefaultJoin(
     smallTable: ExecutionOperator,
