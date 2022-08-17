@@ -19,9 +19,7 @@ import scala.language.implicitConversions
   * @Date 2022/3/24
   * @Version 0.1
   */
-class GraphFacade(
-    tuDBStatistics: TuDBStatistics,
-    onClose: => Unit)
+class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
   extends LazyLogging
   with GraphModel {
 
@@ -295,7 +293,9 @@ class GraphFacade(
     if (indexData != null) indexData
     else { // else load all data and filter it
       val labelIds: Seq[Int] = nodeFilter.labels
-        .map(lynxNodeLabel => TuDBStoreContext.getNodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1))
+        .map(lynxNodeLabel =>
+          TuDBStoreContext.getNodeStoreAPI.getLabelId(lynxNodeLabel.value).getOrElse(-1)
+        )
       if (labelIds.isEmpty) {
         //  TODO: could use index without label?
         nodes().filter(p => nodeFilter.matches(p)) // no label, scan db to filter properties.
