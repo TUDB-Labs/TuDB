@@ -36,6 +36,7 @@ class TuDBServer(serverContext: TuDBServerContext) extends LazyLogging {
   }
 
   def shutdown(): Unit = {
+    LogUtil.info(LOGGER, "TuDB server shutdown")
     _server.shutdown().awaitTermination(5, TimeUnit.SECONDS)
   }
 

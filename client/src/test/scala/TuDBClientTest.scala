@@ -15,8 +15,8 @@ import java.io.File
   * @Modified By:
   */
 object TuDBClientTest {
-  val testConnectionPort = 7600
-  val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
+  val testConnectionPort = 7601
+  val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpaceTuDBClient/testBase"
   TuDBInstanceContext.setDataPath(dbPath)
 
   val serverContext = new TuDBServerContext()
@@ -54,7 +54,7 @@ class TuDBClientTest {
   }
 
   @After
-  def shutDownlient(): Unit = {
+  def shutDownClient(): Unit = {
     if (client != null) {
       client.query("match (n) detach delete n")
       client.shutdown()

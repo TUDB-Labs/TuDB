@@ -4,7 +4,6 @@ import org.grapheco.tudb.store.node.NodeStoreAPI
 import org.grapheco.tudb.store.relationship.RelationshipStoreAPI
 import org.grapheco.tudb.store.storage.KeyValueDB
 
-
 object TuDBStoreContext extends ContextMap {
 
   def initializeNodeStoreAPI(
@@ -14,7 +13,8 @@ object TuDBStoreContext extends ContextMap {
       nodeLabelConfigPath: String,
       metaDB: KeyValueDB,
       indexUri: String,
-      dbPath: String): NodeStoreAPI = {
+      dbPath: String
+    ): NodeStoreAPI = {
     val nodeStoreAPI = new NodeStoreAPI(
       nodeDBPath,
       nodeDBConfigPath,
@@ -37,7 +37,8 @@ object TuDBStoreContext extends ContextMap {
       outRelationConfigPath: String,
       relationLabelDBPath: String,
       relationLabelConfigPath: String,
-      metaDB: KeyValueDB): RelationshipStoreAPI = {
+      metaDB: KeyValueDB
+    ): RelationshipStoreAPI = {
     val relationshipStoreAPI = new RelationshipStoreAPI(
       relationDBPath,
       relationConfigPath,

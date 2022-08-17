@@ -1,7 +1,9 @@
 package org.grapheco.tudb.client
 
+import io.grpc.ManagedChannel
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import org.grapheco.tudb.TuDBJsonTool.objectMapper
+import org.grapheco.tudb.network.TuQueryServiceGrpc.TuQueryServiceBlockingStub
 import org.grapheco.tudb.network.{Query, TuQueryServiceGrpc}
 
 import java.util.concurrent.TimeUnit
@@ -14,9 +16,18 @@ import scala.collection.JavaConverters.asScalaIteratorConverter
   */
 class TuDBClient(host: String, port: Int) {
 
-  val channel =
-    NettyChannelBuilder.forAddress(host, port).usePlaintext().build();
-  val blockingStub = TuQueryServiceGrpc.newBlockingStub(channel)
+  var channel: ManagedChannel = null
+  var blockingStub: TuQueryServiceBlockingStub = null
+
+  try {
+    channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
+    blockingStub = TuQueryServiceGrpc.newBlockingStub(channel)
+  } catch {
+    case _: Throwable =>
+      if (channel != null) {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+      }
+  }
 
   def query(stat: String): String = {
     val request: Query.QueryRequest =
