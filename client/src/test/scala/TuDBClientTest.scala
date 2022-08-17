@@ -15,7 +15,7 @@ import java.io.File
   * @Modified By:
   */
 object TuDBClientTest {
-  val testConnectionPort = 7600
+  val testConnectionPort = 7601
   val dbPath: String = s"${TestUtils.getModuleRootPath}/testSpace/testBase"
   TuDBInstanceContext.setDataPath(dbPath)
 
@@ -126,16 +126,16 @@ class TuDBClientTest {
     Assert.assertEquals(1, nodeStat.get("person3").get)
     Assert.assertEquals(2, relStat.get("KNOW").get)
   }
-//
-//  @Test
-//  def testCypherException(): Unit = {
-//    val request: Query.QueryRequest =
-//      Query.QueryRequest.newBuilder().setStatement("321321321321").build()
-//    val response = client.blockingStub.query(request)
-//    if (response.hasNext) {
-//      val message = response.next().getMessage
-//      Assert.assertTrue(message.startsWith("Invalid input"))
-//    }
-//  }
+
+  @Test
+  def testCypherException(): Unit = {
+    val request: Query.QueryRequest =
+      Query.QueryRequest.newBuilder().setStatement("321321321321").build()
+    val response = client.blockingStub.query(request)
+    if (response.hasNext) {
+      val message = response.next().getMessage
+      Assert.assertTrue(message.startsWith("Invalid input"))
+    }
+  }
 
 }
