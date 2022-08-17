@@ -8,7 +8,6 @@ import org.grapheco.tudb.common.utils.LogUtil
 import org.grapheco.tudb.store.meta.DBNameMap
 import org.grapheco.tudb.store.storage.{KeyValueDB, RocksDBStorage}
 import org.grapheco.tudb.test.TestUtils
-import org.grapheco.tudb.TuDBStoreContext
 import org.slf4j.LoggerFactory
 
 import java.io.File

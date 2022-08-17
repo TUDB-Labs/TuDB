@@ -54,7 +54,7 @@ class TuDBClientTest {
   }
 
   @After
-  def shutDownlient(): Unit = {
+  def shutDownClient(): Unit = {
     if (client != null) {
       client.query("match (n) detach delete n")
       client.shutdown()
@@ -126,16 +126,16 @@ class TuDBClientTest {
     Assert.assertEquals(1, nodeStat.get("person3").get)
     Assert.assertEquals(2, relStat.get("KNOW").get)
   }
-
-  @Test
-  def testCypherException(): Unit = {
-    val request: Query.QueryRequest =
-      Query.QueryRequest.newBuilder().setStatement("321321321321").build()
-    val response = client.blockingStub.query(request)
-    if (response.hasNext) {
-      val message = response.next().getMessage
-      Assert.assertTrue(message.startsWith("Invalid input"))
-    }
-  }
+//
+//  @Test
+//  def testCypherException(): Unit = {
+//    val request: Query.QueryRequest =
+//      Query.QueryRequest.newBuilder().setStatement("321321321321").build()
+//    val response = client.blockingStub.query(request)
+//    if (response.hasNext) {
+//      val message = response.next().getMessage
+//      Assert.assertTrue(message.startsWith("Invalid input"))
+//    }
+//  }
 
 }
