@@ -4,7 +4,7 @@ import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull}
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
-import org.opencypher.v9_0.expressions.{Expression, Property}
+import org.opencypher.v9_0.expressions.{Expression}
 
 /**
   *@description:
