@@ -188,7 +188,7 @@ message RelationshipCreateResponse {
 };
 
 message RelationshipGetRequest {
-  string name = 1;
+  int64 relationship_id = 1;
 };
 
 message RelationshipGetResponse {
@@ -205,7 +205,7 @@ message RelationshipListResponse {
 };
 
 message RelationshipDeleteRequest {
-  string name = 1;
+  int64 relationship_id = 1;
 };
 
 message RelationshipDeleteResponse {
