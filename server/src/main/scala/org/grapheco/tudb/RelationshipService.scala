@@ -2,6 +2,8 @@ package org.grapheco.tudb
 
 import io.grpc.stub.StreamObserver
 import org.grapheco.tudb.core.{Core, RelationshipServiceGrpc}
+import org.grapheco.tudb.serializer.RelationshipSerializer
+import org.grapheco.tudb.store.relationship.StoredRelationshipWithProperty
 
 class RelationshipService(dbPath: String, indexUri: String)
   extends RelationshipServiceGrpc.RelationshipServiceImplBase {
@@ -80,5 +82,55 @@ class RelationshipService(dbPath: String, indexUri: String)
       .build()
     responseObserver.onNext(resp)
     responseObserver.onCompleted()
+  }
+}
+
+object RelationshipService {
+  def ConvertToGrpcRelationship(
+      rawRelationship: StoredRelationshipWithProperty
+    ): Core.Relationship = {
+    val relationshipBuilder: Core.Relationship.Builder = Core.Relationship
+      .newBuilder()
+      .setRelationshipId(rawRelationship.id)
+
+    rawRelationship.properties.foreach(kv => {
+      val prop = Core.Property
+        .newBuilder()
+        .setInd(kv._1)
+        .setValue(kv._2.toString)
+        .build()
+      relationshipBuilder.addProperties(prop)
+    })
+    relationshipBuilder.setStartNodeId(rawRelationship.from)
+    relationshipBuilder.setEndNodeId(rawRelationship.to)
+    relationshipBuilder.setRelationType(rawRelationship.typeId)
+    relationshipBuilder.build()
+  }
+
+  def ConvertToStoredRelationship(
+      relationship: Core.Relationship
+    ): StoredRelationshipWithProperty = {
+    var rawProps = Map[Int, String]()
+    relationship.getPropertiesList.forEach(prop => {
+      rawProps += (prop.getInd -> prop.getValue)
+    })
+    val fromNode: Long = relationship.getStartNodeId
+    val toNode: Long = relationship.getEndNodeId
+    val typeId: Long = relationship.getRelationType
+    val relationshipInBytes: Array[Byte] =
+      RelationshipSerializer.encodeRelationship(
+        relationship.getRelationshipId,
+        fromNode,
+        toNode,
+        typeId,
+        rawProps
+      )
+    new StoredRelationshipWithProperty(
+      relationship.getRelationshipId,
+      fromNode,
+      toNode,
+      typeId,
+      relationshipInBytes
+    )
   }
 }
