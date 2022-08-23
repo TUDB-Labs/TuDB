@@ -60,8 +60,8 @@ class GraphAPIClientTest {
     NodeSerializer.encodeNodeWithProperties(2L, labelIds2, props2)
   val storedNode2 = new StoredNodeWithProperty(2L, labelIds2, node2InBytes)
 
-  val propOfRel1: Map[Int, Any] = Map(100 -> 2017)
-  val propOfRel2: Map[Int, Any] = Map(101 -> "2022")
+  val propOfRel1: Map[Int, Any] = Map(1 -> 2017)
+  val propOfRel2: Map[Int, Any] = Map(2 -> "2022")
   val type1Id: TypeId = 666
   val type2Id: TypeId = 777
   val rel1InBytes: Array[Byte] =
@@ -140,16 +140,48 @@ class GraphAPIClientTest {
   def testCreateAndGetRelationship(): Unit = {
     client.createNode(NodeService.ConvertToGrpcNode(storedNode1))
     client.createNode(NodeService.ConvertToGrpcNode(storedNode2))
-    val relationship: Core.Relationship =
+    val relationship1: Core.Relationship =
       RelationshipService.ConvertToGrpcRelationship(storedRelationship1)
-    val createdRelationship = client.createRelationship(relationship)
+    val createdRelationship = client.createRelationship(relationship1)
     Assert.assertEquals(12L, createdRelationship.getRelationshipId)
-//    Assert.assertEquals("2017", createdRelationship.getProperties(0).getValue)
-//    Assert.assertEquals("2022", createdRelationship.getProperties(1).getValue)
+    Assert.assertEquals(666, createdRelationship.getRelationType)
+    Assert.assertEquals("2017", createdRelationship.getProperties(0).getValue)
 
     val obtainedRelationship = client.getRelationship(12L)
     Assert.assertEquals(12L, obtainedRelationship.getRelationshipId)
-//    Assert.assertEquals("2012", obtainedRelationship.getProperties(0).getValue)
-//    Assert.assertEquals("2022", obtainedRelationship.getProperties(1).getValue)
+    Assert.assertEquals(666, createdRelationship.getRelationType)
+    Assert.assertEquals("2017", obtainedRelationship.getProperties(0).getValue)
+  }
+
+  @Test
+  def testListRelationships(): Unit = {
+    client.createNode(NodeService.ConvertToGrpcNode(storedNode1))
+    client.createNode(NodeService.ConvertToGrpcNode(storedNode2))
+    val relationship1: Core.Relationship =
+      RelationshipService.ConvertToGrpcRelationship(storedRelationship1)
+    client.createRelationship(relationship1)
+    val relationships = client.listRelationships()
+    Assert.assertEquals(1, relationships.length)
+    val obtainedRelationship = relationships.head
+    Assert.assertEquals(12L, obtainedRelationship.getRelationshipId)
+    Assert.assertEquals(666, obtainedRelationship.getRelationType)
+    Assert.assertEquals("2017", obtainedRelationship.getProperties(0).getValue)
+
+    val relationship2: Core.Relationship =
+      RelationshipService.ConvertToGrpcRelationship(storedRelationship2)
+    client.createRelationship(relationship2)
+    Assert.assertEquals(2, client.listRelationships().length)
+  }
+
+  @Test
+  def testDeleteRelationship(): Unit = {
+    client.deleteRelationship(12)
+    client.deleteRelationship(21)
+    Assert.assertEquals(0, client.listNodes().length)
+
+    val relationship1: Core.Relationship =
+      RelationshipService.ConvertToGrpcRelationship(storedRelationship1)
+    client.createRelationship(relationship1)
+    Assert.assertEquals(1, client.listRelationships().length)
   }
 }

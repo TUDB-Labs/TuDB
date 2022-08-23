@@ -112,7 +112,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
     }
   }
 
-  def listRelationship(): List[Core.Relationship] = {
+  def listRelationships(): List[Core.Relationship] = {
     val request: Core.RelationshipListRequest =
       Core.RelationshipListRequest.newBuilder().build()
     val response = relationshipServiceBlockingStub.listRelationships(request)
