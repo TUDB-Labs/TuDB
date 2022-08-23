@@ -23,7 +23,9 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
   extends LazyLogging
   with GraphModel {
 
-  /** Delete nodes in a safe way, and handle nodes with relationships in a special way.
+  /** before delete nodes we should check is the nodes have relationships.
+    * if nodes have relationships but not force to delete, we should throw exception,
+    * otherwise we should delete relationships first then delete nodes
     *
     * @param nodesIDs The ids of nodes to deleted
     * @param forced   When some nodes have relationships,
@@ -43,7 +45,9 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
       if (forced)
         deleteRelations(affectedRelationships.map(r => LynxRelationshipId(r.id)))
       else
-        throw ConstrainViolatedException(s"deleting referred nodes, if force use detach delete.")
+        throw ConstrainViolatedException(
+          s"deleting nodes with relationships, if force to delete, please use DETACH DELETE."
+        )
     }
     deleteNodes(ids.toSeq)
   }
