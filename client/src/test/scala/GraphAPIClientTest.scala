@@ -175,12 +175,16 @@ class GraphAPIClientTest {
 
   @Test
   def testDeleteRelationship(): Unit = {
-    client.deleteRelationship(12)
-    client.deleteRelationship(21)
-    Assert.assertEquals(0, client.listNodes().length)
-
     val relationship1: Core.Relationship =
       RelationshipService.ConvertToGrpcRelationship(storedRelationship1)
+    client.createRelationship(relationship1)
+    val relationship2: Core.Relationship =
+      RelationshipService.ConvertToGrpcRelationship(storedRelationship2)
+    client.createRelationship(relationship2)
+    client.deleteRelationship(12)
+    client.deleteRelationship(21)
+    Assert.assertEquals(0, client.listRelationships().length)
+
     client.createRelationship(relationship1)
     Assert.assertEquals(1, client.listRelationships().length)
   }
