@@ -116,7 +116,8 @@ object RelationshipService {
     })
     val fromNode: Long = relationship.getStartNodeId
     val toNode: Long = relationship.getEndNodeId
-    val typeId: Long = relationship.getRelationType
+    val typeId: Int = relationship.getRelationType
+
     val relationshipInBytes: Array[Byte] =
       RelationshipSerializer.encodeRelationship(
         relationship.getRelationshipId,
@@ -125,6 +126,7 @@ object RelationshipService {
         typeId,
         rawProps
       )
+
     new StoredRelationshipWithProperty(
       relationship.getRelationshipId,
       fromNode,

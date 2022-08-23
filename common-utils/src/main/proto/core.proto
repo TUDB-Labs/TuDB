@@ -55,7 +55,7 @@ message Relationship {
   int64 start_node_id = 5;
   int64 end_node_id = 6;
   // The type of relationship between the two connected nodes.
-  int64 relationType = 7;
+  int32 relationType = 7;
 }
 
 message GenericQueryRequest {
