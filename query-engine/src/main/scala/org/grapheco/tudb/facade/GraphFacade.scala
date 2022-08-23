@@ -23,6 +23,31 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
   extends LazyLogging
   with GraphModel {
 
+  /** Delete nodes in a safe way, and handle nodes with relationships in a special way.
+    *
+    * @param nodesIDs The ids of nodes to deleted
+    * @param forced   When some nodes have relationships,
+    *                 if it is true, delete any related relationships,
+    *                 otherwise throw an exception
+    */
+  override def deleteNodesSafely(nodesIDs: Iterator[LynxId], forced: Boolean): Unit = {
+    val ids = nodesIDs.toSet
+    val affectedRelationships = ids
+      .map(nid => {
+        val id = nid.toLynxInteger.value
+        findOutRelations(id) ++ findInRelations(id)
+      })
+      .foldLeft(Iterator[StoredRelationship]())((a, b) => a ++ b)
+    // TODO: SAFE BATCH DELETE
+    if (affectedRelationships.nonEmpty) {
+      if (forced)
+        deleteRelations(affectedRelationships.map(r => LynxRelationshipId(r.id)))
+      else
+        throw ConstrainViolatedException(s"deleting referred nodes, if force use detach delete.")
+    }
+    deleteNodes(ids.toSeq)
+  }
+
   /**
     * Expand function for cypher like (a)-[r1]-(b)-[r2]-(c)
     * when get the left relationship (a)-[r1]-(b), we need to expand relation from (b)
