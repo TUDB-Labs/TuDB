@@ -9,11 +9,6 @@ import org.opencypher.v9_0.expressions.{MapExpression, NodePattern, PropertyKeyN
 
 import scala.collection.JavaConverters._
 
-/**
-  *@author:John117
-  *@createDate:2022/8/15
-  *@description:
-  */
 class ExpandOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
