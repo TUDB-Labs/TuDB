@@ -1,10 +1,12 @@
 import GraphAPIClientTest.testGraphAPIConnectionPort
 import org.apache.commons.io.FileUtils
-import org.grapheco.tudb.{GraphAPIServer, NodeService, TuDBInstanceContext, TuDBServerContext}
+import org.grapheco.tudb.{GraphAPIServer, NodeService, RelationshipService, TuDBInstanceContext, TuDBServerContext}
 import org.grapheco.tudb.client.GraphAPIClient
 import org.grapheco.tudb.core.Core
-import org.grapheco.tudb.serializer.NodeSerializer
+import org.grapheco.tudb.serializer.{NodeSerializer, RelationshipSerializer}
+import org.grapheco.tudb.store.meta.TypeManager.TypeId
 import org.grapheco.tudb.store.node.StoredNodeWithProperty
+import org.grapheco.tudb.store.relationship.StoredRelationshipWithProperty
 import org.grapheco.tudb.test.TestUtils
 import org.junit.{After, AfterClass, Assert, Before, BeforeClass, Test}
 
@@ -57,6 +59,17 @@ class GraphAPIClientTest {
   val node2InBytes: Array[Byte] =
     NodeSerializer.encodeNodeWithProperties(2L, labelIds2, props2)
   val storedNode2 = new StoredNodeWithProperty(2L, labelIds2, node2InBytes)
+
+  val propOfRel1: Map[Int, Any] = Map(100 -> 2017)
+  val propOfRel2: Map[Int, Any] = Map(101 -> "2022")
+  val type1Id: TypeId = 666
+  val type2Id: TypeId = 777
+  val rel1InBytes: Array[Byte] =
+    RelationshipSerializer.encodeRelationship(12L, 1L, 2L, type1Id, propOfRel1)
+  val rel2InBytes: Array[Byte] =
+    RelationshipSerializer.encodeRelationship(21L, 2L, 1L, type2Id, propOfRel2)
+  val storedRelationship1 = new StoredRelationshipWithProperty(12L, 1L, 2L, type1Id, rel1InBytes)
+  val storedRelationship2 = new StoredRelationshipWithProperty(21L, 2L, 1L, type2Id, rel2InBytes)
 
   @Before
   def setUpClient(): Unit = {
@@ -121,5 +134,22 @@ class GraphAPIClientTest {
     Assert.assertEquals(1, client.listNodes().length)
     // TODO: Delete non-existing node (need to implement error handling).
 //    client.deleteNode(2)
+  }
+
+  @Test
+  def testCreateAndGetRelationship(): Unit = {
+    client.createNode(NodeService.ConvertToGrpcNode(storedNode1))
+    client.createNode(NodeService.ConvertToGrpcNode(storedNode2))
+    val relationship: Core.Relationship =
+      RelationshipService.ConvertToGrpcRelationship(storedRelationship1)
+    val createdRelationship = client.createRelationship(relationship)
+    Assert.assertEquals(12L, createdRelationship.getRelationshipId)
+//    Assert.assertEquals("2017", createdRelationship.getProperties(0).getValue)
+//    Assert.assertEquals("2022", createdRelationship.getProperties(1).getValue)
+
+    val obtainedRelationship = client.getRelationship(12L)
+    Assert.assertEquals(12L, obtainedRelationship.getRelationshipId)
+//    Assert.assertEquals("2012", obtainedRelationship.getProperties(0).getValue)
+//    Assert.assertEquals("2022", obtainedRelationship.getProperties(1).getValue)
   }
 }

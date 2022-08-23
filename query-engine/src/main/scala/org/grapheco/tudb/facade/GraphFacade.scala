@@ -319,7 +319,7 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
     */
   override def relationships(): Iterator[PathTriple] =
     TuDBStoreContext.getRelationshipAPI
-      .allRelations(true)
+      .allRelationsWithProperty()
       .map(rel =>
         PathTriple(
           nodeAt(rel.from).get.asInstanceOf[LynxNode],
