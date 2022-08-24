@@ -25,7 +25,7 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
 
   /** before delete nodes we should check is the nodes have relationships.
     * if nodes have relationships but not force to delete, we should throw exception,
-    * otherwise we should delete relationships first then delete nodes
+    * otherwise we should delete relationships first then delete nodes.
     *
     * @param nodesIDs The ids of nodes to deleted
     * @param forced   When some nodes have relationships,
@@ -40,7 +40,7 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
         findOutRelations(id) ++ findInRelations(id)
       })
       .foldLeft(Iterator[StoredRelationship]())((a, b) => a ++ b)
-    // TODO: SAFE BATCH DELETE
+    // TODO: BATCH DELETE
     if (affectedRelationships.nonEmpty) {
       if (forced)
         deleteRelations(affectedRelationships.map(r => LynxRelationshipId(r.id)))
