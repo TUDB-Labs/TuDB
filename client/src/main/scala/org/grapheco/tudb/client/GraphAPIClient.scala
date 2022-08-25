@@ -1,6 +1,7 @@
 package org.grapheco.tudb.client
 
 import com.typesafe.scalalogging.LazyLogging
+import io.grpc.ManagedChannel
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import org.grapheco.tudb.core.{Core, NodeServiceGrpc}
 import org.slf4j.LoggerFactory
@@ -11,9 +12,18 @@ import scala.collection.JavaConverters._
 class GraphAPIClient(host: String, port: Int) extends LazyLogging {
 
   val LOGGER = LoggerFactory.getLogger("graph-api-client-info")
-  val channel =
-    NettyChannelBuilder.forAddress(host, port).usePlaintext().build();
-  val nodeServiceBlockingStub = NodeServiceGrpc.newBlockingStub(channel)
+  var channel: ManagedChannel = null
+  var nodeServiceBlockingStub: NodeServiceGrpc.NodeServiceBlockingStub = null
+
+  try {
+    channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
+    nodeServiceBlockingStub = NodeServiceGrpc.newBlockingStub(channel)
+  } catch {
+    case _: Throwable =>
+      if (channel != null) {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+      }
+  }
 
   def createNode(node: Core.Node): Core.Node = {
     val request: Core.NodeCreateRequest =
