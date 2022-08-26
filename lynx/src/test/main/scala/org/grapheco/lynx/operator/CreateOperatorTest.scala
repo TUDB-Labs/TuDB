@@ -1,12 +1,12 @@
 package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.CreateNode
+import org.grapheco.lynx.{CreateNode, CreateRelationship}
 import org.grapheco.lynx.types.property.LynxString
-import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
+import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.expressions.{LabelName, MapExpression, PropertyKeyName, StringLiteral}
-import org.opencypher.v9_0.util.symbols.CTNode
+import org.opencypher.v9_0.expressions.{LabelName, MapExpression, Property, PropertyKeyName, RelTypeName, StringLiteral, Variable}
+import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
 import scala.collection.JavaConverters._
 
@@ -23,6 +23,13 @@ class CreateOperatorTest extends BaseOperatorTest {
     TestId(2L),
     Seq(LynxNodeLabel("Person")),
     Map(LynxPropertyKey("name") -> LynxString("BBB"))
+  )
+  val r1 = TestRelationship(
+    TestId(1L),
+    TestId(1L),
+    TestId(2L),
+    Option(LynxRelationshipType("KNOW")),
+    Map(LynxPropertyKey("name") -> LynxString("R"))
   )
   @Test
   def testCreateSingleNode() {
@@ -85,13 +92,104 @@ class CreateOperatorTest extends BaseOperatorTest {
        create (m:City{name:n.name})
        return m
      */
+    val expr = MapExpression(
+      Seq(
+        (
+          PropertyKeyName("name")(defaultPosition),
+          Property(Variable("n")(defaultPosition), PropertyKeyName("name")(defaultPosition))(
+            defaultPosition
+          )
+        )
+      )
+    )(defaultPosition)
     all_nodes.append(node1)
+    _nodeId = 1
+    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val createOperator = CreateOperator(
+      Option(nodeScanOperator),
+      Seq(("n2", CTNode)),
+      Seq(CreateNode("n2", Seq(LabelName("NEW_PERSON")(defaultPosition)), Option(expr))),
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    getOperatorAllOutputs(createOperator)
+    model.commit()
 
+    val createdNode = TestNode(
+      TestId(2L),
+      Seq(LynxNodeLabel("NEW_PERSON")),
+      Map(LynxPropertyKey("name") -> LynxString("AAA"))
+    )
+
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node1, createdNode).asJava,
+        all_nodes.toList.asJava
+      )
+    )
+  }
+
+  @Test
+  def testCreateSingleRelationship(): Unit = {
+    /*
+        match (n: Person) where n.name = 'A'
+        match (m: Person) where m.name = 'B'
+        create (n)-[r:KNOW{name:'AAA'}]->(m)
+     */
+    val nodeScanOperator1 = prepareNodeScanOperator(
+      "n",
+      Seq("Person"),
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("AAA")(defaultPosition)))
+    )
+    val nodeScanOperator2 = prepareNodeScanOperator(
+      "m",
+      Seq("Person"),
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("BBB")(defaultPosition)))
+    )
+    val joinOperator = ""
+    // TODO: After merge JoinOperator.
   }
   @Test
-  def testCreateSingleRelationship(): Unit = {}
-  @Test
-  def testCreateMultipleRelationship(): Unit = {}
-  @Test
-  def testCreateRelationshipFromInProperties(): Unit = {}
+  def testCreateNodeAndRelationship(): Unit = {
+    /*
+        create (n:Person{name:'AAA'})-[r:KNOW{name:'R'}]->(m: Person{name: 'BBB'})
+     */
+    val nPropExpr = MapExpression(
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("AAA")(defaultPosition)))
+    )(defaultPosition)
+    val mPropExpr = MapExpression(
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("BBB")(defaultPosition)))
+    )(defaultPosition)
+    val rPropExpr = MapExpression(
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("R")(defaultPosition)))
+    )(defaultPosition)
+    val operator = CreateOperator(
+      None,
+      Seq(("n", CTNode), ("m", CTNode), ("r", CTRelationship)),
+      Seq(
+        CreateNode("n", Seq(LabelName("Person")(defaultPosition)), Option(nPropExpr)),
+        CreateNode("m", Seq(LabelName("Person")(defaultPosition)), Option(mPropExpr)),
+        CreateRelationship(
+          "r",
+          Seq(RelTypeName("KNOW")(defaultPosition)),
+          Option(rPropExpr),
+          "n",
+          "m"
+        )
+      ),
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val res = getOperatorAllOutputs(operator).flatMap(r => r.batchData.flatten)
+    model.commit()
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node1, node2, r1).asJava,
+        res.toList.asJava
+      )
+    )
+  }
+
 }
