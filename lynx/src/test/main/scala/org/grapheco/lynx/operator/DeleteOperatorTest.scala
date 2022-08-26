@@ -7,7 +7,7 @@ import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
 import org.opencypher.v9_0.ast.Delete
-import org.opencypher.v9_0.expressions.Variable
+import org.opencypher.v9_0.expressions.{NodePattern, RelTypeName, RelationshipPattern, SemanticDirection, Variable}
 
 /**
   *@description:
@@ -67,5 +67,70 @@ class DeleteOperatorTest extends BaseOperatorTest {
     )
     getOperatorAllOutputs(deleteOperator)
     model.commit()
+  }
+
+  @Test
+  def testForceToDeleteNodeWithRelationship(): Unit = {
+    val r1 = TestRelationship(
+      TestId(1L),
+      TestId(1L),
+      TestId(2L),
+      Option(LynxRelationshipType("KNOW")),
+      Map.empty
+    )
+    all_rels.append(r1)
+
+    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val deleteOperator = DeleteOperator(
+      Delete(Seq(Variable("n")(defaultPosition)), true)(defaultPosition),
+      nodeScanOperator,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    getOperatorAllOutputs(deleteOperator)
+    model.commit()
+    Assert.assertEquals(1, all_nodes.size)
+    Assert.assertEquals(node3, all_nodes.head)
+    Assert.assertEquals(0, all_rels.size)
+  }
+
+  @Test
+  def testDeleteRelationship(): Unit = {
+    val rPattern = RelationshipPattern(
+      Option(Variable("r")(defaultPosition)),
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      None,
+      None,
+      SemanticDirection.OUTGOING
+    )(defaultPosition)
+    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val r1 = TestRelationship(
+      TestId(1L),
+      TestId(1L),
+      TestId(2L),
+      Option(LynxRelationshipType("KNOW")),
+      Map.empty
+    )
+    all_rels.append(r1)
+    val pathScanOperator = PathScanOperator(
+      rPattern,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val deleteOperator = DeleteOperator(
+      Delete(Seq(Variable("r")(defaultPosition)), false)(defaultPosition),
+      pathScanOperator,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    getOperatorAllOutputs(deleteOperator)
+    model.commit()
+    Assert.assertEquals(0, all_rels.size)
   }
 }
