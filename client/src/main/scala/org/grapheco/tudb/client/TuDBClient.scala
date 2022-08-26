@@ -25,7 +25,8 @@ class TuDBClient(host: String, port: Int) {
   } catch {
     case _: Throwable =>
       if (channel != null) {
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+        channel.shutdown()
+        while (!channel.awaitTermination(5, TimeUnit.SECONDS)) {}
       }
   }
 
