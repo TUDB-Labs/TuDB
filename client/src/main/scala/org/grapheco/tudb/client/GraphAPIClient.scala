@@ -21,7 +21,8 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
   } catch {
     case _: Throwable =>
       if (channel != null) {
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+        channel.shutdown()
+        while (!channel.awaitTermination(5, TimeUnit.SECONDS)) {}
       }
   }
 
