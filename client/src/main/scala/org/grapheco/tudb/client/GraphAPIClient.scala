@@ -14,10 +14,13 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
   val LOGGER = LoggerFactory.getLogger("graph-api-client-info")
   var channel: ManagedChannel = null
   var nodeServiceBlockingStub: NodeServiceGrpc.NodeServiceBlockingStub = null
+  var relationshipServiceBlockingStub: RelationshipServiceGrpc.RelationshipServiceBlockingStub =
+    null
 
   try {
     channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
     nodeServiceBlockingStub = NodeServiceGrpc.newBlockingStub(channel)
+    relationshipServiceBlockingStub = RelationshipServiceGrpc.newBlockingStub(channel)
   } catch {
     case _: Throwable =>
       if (channel != null) {

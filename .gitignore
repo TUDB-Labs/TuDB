@@ -99,3 +99,6 @@ storage/test/
 src/test/
 data.zip
 testSpace
+
+# Client tests
+client/testOutput/
