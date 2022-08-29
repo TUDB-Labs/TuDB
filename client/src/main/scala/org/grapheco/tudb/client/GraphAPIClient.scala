@@ -75,6 +75,7 @@ class GraphAPIClient(host: String, port: Int) extends LazyLogging {
   }
 
   def shutdown(): Unit = {
-    channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    channel.shutdown()
+    while (!channel.awaitTermination(5, TimeUnit.SECONDS)) {}
   }
 }
