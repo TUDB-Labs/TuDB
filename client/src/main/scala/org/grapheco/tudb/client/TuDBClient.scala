@@ -59,7 +59,8 @@ class TuDBClient(host: String, port: Int) {
   }
 
   def shutdown(): Unit = {
-    channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    channel.shutdown()
+    while (!channel.awaitTermination(5, TimeUnit.SECONDS)) {}
   }
 
 }
