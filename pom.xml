@@ -17,6 +17,7 @@
         <module>tools</module>
         <module>client</module>
         <module>examples</module>
+        <module>utils</module>
     </modules>
 
     <properties>
