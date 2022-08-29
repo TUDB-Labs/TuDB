@@ -5,26 +5,7 @@ import scala.collection.immutable.{Map => IMutableMap}
 import scala.collection.mutable.Map
 import scala.collection.mutable.Set
 
-class Node(id: Long, labelIds: Set[Int], properties: Map[Int, Any]) {
-
-  def addLabelId(labelId: Int): Unit = {
-    labelIds.add(labelId)
-  }
-
-  def addProperty(key: Int, value: Any): Unit = {
-    properties(key) = value
-  }
-
-  def property(key: Int): Any = {
-    // Raise error if not existed
-    properties.get(key)
-  }
-
-  // FIXME: refactor to a general interface such as serializable
-  def dumps(): Array[Byte] = {
-    NodeSerializer.encodeNodeWithProperties(id, labelIds.toArray, properties.toMap)
-  }
-
+object Node {
   def loads(bytes: Array[Byte]): Node = {
     val allocator = NodeSerializer.allocator
     val byteBuffer = allocator.directBuffer()
@@ -37,6 +18,27 @@ class Node(id: Long, labelIds: Set[Int], properties: Map[Int, Any]) {
     val props: IMutableMap[Int, Any] = BaseSerializer.decodePropMap(byteBuffer)
     byteBuffer.release()
     new Node(id, Set(labelIDs: _*), Map(props.toSeq: _*))
+  }
+}
+
+class Node(id: Long, labelIds: Set[Int], properties: Map[Int, Any]) {
+
+  def addLabelId(labelId: Int): Unit = {
+    labelIds.add(labelId)
+  }
+
+  def addProperty(key: Int, value: Any): Unit = {
+    properties(key) = value
+  }
+
+  def property(key: Int): Option[Any] = {
+    // Raise error if not existed
+    properties.get(key)
+  }
+
+  // FIXME: refactor to a general interface such as serializable
+  def dumps(): Array[Byte] = {
+    NodeSerializer.encodeNodeWithProperties(id, labelIds.toArray, properties.toMap)
   }
 
   override def toString: String =
