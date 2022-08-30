@@ -2,11 +2,12 @@ package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxBoolean, LynxInteger, LynxNull, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.ast.{SetExactPropertiesFromMapItem, SetIncludingPropertiesFromMapItem, SetPropertyItem}
-import org.opencypher.v9_0.expressions.{CaseExpression, Equals, FunctionInvocation, FunctionName, MapExpression, Namespace, Null, Property, PropertyKeyName, SignedDecimalIntegerLiteral, StringLiteral, True, Variable}
+import org.opencypher.v9_0.ast.{SetExactPropertiesFromMapItem, SetIncludingPropertiesFromMapItem, SetLabelItem, SetPropertyItem}
+import org.opencypher.v9_0.expressions.{CaseExpression, Equals, FunctionInvocation, FunctionName, LabelName, MapExpression, Namespace, Null, Property, PropertyKeyName, SignedDecimalIntegerLiteral, StringLiteral, True, Variable}
 
 import scala.collection.JavaConverters._
 
@@ -617,5 +618,108 @@ class SetOperatorTest extends BaseOperatorTest {
 
     val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
     Assert.assertEquals(Seq(LynxString("Developer"), LynxString("Taylor")), res)
+  }
+
+  @Test
+  def testSetALabelOnNode(): Unit = {
+    /*
+        MATCH (n {name: 'Stefan'})
+        SET n:German
+        RETURN n.name, labels(n) AS labels
+     */
+    val projectColumn = Seq(
+      (
+        "n.name",
+        Property(
+          Variable("n")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "labels",
+        ProcedureExpression(
+          FunctionInvocation(
+            Namespace()(defaultPosition),
+            FunctionName("labels")(defaultPosition),
+            false,
+            IndexedSeq(Variable("n")(defaultPosition))
+          )(defaultPosition)
+        )(runnerContext)
+      )
+    )
+    val setItems = Seq(
+      SetLabelItem(Variable("n")(defaultPosition), Seq(LabelName("German")(defaultPosition)))(
+        defaultPosition
+      )
+    )
+    val nodeScanOperator = prepareNodeScanOperator(
+      "n",
+      Seq.empty,
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Stefan")(defaultPosition)))
+    )
+    val setOperator =
+      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+    val projectOperator =
+      ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
+
+    val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
+    Assert.assertEquals(
+      Seq(LynxString("Stefan"), LynxList(List(LynxString("Person"), LynxString("German")))),
+      res
+    )
+  }
+  @Test
+  def testSetMultipleLabelsOnANode(): Unit = {
+    /*
+      MATCH (n {name: 'George'})
+      SET n:Swedish:Bossman
+      RETURN n.name, labels(n) AS labels
+     */
+    val projectColumn = Seq(
+      (
+        "n.name",
+        Property(
+          Variable("n")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "labels",
+        ProcedureExpression(
+          FunctionInvocation(
+            Namespace()(defaultPosition),
+            FunctionName("labels")(defaultPosition),
+            false,
+            IndexedSeq(Variable("n")(defaultPosition))
+          )(defaultPosition)
+        )(runnerContext)
+      )
+    )
+    val setItems = Seq(
+      SetLabelItem(
+        Variable("n")(defaultPosition),
+        Seq(LabelName("Swedish")(defaultPosition), LabelName("Bossman")(defaultPosition))
+      )(
+        defaultPosition
+      )
+    )
+    val nodeScanOperator = prepareNodeScanOperator(
+      "n",
+      Seq.empty,
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("George")(defaultPosition)))
+    )
+    val setOperator =
+      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+    val projectOperator =
+      ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
+
+    val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
+    Assert.assertEquals(
+      Seq(
+        LynxString("George"),
+        LynxList(List(LynxString("Person"), LynxString("Swedish"), LynxString("Bossman")))
+      ),
+      res
+    )
   }
 }
