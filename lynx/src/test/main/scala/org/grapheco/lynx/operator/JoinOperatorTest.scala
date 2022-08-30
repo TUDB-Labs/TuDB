@@ -1,7 +1,6 @@
 package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.operator.join.JoinType
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
@@ -53,7 +52,6 @@ class JoinOperatorTest extends BaseOperatorTest {
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
-      JoinType.DEFAULT,
       Seq.empty,
       expressionEvaluator,
       ctx.expressionContext
@@ -62,7 +60,6 @@ class JoinOperatorTest extends BaseOperatorTest {
       .map(f => f.batchData.map(f => f.asJava).asJava)
       .toList
       .asJava
-    println(res)
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
         List(
@@ -100,7 +97,6 @@ class JoinOperatorTest extends BaseOperatorTest {
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
-      JoinType.DEFAULT,
       Seq(filterExpr),
       expressionEvaluator,
       ctx.expressionContext
