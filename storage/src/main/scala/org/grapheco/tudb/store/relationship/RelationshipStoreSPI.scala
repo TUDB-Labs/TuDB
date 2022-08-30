@@ -60,7 +60,8 @@ trait RelationStoreSPI {
       props: Map[Int, Any]
     )
 
-  def allRelations(withProperty: Boolean = false): Iterator[StoredRelationship]
+  def allRelations(): Iterator[StoredRelationship]
+  def allRelationsWithProperty(): Iterator[StoredRelationshipWithProperty]
 
   def findOutRelations(fromNodeId: Long): Iterator[StoredRelationship] =
     findOutRelations(fromNodeId, None)
