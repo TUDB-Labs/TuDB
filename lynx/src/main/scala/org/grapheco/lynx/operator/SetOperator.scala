@@ -7,14 +7,14 @@ import org.opencypher.v9_0.ast.{SetExactPropertiesFromMapItem, SetIncludingPrope
 import org.opencypher.v9_0.expressions.{CaseExpression, MapExpression, Property, Variable}
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
-import scala.collection.mutable.ArrayBuffer
-
 /**
-  *@description: This operator is used to set properties to node or relationship and set label to node
+  *@description: This operator is used to:
+  *                1. set properties to node or relationship and set label to node
+  *                2. set labels to node
   */
 case class SetOperator(
-    setItems: Seq[SetItem],
     in: ExecutionOperator,
+    setItems: Seq[SetItem],
     graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)

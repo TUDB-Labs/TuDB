@@ -9,11 +9,6 @@ import org.junit.{Assert, Test}
 import org.opencypher.v9_0.ast.{SetExactPropertiesFromMapItem, SetIncludingPropertiesFromMapItem, SetLabelItem, SetPropertyItem}
 import org.opencypher.v9_0.expressions.{CaseExpression, Equals, FunctionInvocation, FunctionName, LabelName, MapExpression, Namespace, Null, Property, PropertyKeyName, SignedDecimalIntegerLiteral, StringLiteral, True, Variable}
 
-import scala.collection.JavaConverters._
-
-/**
-  *@description:
-  */
 class SetOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
@@ -101,7 +96,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -164,7 +159,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -227,7 +222,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -283,7 +278,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -328,7 +323,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -400,7 +395,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -444,7 +439,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -514,7 +509,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -560,7 +555,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -612,7 +607,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -658,7 +653,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Stefan")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
@@ -709,7 +704,7 @@ class SetOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("George")(defaultPosition)))
     )
     val setOperator =
-      SetOperator(setItems, nodeScanOperator, model, expressionEvaluator, ctx.expressionContext)
+      SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
     val projectOperator =
       ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
