@@ -13,8 +13,8 @@ import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
   */
 case class ExpandOperator(
     in: ExecutionOperator,
-    rel: RelationshipPattern,
-    rightNode: NodePattern,
+    relPattern: RelationshipPattern,
+    rightNodePattern: NodePattern,
     graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -25,50 +25,38 @@ case class ExpandOperator(
 
   var schema: Seq[(String, LynxType)] = Seq.empty
 
-  var relationshipFilter: RelationshipFilter = _
-  var rightNodeFilter: NodeFilter = _
   var minLength: Int = _
   var maxLength: Int = _
-  var direction: SemanticDirection = _
 
   override def openImpl(): Unit = {
     in.open()
 
-    val RelationshipPattern(
-      relVariable: Option[LogicalVariable],
-      relTypes: Seq[RelTypeName],
-      length: Option[Option[Range]],
-      relProps: Option[Expression],
-      relDirection: SemanticDirection,
-      legacyTypeSeparator: Boolean,
-      baseRel: Option[LogicalVariable]
-    ) = rel
-
-    val NodePattern(
-      rightNodeVariable,
-      rightNodeLabels: Seq[LabelName],
-      rightNodeProps: Option[Expression],
-      rightBaseNode: Option[LogicalVariable]
-    ) = rightNode
-
     schema = {
-      val expandSchema = if (length.isEmpty) {
+      val expandSchema = if (relPattern.length.isEmpty) {
         Seq(
-          relVariable.map(_.name).getOrElse(s"__RELATIONSHIP_${rel.hashCode}") -> CTRelationship,
-          rightNodeVariable.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+          relPattern.variable
+            .map(_.name)
+            .getOrElse(s"__RELATIONSHIP_${relPattern.hashCode}") -> CTRelationship,
+          rightNodePattern.variable
+            .map(_.name)
+            .getOrElse(s"__NODE_${rightNodePattern.hashCode}") -> CTNode
         )
       } else {
         Seq(
-          relVariable.map(_.name).getOrElse(s"__RELATIONSHIP_LIST_${rel.hashCode}") -> CTList(
+          relPattern.variable
+            .map(_.name)
+            .getOrElse(s"__RELATIONSHIP_LIST_${relPattern.hashCode}") -> CTList(
             CTRelationship
           ),
-          rightNodeVariable.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+          rightNodePattern.variable
+            .map(_.name)
+            .getOrElse(s"__NODE_${rightNodePattern.hashCode}") -> CTNode
         )
       }
       in.outputSchema() ++ expandSchema
     }
 
-    val (min, max) = length match {
+    val (min, max) = relPattern.length match {
       case None       => (1, 1)
       case Some(None) => (1, Int.MaxValue)
       case Some(Some(Range(a, b))) => {
@@ -79,29 +67,7 @@ case class ExpandOperator(
         }
       }
     }
-    relationshipFilter = RelationshipFilter(
-      relTypes.map(relTypeName => LynxRelationshipType(relTypeName.name)),
-      relProps
-        .map(expr =>
-          evalExpr(expr)(exprContext)
-            .asInstanceOf[LynxMap]
-            .value
-            .map(kv => (LynxPropertyKey(kv._1), kv._2))
-        )
-        .getOrElse(Map.empty)
-    )
-    rightNodeFilter = NodeFilter(
-      rightNodeLabels.map(labelName => LynxNodeLabel(labelName.name)),
-      rightNodeProps
-        .map(expr =>
-          evalExpr(expr)(exprContext)
-            .asInstanceOf[LynxMap]
-            .value
-            .map(kv => (LynxPropertyKey(kv._1), kv._2))
-        )
-        .getOrElse(Map.empty)
-    )
-    direction = relDirection
+
     minLength = min
     maxLength = max
   }
@@ -110,9 +76,44 @@ case class ExpandOperator(
     val inBatchData = in.getNext()
     if (inBatchData.batchData.nonEmpty) {
       val expandBatch = inBatchData.batchData.flatMap(path => {
+        val ctxMap = schema.map(f => f._1).zip(path).toMap
+        val ctx = expressionContext.withVars(ctxMap)
+
+        val relationshipFilter = RelationshipFilter(
+          relPattern.types.map(relTypeName => LynxRelationshipType(relTypeName.name)),
+          relPattern.properties
+            .map(expr =>
+              expressionEvaluator
+                .eval(expr)(ctx)
+                .asInstanceOf[LynxMap]
+                .value
+                .map(kv => (LynxPropertyKey(kv._1), kv._2))
+            )
+            .getOrElse(Map.empty)
+        )
+        val rightNodeFilter = NodeFilter(
+          rightNodePattern.labels.map(labelName => LynxNodeLabel(labelName.name)),
+          rightNodePattern.properties
+            .map(expr =>
+              expressionEvaluator
+                .eval(expr)(ctx)
+                .asInstanceOf[LynxMap]
+                .value
+                .map(kv => (LynxPropertyKey(kv._1), kv._2))
+            )
+            .getOrElse(Map.empty)
+        )
+
         val lastNode = path.last.asInstanceOf[LynxNode]
         graphModel
-          .expand(lastNode, relationshipFilter, rightNodeFilter, direction, minLength, maxLength)
+          .expand(
+            lastNode,
+            relationshipFilter,
+            rightNodeFilter,
+            relPattern.direction,
+            minLength,
+            maxLength
+          )
           .map(expandPath =>
             expandPath
               .flatMap(pathTriple => path ++ Seq(pathTriple.storedRelation, pathTriple.endNode))
