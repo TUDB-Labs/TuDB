@@ -1,5 +1,6 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, NodeFilter, RelationshipFilter, RowBatch}
@@ -67,65 +68,68 @@ case class ExpandOperator(
         }
       }
     }
-
     minLength = min
     maxLength = max
   }
 
   override def getNextImpl(): RowBatch = {
-    val inBatchData = in.getNext()
-    if (inBatchData.batchData.nonEmpty) {
-      val expandBatch = inBatchData.batchData.flatMap(path => {
-        val ctxMap = schema.map(f => f._1).zip(path).toMap
-        val ctx = expressionContext.withVars(ctxMap)
-
-        val relationshipFilter = RelationshipFilter(
-          relPattern.types.map(relTypeName => LynxRelationshipType(relTypeName.name)),
-          relPattern.properties
-            .map(expr =>
-              expressionEvaluator
-                .eval(expr)(ctx)
-                .asInstanceOf[LynxMap]
-                .value
-                .map(kv => (LynxPropertyKey(kv._1), kv._2))
-            )
-            .getOrElse(Map.empty)
-        )
-        val rightNodeFilter = NodeFilter(
-          rightNodePattern.labels.map(labelName => LynxNodeLabel(labelName.name)),
-          rightNodePattern.properties
-            .map(expr =>
-              expressionEvaluator
-                .eval(expr)(ctx)
-                .asInstanceOf[LynxMap]
-                .value
-                .map(kv => (LynxPropertyKey(kv._1), kv._2))
-            )
-            .getOrElse(Map.empty)
-        )
-
-        val lastNode = path.last.asInstanceOf[LynxNode]
-        graphModel
-          .expand(
-            lastNode,
-            relationshipFilter,
-            rightNodeFilter,
-            relPattern.direction,
-            minLength,
-            maxLength
-          )
-          .map(expandPath =>
-            expandPath
-              .flatMap(pathTriple => path ++ Seq(pathTriple.storedRelation, pathTriple.endNode))
-          )
-          .toSeq
-      })
-      if (expandBatch.nonEmpty) RowBatch(expandBatch)
-      else getNextImpl()
-    } else RowBatch(Seq.empty)
+    var inBatchData = in.getNext().batchData
+    var expandResult: Seq[Seq[LynxValue]] = Seq.empty
+    while (expandResult.isEmpty && inBatchData.nonEmpty) {
+      expandResult = inBatchData.flatMap(path => expandPath(path))
+      if (expandResult.isEmpty) inBatchData = in.getNext().batchData
+    }
+    if (expandResult.nonEmpty) RowBatch(expandResult)
+    else RowBatch(Seq.empty)
   }
 
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = schema
+
+  private def expandPath(path: Seq[LynxValue]): Seq[Seq[LynxValue]] = {
+    val ctxMap = schema.map(f => f._1).zip(path).toMap
+    val ctx = expressionContext.withVars(ctxMap)
+
+    val relationshipFilter = RelationshipFilter(
+      relPattern.types.map(relTypeName => LynxRelationshipType(relTypeName.name)),
+      relPattern.properties
+        .map(expr =>
+          expressionEvaluator
+            .eval(expr)(ctx)
+            .asInstanceOf[LynxMap]
+            .value
+            .map(kv => (LynxPropertyKey(kv._1), kv._2))
+        )
+        .getOrElse(Map.empty)
+    )
+    val rightNodeFilter = NodeFilter(
+      rightNodePattern.labels.map(labelName => LynxNodeLabel(labelName.name)),
+      rightNodePattern.properties
+        .map(expr =>
+          expressionEvaluator
+            .eval(expr)(ctx)
+            .asInstanceOf[LynxMap]
+            .value
+            .map(kv => (LynxPropertyKey(kv._1), kv._2))
+        )
+        .getOrElse(Map.empty)
+    )
+
+    val lastNode = path.last.asInstanceOf[LynxNode]
+    graphModel
+      .expand(
+        lastNode,
+        relationshipFilter,
+        rightNodeFilter,
+        relPattern.direction,
+        minLength,
+        maxLength
+      )
+      .map(expandPath =>
+        expandPath
+          .flatMap(pathTriple => path ++ Seq(pathTriple.storedRelation, pathTriple.endNode))
+      )
+      .toSeq
+  }
 }
