@@ -1,8 +1,10 @@
 package org.grapheco.lynx.operator.utils
 
+import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, RowBatch}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 
 /**
   *@author:John117
@@ -21,5 +23,11 @@ object OperatorUtils {
     }
     operator.close()
     result.toArray
+  }
+
+  def getOperatorAllResultAsJavaList(
+      operator: ExecutionOperator
+    ): java.util.List[java.util.List[LynxValue]] = {
+    getOperatorAllOutputs(operator).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
   }
 }

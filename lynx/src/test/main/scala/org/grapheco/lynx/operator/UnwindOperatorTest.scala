@@ -1,6 +1,7 @@
 package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
@@ -60,8 +61,8 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res =
-      getOperatorAllOutputs(operator).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
+    val res = OperatorUtils.getOperatorAllResultAsJavaList(operator)
+
     CollectionUtils.isEqualCollection(
       List(
         Seq(LynxInteger(1)).asJava,
@@ -100,8 +101,8 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res =
-      getOperatorAllOutputs(operator).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
+    val res = OperatorUtils.getOperatorAllResultAsJavaList(operator)
+
     CollectionUtils.isEqualCollection(
       List(
         Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
@@ -125,8 +126,9 @@ class UnwindOperatorTest extends BaseOperatorTest {
     )
     val selectOp =
       SelectOperator(Seq(("x", Option("x"))), unwindOp, expressionEvaluator, ctx.expressionContext)
-    val res =
-      getOperatorAllOutputs(selectOp).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
+
+    val res = OperatorUtils.getOperatorAllResultAsJavaList(selectOp)
+
     CollectionUtils.isEqualCollection(
       List(
         Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
