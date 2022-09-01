@@ -9,7 +9,7 @@ class Label(val ls: Set[String]) {
         return false
       }
     }
-    false
+    true
   }
 
   def matches(label: Label): Boolean = {
