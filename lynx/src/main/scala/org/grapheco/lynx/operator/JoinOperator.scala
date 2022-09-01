@@ -54,9 +54,10 @@ case class JoinOperator(
         .map(kv => kv._1 -> kv._2.map(f => f._2).toSeq) // joinCols --> rows
       isInit = true
     }
-    val largeBatchData = largeTable.getNext().batchData
-    if (largeBatchData.nonEmpty) {
-      var joinedRecords = largeBatchData.flatMap(row => {
+    var largeBatchData = largeTable.getNext().batchData
+    var joinedRecords: Seq[Seq[LynxValue]] = Seq.empty
+    while (joinedRecords.isEmpty && largeBatchData.nonEmpty) {
+      joinedRecords = largeBatchData.flatMap(row => {
         val largeJoinedColeValue = joinCols.map(col => row(largeCols(col)))
         cachedSmallTableMap
           .getOrElse(largeJoinedColeValue, Seq.empty)
@@ -77,9 +78,10 @@ case class JoinOperator(
           }
         })
       })
-      if (joinedRecords.isEmpty) getNext()
-      else RowBatch(joinedRecords)
-    } else RowBatch(Seq.empty)
+      if (joinedRecords.isEmpty) largeBatchData = largeTable.getNext().batchData
+    }
+    if (joinedRecords.nonEmpty) RowBatch(joinedRecords)
+    else RowBatch(Seq.empty)
   }
 
   override def closeImpl(): Unit = {}
