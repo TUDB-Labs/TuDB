@@ -47,16 +47,19 @@ case class JoinOperator(
         .getOperatorAllOutputs(smallTable)
         .flatMap(batch => batch.batchData)
         .map(row => {
-          val value = joinCols.map(col => row(smallCols(col)))
-          value -> row
+          val joinColValue = joinCols.map(colName => row(smallCols(colName)))
+          joinColValue -> row
         })
         .groupBy(valueRow => valueRow._1)
         .map(kv => kv._1 -> kv._2.map(f => f._2).toSeq) // joinCols --> rows
       isInit = true
     }
-    var largeBatchData = largeTable.getNext().batchData
+
+    var largeBatchData: Seq[Seq[LynxValue]] = Seq.empty
     var joinedRecords: Seq[Seq[LynxValue]] = Seq.empty
-    while (joinedRecords.isEmpty && largeBatchData.nonEmpty) {
+    do {
+      largeBatchData = largeTable.getNext().batchData
+      if (largeBatchData.isEmpty) return RowBatch(Seq.empty)
       joinedRecords = largeBatchData.flatMap(row => {
         val largeJoinedColeValue = joinCols.map(col => row(largeCols(col)))
         cachedSmallTableMap
@@ -64,7 +67,6 @@ case class JoinOperator(
           .map(smallRow => {
             val largeRow =
               largeColsWithoutJoinCols.toSeq
-                .sortBy(f => f._2)
                 .map(colAndIndex => row(colAndIndex._2))
             smallRow ++ largeRow
           })
@@ -78,10 +80,9 @@ case class JoinOperator(
           }
         })
       })
-      if (joinedRecords.isEmpty) largeBatchData = largeTable.getNext().batchData
-    }
-    if (joinedRecords.nonEmpty) RowBatch(joinedRecords)
-    else RowBatch(Seq.empty)
+    } while (joinedRecords.isEmpty)
+
+    RowBatch(joinedRecords)
   }
 
   override def closeImpl(): Unit = {}
