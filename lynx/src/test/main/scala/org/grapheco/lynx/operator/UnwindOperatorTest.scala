@@ -61,7 +61,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res = OperatorUtils.getOperatorAllResultAsJavaList(operator)
+    val res = getOperatorAllResultAsJavaList(operator)
 
     CollectionUtils.isEqualCollection(
       List(
@@ -101,7 +101,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res = OperatorUtils.getOperatorAllResultAsJavaList(operator)
+    val res = getOperatorAllResultAsJavaList(operator)
 
     CollectionUtils.isEqualCollection(
       List(
@@ -127,7 +127,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
     val selectOp =
       SelectOperator(Seq(("x", Option("x"))), unwindOp, expressionEvaluator, ctx.expressionContext)
 
-    val res = OperatorUtils.getOperatorAllResultAsJavaList(selectOp)
+    val res = getOperatorAllResultAsJavaList(selectOp)
 
     CollectionUtils.isEqualCollection(
       List(

@@ -24,10 +24,4 @@ object OperatorUtils {
     operator.close()
     result.toArray
   }
-
-  def getOperatorAllResultAsJavaList(
-      operator: ExecutionOperator
-    ): java.util.List[java.util.List[LynxValue]] = {
-    getOperatorAllOutputs(operator).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
-  }
 }
