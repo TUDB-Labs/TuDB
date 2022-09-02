@@ -4,7 +4,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, NodeFilter, RelationshipFilter, RowBatch}
-import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern, Range, RelTypeName, RelationshipPattern, SemanticDirection}
+import org.opencypher.v9_0.expressions.{NodePattern, Range, RelationshipPattern}
 import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
 
 /**
@@ -73,14 +73,15 @@ case class ExpandOperator(
   }
 
   override def getNextImpl(): RowBatch = {
-    var inBatchData = in.getNext().batchData
-    var expandResult: Seq[Seq[LynxValue]] = Seq.empty
-    while (expandResult.isEmpty && inBatchData.nonEmpty) {
-      expandResult = inBatchData.flatMap(path => expandPath(path))
-      if (expandResult.isEmpty) inBatchData = in.getNext().batchData
-    }
-    if (expandResult.nonEmpty) RowBatch(expandResult)
-    else RowBatch(Seq.empty)
+    var inBatchData: Seq[Seq[LynxValue]] = Seq.empty
+    var expandedResult: Seq[Seq[LynxValue]] = Seq.empty
+    do {
+      inBatchData = in.getNext().batchData
+      if (inBatchData.isEmpty) return RowBatch(Seq.empty)
+      expandedResult = inBatchData.flatMap(path => expandPath(path))
+    } while (expandedResult.isEmpty)
+
+    RowBatch(expandedResult)
   }
 
   override def closeImpl(): Unit = {}
