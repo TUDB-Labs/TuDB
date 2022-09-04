@@ -33,10 +33,16 @@ class DeleteOperatorTest extends BaseOperatorTest {
   @Test
   def testDeleteNodeWithoutRelationship(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
-    val deleteOperator = DeleteOperator(
-      Delete(Seq(Variable("n")(defaultPosition)), false)(defaultPosition),
+    val selectOperator = SelectOperator(
+      Seq(("n", Option("n"))),
       nodeScanOperator,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val deleteOperator = DeleteOperator(
+      selectOperator,
       model,
+      false,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -58,10 +64,16 @@ class DeleteOperatorTest extends BaseOperatorTest {
     all_rels.append(r1)
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
-    val deleteOperator = DeleteOperator(
-      Delete(Seq(Variable("n")(defaultPosition)), false)(defaultPosition),
+    val selectOperator = SelectOperator(
+      Seq(("n", Option("n"))),
       nodeScanOperator,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val deleteOperator = DeleteOperator(
+      selectOperator,
       model,
+      false,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -81,10 +93,16 @@ class DeleteOperatorTest extends BaseOperatorTest {
     all_rels.append(r1)
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
-    val deleteOperator = DeleteOperator(
-      Delete(Seq(Variable("n")(defaultPosition)), true)(defaultPosition),
+    val selectOperator = SelectOperator(
+      Seq(("n", Option("n"))),
       nodeScanOperator,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val deleteOperator = DeleteOperator(
+      selectOperator,
       model,
+      true,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -122,10 +140,16 @@ class DeleteOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val deleteOperator = DeleteOperator(
-      Delete(Seq(Variable("r")(defaultPosition)), false)(defaultPosition),
+    val selectOperator = SelectOperator(
+      Seq(("r", Option("r"))),
       pathScanOperator,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val deleteOperator = DeleteOperator(
+      selectOperator,
       model,
+      false,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -133,4 +157,5 @@ class DeleteOperatorTest extends BaseOperatorTest {
     model.commit()
     Assert.assertEquals(0, all_rels.size)
   }
+
 }
