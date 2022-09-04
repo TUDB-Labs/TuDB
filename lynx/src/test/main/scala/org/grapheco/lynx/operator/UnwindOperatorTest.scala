@@ -1,10 +1,9 @@
 package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
-import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
+import org.grapheco.lynx.types.property.{LynxInteger}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.Test
 import org.opencypher.v9_0.expressions.{ListLiteral, Property, PropertyKeyName, SignedDecimalIntegerLiteral, Variable}
@@ -45,7 +44,11 @@ class UnwindOperatorTest extends BaseOperatorTest {
   all_nodes.append(node1, node2, node3)
 
   @Test
-  def testNoInUnwind(): Unit = {
+  def testUnwindLiteral(): Unit = {
+    /*
+        unwind [1,2,3] as n
+        return x
+     */
     val expr = ListLiteral(
       Seq(
         SignedDecimalIntegerLiteral("1")(defaultPosition),
@@ -54,10 +57,11 @@ class UnwindOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
+    val literalOperator = LiteralOperator("n", expr, expressionEvaluator, ctx.expressionContext)
+
     val operator = UnwindOperator(
-      None,
-      Variable("n")(defaultPosition),
-      expr,
+      literalOperator,
+      "n",
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -74,7 +78,11 @@ class UnwindOperatorTest extends BaseOperatorTest {
   }
 
   @Test
-  def testNoInUnwindWithNested(): Unit = {
+  def testUnwindWithNested(): Unit = {
+    /*
+        unwind [ [1,2,3], [4,5,6] ] as n
+        return n
+     */
     val expr = ListLiteral(
       Seq(
         ListLiteral(
@@ -94,15 +102,15 @@ class UnwindOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
+    val literalOperator = LiteralOperator("n", expr, expressionEvaluator, ctx.expressionContext)
+
     val operator = UnwindOperator(
-      None,
-      Variable("n")(defaultPosition),
-      expr,
+      literalOperator,
+      "n",
       expressionEvaluator,
       ctx.expressionContext
     )
     val res = getOperatorAllResultAsJavaList(operator)
-
     CollectionUtils.isEqualCollection(
       List(
         Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
@@ -111,24 +119,33 @@ class UnwindOperatorTest extends BaseOperatorTest {
       res
     )
   }
+
   @Test
   def testInUnwind(): Unit = {
-    val in = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
-    val expr = Property(Variable("n")(defaultPosition), PropertyKeyName("lst")(defaultPosition))(
-      defaultPosition
+    /*
+        match (n)
+        unwind n.lst as n.lst
+        return n.lst
+     */
+    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val projectColumn = Seq(
+      (
+        "n.lst",
+        Property(
+          Variable("n")(defaultPosition),
+          PropertyKeyName("lst")(defaultPosition)
+        )(defaultPosition)
+      )
     )
+    val projectOperator =
+      ProjectOperator(nodeScanOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
     val unwindOp = UnwindOperator(
-      Option(in),
-      Variable("x")(defaultPosition),
-      expr,
+      projectOperator,
+      "n.lst",
       expressionEvaluator,
       ctx.expressionContext
     )
-    val selectOp =
-      SelectOperator(Seq(("x", Option("x"))), unwindOp, expressionEvaluator, ctx.expressionContext)
-
-    val res = getOperatorAllResultAsJavaList(selectOp)
-
+    val res = getOperatorAllResultAsJavaList(unwindOp)
     CollectionUtils.isEqualCollection(
       List(
         Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
