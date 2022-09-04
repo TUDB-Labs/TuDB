@@ -33,15 +33,15 @@ case class DeleteOperator(
       deleteTypes.foreach {
         case CTNode => {
           val ids = batchData
-            .filter(v => v.isInstanceOf[LynxNode])
-            .map(v => v.asInstanceOf[LynxNode].id)
+            .filter(lynxValue => lynxValue.isInstanceOf[LynxNode])
+            .map(lynxValue => lynxValue.asInstanceOf[LynxNode].id)
             .iterator
           graphModel.deleteNodesSafely(ids, forceToDelete)
         }
         case CTRelationship => {
           val ids = batchData
-            .filter(v => v.isInstanceOf[LynxRelationship])
-            .map(v => v.asInstanceOf[LynxRelationship].id)
+            .filter(lynxValue => lynxValue.isInstanceOf[LynxRelationship])
+            .map(lynxValue => lynxValue.asInstanceOf[LynxRelationship].id)
             .iterator
           graphModel.deleteRelations(ids)
         }
