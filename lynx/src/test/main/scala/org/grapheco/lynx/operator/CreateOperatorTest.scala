@@ -29,15 +29,14 @@ class CreateOperatorTest extends BaseOperatorTest {
     TestId(1L),
     TestId(2L),
     Option(LynxRelationshipType("KNOW")),
-    Map(LynxPropertyKey("name") -> LynxString("R"))
+    Map(LynxPropertyKey("name") -> LynxString("AAA"))
   )
   @Test
   def testCreateSingleNode() {
     val propExpr = MapExpression(
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("AAA")(defaultPosition)))
     )(defaultPosition)
-    val operator = CreateOperator(
-      None,
+    val operator = CreateUnitOperator(
       Seq(("n", CTNode)),
       Seq(CreateNode("n", Seq(LabelName("Person")(defaultPosition)), Option(propExpr))),
       model,
@@ -55,8 +54,7 @@ class CreateOperatorTest extends BaseOperatorTest {
     val propExpr1 = MapExpression(
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("AAA")(defaultPosition)))
     )(defaultPosition)
-    val operator1 = CreateOperator(
-      None,
+    val operator1 = CreateUnitOperator(
       Seq(("n", CTNode)),
       Seq(CreateNode("n", Seq(LabelName("Person")(defaultPosition)), Option(propExpr1))),
       model,
@@ -67,7 +65,7 @@ class CreateOperatorTest extends BaseOperatorTest {
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("BBB")(defaultPosition)))
     )(defaultPosition)
     val operator2 = CreateOperator(
-      Option(operator1),
+      operator1,
       Seq(("m", CTNode)),
       Seq(CreateNode("m", Seq(LabelName("Person")(defaultPosition)), Option(propExpr2))),
       model,
@@ -106,7 +104,7 @@ class CreateOperatorTest extends BaseOperatorTest {
     _nodeId = 1
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val createOperator = CreateOperator(
-      Option(nodeScanOperator),
+      nodeScanOperator,
       Seq(("n2", CTNode)),
       Seq(CreateNode("n2", Seq(LabelName("NEW_PERSON")(defaultPosition)), Option(expr))),
       model,
@@ -137,6 +135,10 @@ class CreateOperatorTest extends BaseOperatorTest {
         match (m: Person) where m.name = 'B'
         create (n)-[r:KNOW{name:'AAA'}]->(m)
      */
+    all_nodes.append(node1, node2)
+    val rPropExpr = MapExpression(
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("AAA")(defaultPosition)))
+    )(defaultPosition)
     val nodeScanOperator1 = prepareNodeScanOperator(
       "n",
       Seq("Person"),
@@ -147,9 +149,41 @@ class CreateOperatorTest extends BaseOperatorTest {
       Seq("Person"),
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("BBB")(defaultPosition)))
     )
-    val joinOperator = ""
-    // TODO: After merge JoinOperator.
+    val joinOperator = JoinOperator(
+      nodeScanOperator1,
+      nodeScanOperator2,
+      Seq.empty,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val op = CreateOperator(
+      joinOperator,
+      Seq(("n", CTNode), ("m", CTNode), ("r", CTRelationship)),
+      Seq(
+        CreateNode("n", Seq(LabelName("Person")(defaultPosition)), None),
+        CreateNode("m", Seq(LabelName("Person")(defaultPosition)), None),
+        CreateRelationship(
+          "r",
+          Seq(RelTypeName("KNOW")(defaultPosition)),
+          Option(rPropExpr),
+          "n",
+          "m"
+        )
+      ),
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val res = getOperatorAllOutputs(op).flatMap(r => r.batchData.flatten).toSeq.asJava
+    println(res)
+    Assert.assertTrue(
+      CollectionUtils.isEqualCollection(
+        List(node1, node2, r1).asJava,
+        res
+      )
+    )
   }
+
   @Test
   def testCreateNodeAndRelationship(): Unit = {
     /*
@@ -164,8 +198,7 @@ class CreateOperatorTest extends BaseOperatorTest {
     val rPropExpr = MapExpression(
       Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("R")(defaultPosition)))
     )(defaultPosition)
-    val operator = CreateOperator(
-      None,
+    val operator = CreateUnitOperator(
       Seq(("n", CTNode), ("m", CTNode), ("r", CTRelationship)),
       Seq(
         CreateNode("n", Seq(LabelName("Person")(defaultPosition)), Option(nPropExpr)),
