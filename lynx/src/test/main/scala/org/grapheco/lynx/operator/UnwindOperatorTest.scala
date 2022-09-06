@@ -3,9 +3,9 @@ package org.grapheco.lynx.operator
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
-import org.grapheco.lynx.types.property.{LynxInteger}
+import org.grapheco.lynx.types.property.{LynxInteger, LynxNull}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
-import org.junit.Test
+import org.junit.{Assert, Test}
 import org.opencypher.v9_0.expressions.{ListLiteral, Property, PropertyKeyName, SignedDecimalIntegerLiteral, Variable}
 
 import scala.collection.JavaConverters._
@@ -65,16 +65,12 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res = getOperatorAllResultAsJavaList(operator)
-
-    CollectionUtils.isEqualCollection(
-      List(
-        Seq(LynxInteger(1)).asJava,
-        Seq(LynxInteger(2)).asJava,
-        Seq(LynxInteger(3)).asJava
-      ).asJava,
+    val res = getOperatorFlattenResult(operator)
+    Assert.assertEquals(
+      List(LynxInteger(1), LynxInteger(2), LynxInteger(3)),
       res
     )
+
   }
 
   @Test
@@ -110,12 +106,12 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res = getOperatorAllResultAsJavaList(operator)
-    CollectionUtils.isEqualCollection(
+    val res = getOperatorFlattenResult(operator)
+    Assert.assertEquals(
       List(
-        Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
-        Seq(LynxInteger(4), LynxInteger(5), LynxInteger(6)).asJava
-      ).asJava,
+        LynxList(List(LynxInteger(1), LynxInteger(2), LynxInteger(3))),
+        LynxList(List(LynxInteger(4), LynxInteger(5), LynxInteger(6)))
+      ),
       res
     )
   }
@@ -145,16 +141,16 @@ class UnwindOperatorTest extends BaseOperatorTest {
       expressionEvaluator,
       ctx.expressionContext
     )
-    val res = getOperatorAllResultAsJavaList(unwindOp)
-    CollectionUtils.isEqualCollection(
+    val res = getOperatorAllOutputs(unwindOp).flatMap(batch => batch.batchData).flatten.toList
+    Assert.assertEquals(
       List(
-        Seq(LynxInteger(1), LynxInteger(2), LynxInteger(3)).asJava,
-        Seq(null).asJava,
-        Seq(
-          LynxList(List(1, 2, 3).map(LynxInteger(_))),
-          LynxList(List(4, 5, 6).map(LynxInteger(_)))
-        ).asJava
-      ).asJava,
+        LynxInteger(1),
+        LynxInteger(2),
+        LynxInteger(3),
+        LynxNull,
+        LynxList(List(1, 2, 3).map(LynxInteger(_))),
+        LynxList(List(4, 5, 6).map(LynxInteger(_)))
+      ),
       res
     )
   }

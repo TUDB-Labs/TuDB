@@ -337,10 +337,8 @@ class BaseOperatorTest {
     result.toArray
   }
 
-  def getOperatorAllResultAsJavaList(
-      operator: ExecutionOperator
-    ): java.util.List[java.util.List[LynxValue]] = {
-    getOperatorAllOutputs(operator).map(f => f.batchData.flatten).map(f => f.asJava).toList.asJava
+  def getOperatorFlattenResult(operator: ExecutionOperator): List[LynxValue] = {
+    getOperatorAllOutputs(operator).flatMap(batch => batch.batchData).flatten.toList
   }
 
   def prepareNodeScanOperator(
