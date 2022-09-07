@@ -6,7 +6,9 @@ import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvalua
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
 /**
-  *@description: This operator is used to delete nodes and relationships. The data from 'in' all need to be deleted.
+  *@description: This operator is used to delete nodes and relationships.
+  *               1. The data from 'in' all need to be deleted.
+  *               2. If node to be deleted has attached edges, forceToDelete must be true otherwise throw Exception.
   */
 case class DeleteOperator(
     in: ExecutionOperator,
@@ -30,6 +32,7 @@ case class DeleteOperator(
     var batchData: Seq[LynxValue] = Seq.empty
     do {
       batchData = in.getNext().batchData.flatten
+      if (batchData.isEmpty) return RowBatch(Seq.empty)
       deleteTypes.foreach {
         case CTNode => {
           val ids = batchData
