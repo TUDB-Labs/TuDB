@@ -47,15 +47,15 @@ message Node {
 // Relationship extends Element and connects two nodes.
 message Relationship {
   // The following fields are inherited from Element but we write them here explicitly since proto3 does not support inheritance.
-  string id = 1;
+  int64 relationship_id = 1;
   string name = 2;
   int64 graph_id = 3; // The graph ID associated with this relationship.
   repeated Property properties = 4;
 
-  Node start_node = 5;
-  Node end_node = 6;
+  int64 start_node_id = 5;
+  int64 end_node_id = 6;
   // The type of relationship between the two connected nodes.
-  string relationType = 7;
+  int32 relationType = 7;
 }
 
 message GenericQueryRequest {
@@ -188,7 +188,7 @@ message RelationshipCreateResponse {
 };
 
 message RelationshipGetRequest {
-  string name = 1;
+  int64 relationship_id = 1;
 };
 
 message RelationshipGetResponse {
@@ -205,7 +205,7 @@ message RelationshipListResponse {
 };
 
 message RelationshipDeleteRequest {
-  string name = 1;
+  int64 relationship_id = 1;
 };
 
 message RelationshipDeleteResponse {

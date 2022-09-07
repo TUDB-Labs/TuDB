@@ -542,7 +542,10 @@ trait GraphModel {
     ): Iterator[Option[LynxRelationship]] =
     this.write.removeRelationshipsType(relationshipIds, LynxRelationshipType(theType))
 
-  /** Delete nodes in a safe way, and handle nodes with relationships in a special way.
+  /** before delete nodes we should check is the nodes have relationships.
+    * if nodes have relationships but not force to delete, we should throw exception,
+    * otherwise we should delete relationships first then delete nodes.
+    *
     * @param nodesIDs The ids of nodes to deleted
     * @param forced When some nodes have relationships,
     *               if it is true, delete any related relationships,
@@ -557,7 +560,9 @@ trait GraphModel {
       if (forced)
         this.write.deleteRelations(affectedRelationships.map(_.id))
       else
-        throw ConstrainViolatedException(s"deleting referred nodes")
+        throw ConstrainViolatedException(
+          s"deleting nodes with relationships, if force to delete, please use DETACH DELETE."
+        )
     }
     this.write.deleteNodes(ids.toSeq)
   }

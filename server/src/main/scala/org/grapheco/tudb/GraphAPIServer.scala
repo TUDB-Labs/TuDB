@@ -31,6 +31,17 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
     "tudb://index?type=dummy",
     outputRoot
   )
+  TuDBStoreContext.initializeRelationshipStoreAPI(
+    s"${outputRoot}/${DBNameMap.relationDB}",
+    "default",
+    s"${outputRoot}/${DBNameMap.inRelationDB}",
+    "default",
+    s"${outputRoot}/${DBNameMap.outRelationDB}",
+    "default",
+    s"${outputRoot}/${DBNameMap.relationLabelDB}",
+    "default",
+    metaDB
+  )
 
   private val _port: Int = serverContext.getPort
   private val _server: Server = SNettyServerBuilder
@@ -40,6 +51,13 @@ class GraphAPIServer(serverContext: TuDBServerContext) extends LazyLogging {
         serverContext.getDataPath,
         serverContext.getIndexUri,
         TuDBStoreContext.getNodeStoreAPI
+      )
+    )
+    .addService(
+      new RelationshipService(
+        serverContext.getDataPath,
+        serverContext.getIndexUri,
+        TuDBStoreContext.getRelationshipAPI
       )
     )
     .build()

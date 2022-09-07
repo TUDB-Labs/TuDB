@@ -27,9 +27,9 @@
         <scala.version>2.12.8</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <scala.compat.version>2.12</scala.compat.version>
-        <netty.version>4.1.79.Final</netty.version>
+        <netty.version>4.1.80.Final</netty.version>
         <junit.version>4.13.2</junit.version>
-        <rocksdb.version>7.4.5</rocksdb.version>
+        <rocksdb.version>7.5.3</rocksdb.version>
         <scala-logging.version>3.8.0</scala-logging.version>
         <logback.version>1.2.11</logback.version>
         <slf4j.version>2.0.0</slf4j.version>
@@ -123,7 +123,7 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-all</artifactId>
-                <version>1.48.0</version>
+                <version>1.49.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.tomcat</groupId>
