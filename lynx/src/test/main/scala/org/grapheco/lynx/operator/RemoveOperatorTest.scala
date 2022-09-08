@@ -92,26 +92,6 @@ class RemoveOperatorTest() extends BaseOperatorTest {
 
   @Test
   def testRemoveALabelFromNode(): Unit = {
-    val projectColumn = Seq(
-      (
-        "n.name",
-        Property(
-          Variable("n")(defaultPosition),
-          PropertyKeyName("name")(defaultPosition)
-        )(defaultPosition)
-      ),
-      (
-        "labels",
-        ProcedureExpression(
-          FunctionInvocation(
-            Namespace()(defaultPosition),
-            FunctionName("labels")(defaultPosition),
-            false,
-            IndexedSeq(Variable("n")(defaultPosition))
-          )(defaultPosition)
-        )(runnerContext)
-      )
-    )
     val removeItems = Seq(
       RemoveLabelItem(Variable("n")(defaultPosition), Seq(LabelName("German")(defaultPosition)))(
         defaultPosition
@@ -130,17 +110,6 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         expressionEvaluator,
         ctx.expressionContext
       )
-    val projectOperator =
-      ProjectOperator(removeOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
-
-    val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
-    Assert.assertEquals(
-      Seq(LynxString("Peter"), LynxList(List(LynxString("Swedish")))),
-      res
-    )
-  }
-  @Test
-  def testRemoveMultipleLabelsFromNode(): Unit = {
     val projectColumn = Seq(
       (
         "n.name",
@@ -161,6 +130,17 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         )(runnerContext)
       )
     )
+    val projectOperator =
+      ProjectOperator(removeOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
+
+    val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
+    Assert.assertEquals(
+      Seq(LynxString("Peter"), LynxList(List(LynxString("Swedish")))),
+      res
+    )
+  }
+  @Test
+  def testRemoveMultipleLabelsFromNode(): Unit = {
     val removeItems = Seq(
       RemoveLabelItem(
         Variable("n")(defaultPosition),
@@ -182,6 +162,26 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         expressionEvaluator,
         ctx.expressionContext
       )
+    val projectColumn = Seq(
+      (
+        "n.name",
+        Property(
+          Variable("n")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "labels",
+        ProcedureExpression(
+          FunctionInvocation(
+            Namespace()(defaultPosition),
+            FunctionName("labels")(defaultPosition),
+            false,
+            IndexedSeq(Variable("n")(defaultPosition))
+          )(defaultPosition)
+        )(runnerContext)
+      )
+    )
     val projectOperator =
       ProjectOperator(removeOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
 
