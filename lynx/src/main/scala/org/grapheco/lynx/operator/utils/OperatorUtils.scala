@@ -1,18 +1,13 @@
 package org.grapheco.lynx.operator.utils
 
-import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, RowBatch}
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.JavaConverters._
 
 /**
-  *@author:John117
-  *@createDate:2022/8/9
-  *@description:
+  *@description: common utils for operator.
   */
 object OperatorUtils {
-
   def getOperatorAllOutputs(operator: ExecutionOperator): Array[RowBatch] = {
     val result = ArrayBuffer[RowBatch]()
     operator.open()

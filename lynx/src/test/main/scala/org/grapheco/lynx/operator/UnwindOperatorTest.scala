@@ -1,14 +1,11 @@
 package org.grapheco.lynx.operator
 
-import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxInteger, LynxNull}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
 import org.opencypher.v9_0.expressions.{ListLiteral, Property, PropertyKeyName, SignedDecimalIntegerLiteral, Variable}
-
-import scala.collection.JavaConverters._
 
 /**
   *@description:
@@ -117,7 +114,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
   }
 
   @Test
-  def testInUnwind(): Unit = {
+  def testUnwindNoneLiteralInput(): Unit = {
     /*
         match (n)
         unwind n.lst as n.lst
