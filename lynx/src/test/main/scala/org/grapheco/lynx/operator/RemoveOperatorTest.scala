@@ -48,22 +48,6 @@ class RemoveOperatorTest() extends BaseOperatorTest {
 
   @Test
   def testRemoveAProperty(): Unit = {
-    val projectColumn = Seq(
-      (
-        "a.name",
-        Property(
-          Variable("a")(defaultPosition),
-          PropertyKeyName("name")(defaultPosition)
-        )(defaultPosition)
-      ),
-      (
-        "a.age",
-        Property(
-          Variable("a")(defaultPosition),
-          PropertyKeyName("age")(defaultPosition)
-        )(defaultPosition)
-      )
-    )
     val removeItem = Seq(
       RemovePropertyItem(
         Property(Variable("a")(defaultPosition), PropertyKeyName("age")(defaultPosition))(
@@ -82,6 +66,22 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       model,
       expressionEvaluator,
       ctx.expressionContext
+    )
+    val projectColumn = Seq(
+      (
+        "a.name",
+        Property(
+          Variable("a")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "a.age",
+        Property(
+          Variable("a")(defaultPosition),
+          PropertyKeyName("age")(defaultPosition)
+        )(defaultPosition)
+      )
     )
     val projectOperator =
       ProjectOperator(removeOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
