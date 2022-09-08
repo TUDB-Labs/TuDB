@@ -7,9 +7,9 @@ import org.opencypher.v9_0.expressions.{Property, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
 /**
-  *@description: This operator is used to :
-  *                1. remove properties in node or relationship
-  *                2. remove labels in node.
+  *@description: This operator is used to:
+  *                1. remove properties from nodes and relationships
+  *                2. remove labels from node.
   */
 case class RemoveOperator(
     in: ExecutionOperator,
