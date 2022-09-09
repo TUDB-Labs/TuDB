@@ -13,7 +13,6 @@ jobs:
         run: echo $SHELL
       - name: run Integration
         run: |
-          /mnt/nvme1/tudb/miniconda3/bin/conda init bash
           conda activate py38
           python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/main.py
       - name: Integration reportc
