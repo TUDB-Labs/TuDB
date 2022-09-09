@@ -9,10 +9,8 @@ jobs:
   build:
     runs-on: [self-hosted, integration]
     steps:
-      - name: TEST
-        run:  python3 -V
       - name: run Integration
         run: |
           python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/main.py
       - name: Integration reportc
-        run: cat /data/lsqb_test_report.csv
+        run: cat /data/lsqb_test_report.txt
