@@ -7,7 +7,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: [integration]
+    runs-on: [self-hosted, integration]
     steps:
       - name: Run integration
         run: |
