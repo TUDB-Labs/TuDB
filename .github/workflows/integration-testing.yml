@@ -8,7 +8,8 @@ on: [push]
 jobs:
   build:
     runs-on:
-      self-hosted: [m20-runner-1]
+      self-hosted:
+        - name: [m20-runner-1]
     steps:
       - name: Integration test
         run: cat /data/lsqb_test_report.csv
