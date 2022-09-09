@@ -10,6 +10,8 @@ jobs:
     runs-on: [self-hosted, integration]
     steps:
       - name: run Integration
-        run: python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/main.py
+        run: |
+          conda activate py38
+          python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/main.py
       - name: Integration report
         run: cat /data/lsqb_test_report.csv
