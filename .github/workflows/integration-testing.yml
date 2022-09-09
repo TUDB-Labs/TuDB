@@ -5,14 +5,10 @@ name: INTEGRATION
 
 on: [push]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
-    runs-on: [self-hosted]
-
+    runs-on:
+      self-hosted: [m20-runner-1]
     steps:
       - name: Integration test
         run: cat /data/lsqb_test_report.csv
