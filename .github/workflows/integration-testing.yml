@@ -9,6 +9,8 @@ jobs:
   build:
     runs-on: [self-hosted, integration]
     steps:
+      - name: TEST
+        run: echo $SHELL
       - name: run Integration
         run: |
           source ~/.bashrc
