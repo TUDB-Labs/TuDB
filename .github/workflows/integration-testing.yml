@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: run Integration
         run: |
-          /mnt/nvme1/tudb/miniconda3/bin/conda activate
+          source ~/.bashrc
           conda activate py38
           python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/main.py
       - name: Integration reportc
