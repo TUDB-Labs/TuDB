@@ -10,9 +10,7 @@ jobs:
     runs-on: [self-hosted, integration]
     steps:
       - name: TEST
-        run: |
-        echo $SHELL
-        echo whoami
+        run: echo whoami
       - name: run Integration
         run: |
           conda init bash
