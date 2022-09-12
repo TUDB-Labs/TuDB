@@ -3,6 +3,7 @@ package org.grapheco.lynx.operator
 import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
+import org.grapheco.metrics.{Label, Record, Value, DomainObject}
 import org.opencypher.v9_0.ast.ReturnItem
 
 /**
@@ -27,6 +28,8 @@ case class AggregationOperator(
   var allGroupedData: Iterator[Array[Seq[LynxValue]]] = Iterator.empty
   var hasPulledData: Boolean = false
 
+  val recordLabel = new Label(Set("Aggregation"))
+
   override def openImpl(): Unit = {
     in.open()
     schema = (aggregationExprs ++ groupingExprs).map(col =>
@@ -35,6 +38,7 @@ case class AggregationOperator(
   }
 
   override def getNextImpl(): RowBatch = {
+    DomainObject.recordLatency(new Record(recordLabel, new Value(0)))
     if (!hasPulledData) {
       val columnNames = in.outputSchema().map(f => f._1)
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
@@ -71,8 +75,14 @@ case class AggregationOperator(
       hasPulledData = true
     }
 
-    if (allGroupedData.nonEmpty) RowBatch(allGroupedData.next())
-    else RowBatch(Seq.empty)
+    var rb: RowBatch = null
+    if (allGroupedData.nonEmpty) {
+      rb = RowBatch(allGroupedData.next())
+    } else {
+      rb = RowBatch(Seq.empty)
+    }
+    DomainObject.recordLatency(new Record(recordLabel, new Value(0)))
+    rb
   }
 
   override def closeImpl(): Unit = {}
