@@ -1,0 +1,17 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Integration
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [self-hosted, integration]
+    steps:
+      - name: Run integration
+        run: |
+          python3 /mnt/nvme1/tudb/autoTest/tudb_auto_test/cleanMain.py
