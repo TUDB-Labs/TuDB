@@ -12,21 +12,18 @@ class Domain(dID: String) {
 
   // record the latency for an operation
   def recordLatency(r: Record): Unit = {
-    val breakloop = new Breaks
-
     // if there is an existing record with the same label, we assume this record is the start point
     // of the operation and compute the operation latency according to the timestamp
-    breakloop.breakable {
-      for (or <- records.reverse) {
-        if (or.matchLabel(r)) {
-          val latency = r.computeLatency(or)
-          records = records.filterNot(_ == or)
-          r.value.setValue(latency)
-          records = records :+ r
-          breakloop.break
-        }
+    for (or <- records.reverse) {
+      if (or.matchLabel(r)) {
+        val latency = r.computeLatency(or)
+        records = records.filterNot(_ == or)
+        r.value.setValue(latency)
+        records = records :+ r
+        return
       }
     }
+
     records = records :+ r
   }
 
@@ -36,5 +33,19 @@ class Domain(dID: String) {
         r.print(id)
       }
     }
+  }
+
+  def filterRecords(l: Label): Set[Record] = {
+    var filterRecords: Set[Record] = Set()
+    for (r <- records) {
+      if (r.containLabel(l)) {
+        filterRecords += r
+      }
+    }
+    filterRecords
+  }
+
+  def getRecordsSize(): Int = {
+    records.length
   }
 }
