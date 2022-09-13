@@ -128,7 +128,7 @@ class ExecutionPlanCreator {
       case unsupportedPlan => {
         throw new TuDBException(
           TuDBError.LYNX_UNSUPPORTED_OPERATION,
-          s"unsupported physical plan: $unsupportedPlan"
+          s"unsupported physical plan: ${unsupportedPlan.toString}"
         )
       }
     }
