@@ -3,6 +3,7 @@ package org.grapheco.lynx
 import org.grapheco.lynx.operator._
 import org.grapheco.lynx.physical.PhysicalExpandPath
 import org.grapheco.lynx.types.property.LynxNumber
+import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 
 /**
   *@description: This class is used to translate physical plan to execution plan.
@@ -122,6 +123,12 @@ class ExecutionPlanCreator {
           translator(orderBy.children.head, plannerContext, executionContext),
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
+        )
+      }
+      case unsupportedPlan => {
+        throw new TuDBException(
+          TuDBError.LYNX_UNSUPPORTED_OPERATION,
+          s"unsupported physical plan: $unsupportedPlan"
         )
       }
     }
