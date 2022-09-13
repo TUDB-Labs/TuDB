@@ -1,22 +1,20 @@
-package org.grapheco.lynx.operator.utils
+package org.grapheco.lynx
 
-import org.grapheco.lynx.operator.{AggregationOperator, ExpandOperator, FilterOperator, JoinOperator, LimitOperator, NodeScanOperator, OrderByOperator, PathScanOperator, ProjectOperator, SelectOperator, SkipOperator}
-import org.grapheco.lynx.physical.PPTExpandPath
-import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.operator._
+import org.grapheco.lynx.physical.PhysicalExpandPath
 import org.grapheco.lynx.types.property.LynxNumber
-import org.grapheco.lynx.{ExecutionContext, ExecutionOperator, PPTAggregation, PPTFilter, PPTJoin, PPTLimit, PPTNode, PPTNodeScan, PPTOrderBy, PPTProject, PPTRelationshipScan, PPTSelect, PPTSkip, PhysicalPlannerContext}
 
 /**
-  *@description: This class is used to translate plan from OptimizedPlan to ExecutionOperator.
+  *@description: This class is used to translate physical plan to execution plan.
   */
-class OperatorTranslator {
+class ExecutionPlanCreator {
   def translator(
-      plan: PPTNode,
+      plan: PhysicalNode,
       plannerContext: PhysicalPlannerContext,
       executionContext: ExecutionContext
     ): ExecutionOperator = {
     plan match {
-      case PPTNodeScan(pattern) => {
+      case PhysicalNodeScan(pattern) => {
         NodeScanOperator(
           pattern,
           plannerContext.runnerContext.graphModel,
@@ -24,7 +22,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case PPTRelationshipScan(relPattern, leftPattern, rightPattern) => {
+      case PhysicalRelationshipScan(relPattern, leftPattern, rightPattern) => {
         PathScanOperator(
           relPattern,
           leftPattern,
@@ -34,7 +32,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case filter: PPTFilter => {
+      case filter: PhysicalFilter => {
         FilterOperator(
           filter.expr,
           translator(filter.children.head, plannerContext, executionContext),
@@ -42,7 +40,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case project: PPTProject => {
+      case project: PhysicalProject => {
         val columnExpr = project.ri.items.map(x => x.name -> x.expression)
         ProjectOperator(
           translator(project.children.head, plannerContext, executionContext),
@@ -51,7 +49,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case select: PPTSelect => {
+      case select: PhysicalSelect => {
         SelectOperator(
           select.columns,
           translator(select.children.head, plannerContext, executionContext),
@@ -59,7 +57,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case aggregation: PPTAggregation => {
+      case aggregation: PhysicalAggregation => {
         AggregationOperator(
           aggregation.aggregations,
           aggregation.groupings,
@@ -68,7 +66,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case expand: PPTExpandPath => {
+      case expand: PhysicalExpandPath => {
         ExpandOperator(
           translator(expand.children.head, plannerContext, executionContext),
           expand.rel,
@@ -78,7 +76,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case join: PPTJoin => {
+      case join: PhysicalJoin => {
         // optimizer will choose small table.
         val smallTable = join.children.head
         val largeTable = join.children.last
@@ -90,7 +88,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case limit: PPTLimit => {
+      case limit: PhysicalLimit => {
         val limitNumber = plannerContext.runnerContext.expressionEvaluator
           .eval(limit.expr)(executionContext.expressionContext)
           .value
@@ -104,7 +102,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case skip: PPTSkip => {
+      case skip: PhysicalSkip => {
         val skipNumber = plannerContext.runnerContext.expressionEvaluator
           .eval(skip.expr)(executionContext.expressionContext)
           .value
@@ -118,7 +116,7 @@ class OperatorTranslator {
           executionContext.expressionContext
         )
       }
-      case orderBy: PPTOrderBy => {
+      case orderBy: PhysicalOrderBy => {
         OrderByOperator(
           orderBy.sortItem,
           translator(orderBy.children.head, plannerContext, executionContext),
