@@ -11,6 +11,13 @@ class Label(val ls: Set[String]) {
   }
 
   def contains(label: Label): Boolean = {
+    if (label.labels.size == 0) {
+      return true
+    }
+    if (labels.size == 0) {
+      return false
+    }
+
     for (l <- label.labels) {
       if (!labels.contains(l)) {
         return false

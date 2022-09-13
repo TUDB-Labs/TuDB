@@ -26,7 +26,7 @@ class Record(l: Label, v: Value) {
     timestamp - r.timestamp
   }
 
-  def print(dID: String): Unit = {
-    printf("[%s][%s][%s]%s\n", dID, label.toString(), timestamp.toString(), value.toString())
+  override def toString(): String = {
+    String.format("[%s][%s][%s]%s", label.toString(), timestamp.toString(), value.toString())
   }
 }

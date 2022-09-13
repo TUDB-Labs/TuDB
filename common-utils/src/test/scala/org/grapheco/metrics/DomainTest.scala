@@ -66,9 +66,9 @@ class DomainTest {
   @Test
   def testRecordLatency(): Unit = {
     domain.recordLatency(r2)
-    assert(domain.getRecordsSize() == 1)
+    assert(domain.records.length == 1)
 
     domain.recordLatency(r3)
-    assert(domain.getRecordsSize() == 1)
+    assert(domain.records.length == 1)
   }
 }

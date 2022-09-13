@@ -14,10 +14,10 @@ class Domain(dID: String) {
   def recordLatency(r: Record): Unit = {
     // if there is an existing record with the same label, we assume this record is the start point
     // of the operation and compute the operation latency according to the timestamp
-    for (or <- records.reverse) {
-      if (or.matchLabel(r)) {
-        val latency = r.computeLatency(or)
-        records = records.filterNot(_ == or)
+    for (preRecord <- records.reverse) {
+      if (preRecord.matchLabel(r)) {
+        val latency = r.computeLatency(preRecord)
+        records = records.filterNot(_ == preRecord)
         r.value.setValue(latency)
         records = records :+ r
         return
@@ -30,9 +30,13 @@ class Domain(dID: String) {
   def printRecordByLabel(l: Label): Unit = {
     for (r <- records) {
       if (r.containLabel(l)) {
-        r.print(id)
+        printRecord(r)
       }
     }
+  }
+
+  def printRecord(r: Record): Unit = {
+    printf("[%s]%s", dID, r.toString())
   }
 
   def filterRecords(l: Label): Set[Record] = {
@@ -45,7 +49,4 @@ class Domain(dID: String) {
     filterRecords
   }
 
-  def getRecordsSize(): Int = {
-    records.length
-  }
 }
