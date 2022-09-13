@@ -1,7 +1,7 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.RemoveNullProject.optimizeBottomUp
-import org.grapheco.lynx.physical.PPTExpandPath
+import org.grapheco.lynx.physical.PhysicalExpandPath
 import org.grapheco.lynx.rules.{ExtractJoinReferenceRule, JoinToExpandRule}
 import org.opencypher.v9_0.ast.AliasedReturnItem
 import org.opencypher.v9_0.expressions.{Ands, Equals, Expression, FunctionInvocation, HasLabels, In, LabelName, Literal, LogicalVariable, MapExpression, NodePattern, Not, Ors, PatternExpression, Property, PropertyKeyName, RegexMatch, RelTypeName, RelationshipPattern, Variable}
@@ -11,13 +11,16 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait PhysicalPlanOptimizer {
-  def optimize(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode
+  def optimize(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode
 }
 
 trait PhysicalPlanOptimizerRule {
-  def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode
+  def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode
 
-  def optimizeBottomUp(node: PPTNode, ops: PartialFunction[PPTNode, PPTNode]*): PPTNode = {
+  def optimizeBottomUp(
+      node: PhysicalNode,
+      ops: PartialFunction[PhysicalNode, PhysicalNode]*
+    ): PhysicalNode = {
     val childrenOptimized =
       node.withChildren(node.children.map(child => optimizeBottomUp(child, ops: _*)))
     ops.foldLeft(childrenOptimized) { (optimized, op) =>
@@ -30,70 +33,72 @@ class DefaultPhysicalPlanOptimizer(runnerContext: CypherRunnerContext)
   extends PhysicalPlanOptimizer {
   val rules = Seq[PhysicalPlanOptimizerRule](
     RemoveNullProject,
-    PPTFilterPushDownRule,
+    PhysicalFilterPushDownRule,
     JoinToExpandRule,
     ExtractJoinReferenceRule,
     JoinTableSizeEstimateRule
   )
 
-  def optimize(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = {
+  def optimize(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode = {
     rules.foldLeft(plan)((optimized, rule) => rule.apply(optimized, ppc))
   }
 }
 
 object RemoveNullProject extends PhysicalPlanOptimizerRule {
 
-  override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan, {
-      case pnode: PPTNode =>
-        pnode.children match {
-          case Seq(p @ PPTProject(ri)) if ri.items.forall {
-                case AliasedReturnItem(expression, variable) => expression == variable
-              } =>
-            pnode.withChildren(pnode.children.filterNot(_ eq p) ++ p.children)
+  override def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode =
+    optimizeBottomUp(
+      plan, {
+        case pnode: PhysicalNode =>
+          pnode.children match {
+            case Seq(p @ PhysicalProject(ri)) if ri.items.forall {
+                  case AliasedReturnItem(expression, variable) => expression == variable
+                } =>
+              pnode.withChildren(pnode.children.filterNot(_ eq p) ++ p.children)
 
-          case _ => pnode
-        }
-    }
-  )
+            case _ => pnode
+          }
+      }
+    )
 }
 
-/** rule to PUSH the nodes or relationships' property and label in PPTFilter to NodePattern or RelationshipPattern
-  * LEAVE other expressions or operations in PPTFilter.
+/** rule to PUSH the nodes or relationships' property and label in PhysicalFilter to NodePattern or RelationshipPattern
+  * LEAVE other expressions or operations in PhysicalFilter.
   * like:
-  * PPTFilter(where node.age>10 or node.age<5 and n.label='xxx')           PPTFilter(where node.age>10 or node.age<5)
+  * PhysicalFilter(where node.age>10 or node.age<5 and n.label='xxx')           PhysicalFilter(where node.age>10 or node.age<5)
   * ||                                                           ===>      ||
   * NodePattern(n)                                                         NodePattern(n: label='xxx')
   */
-object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
-  override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan, {
-      case pnode: PPTNode => {
-        pnode.children match {
-          case Seq(pf @ PPTFilter(exprs)) => {
-            val res = pptFilterPushDownRule(pf, pnode, ppc)
-            if (res._2) pnode.withChildren(res._1)
-            else pnode
+object PhysicalFilterPushDownRule extends PhysicalPlanOptimizerRule {
+  override def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode =
+    optimizeBottomUp(
+      plan, {
+        case pnode: PhysicalNode => {
+          pnode.children match {
+            case Seq(pf @ PhysicalFilter(exprs)) => {
+              val res = pptFilterPushDownRule(pf, pnode, ppc)
+              if (res._2) pnode.withChildren(res._1)
+              else pnode
+            }
+            case Seq(pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
+              val newPhysical = pptJoinPushDown(pj, ppc)
+              pnode.withChildren(Seq(newPhysical))
+            }
+            case _ => pnode
           }
-          case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
-            val newPPT = pptJoinPushDown(pj, ppc)
-            pnode.withChildren(Seq(newPPT))
-          }
-          case _ => pnode
         }
       }
-    }
-  )
+    )
 
-  def pptJoinPushDown(pj: PPTJoin, ppc: PhysicalPlannerContext): PPTNode = {
+  def pptJoinPushDown(pj: PhysicalJoin, ppc: PhysicalPlannerContext): PhysicalNode = {
     val res = pj.children.map {
-      case pf @ PPTFilter(expr) => {
+      case pf @ PhysicalFilter(expr) => {
         val res = pptFilterPushDownRule(pf, pj, ppc)
         if (res._2) res._1.head
         else pf
       }
-      case pjj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex) => pptJoinPushDown(pjj, ppc)
-      case f                                                       => f
+      case pjj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex) => pptJoinPushDown(pjj, ppc)
+      case f                                                            => f
     }
     pj.withChildren(res)
   }
@@ -101,23 +106,23 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   def pptFilterThenJoinPushDown(
       propMap: Map[String, Option[Expression]],
       labelMap: Map[String, Seq[LabelName]],
-      pj: PPTJoin,
+      pj: PhysicalJoin,
       ppc: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     val res = pj.children.map {
-      case pn @ PPTNodeScan(pattern) =>
-        PPTNodeScan(getNewNodePattern(pattern, labelMap, propMap))(ppc)
-      case pr @ PPTRelationshipScan(
+      case pn @ PhysicalNodeScan(pattern) =>
+        PhysicalNodeScan(getNewNodePattern(pattern, labelMap, propMap))(ppc)
+      case pr @ PhysicalRelationshipScan(
             rel: RelationshipPattern,
             leftNode: NodePattern,
             rightNode: NodePattern
           ) =>
-        PPTRelationshipScan(
+        PhysicalRelationshipScan(
           rel,
           getNewNodePattern(leftNode, labelMap, propMap),
           getNewNodePattern(rightNode, labelMap, propMap)
         )(ppc)
-      case pjj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex) =>
+      case pjj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex) =>
         pptFilterThenJoinPushDown(propMap, labelMap, pjj, ppc)
       case f => f
     }
@@ -125,23 +130,23 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   }
 
   def pptFilterThenJoin(
-      parent: PPTFilter,
-      pj: PPTJoin,
+      parent: PhysicalFilter,
+      pj: PhysicalJoin,
       ppc: PhysicalPlannerContext
-    ): (Seq[PPTNode], Boolean) = {
+    ): (Seq[PhysicalNode], Boolean) = {
     val (labelMap, propertyMap, notPushDown) = extractFromFilterExpression(parent.expr)
 
     val res = pptFilterThenJoinPushDown(propertyMap, labelMap, pj, ppc)
 
     notPushDown.size match {
       case 0 => (Seq(res), true)
-      case 1 => (Seq(PPTFilter(notPushDown.head)(res, ppc)), true)
+      case 1 => (Seq(PhysicalFilter(notPushDown.head)(res, ppc)), true)
       // 2, WHERE a >= b AND c < d
       // 3, WHERE 6 >= a >= 3 AND c in [4, 5]
       // TODO: Ands Logic here may be incorrect, if we have OR clause?
       case 2 | 3 => {
         val expr = Ands(Set(notPushDown: _*))(InputPosition(0, 0, 0))
-        (Seq(PPTFilter(expr)(res, ppc)), true)
+        (Seq(PhysicalFilter(expr)(res, ppc)), true)
       }
     }
   }
@@ -221,40 +226,49 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
     }
   }
 
-  /** @param pf    the PPTFilter
-    * @param pnode the parent of PPTFilter, to rewrite PPTFilter
+  /** @param pf    the PhysicalFilter
+    * @param pnode the parent of PhysicalFilter, to rewrite PhysicalFilter
     * @param ppc   context
     * @return a seq and a flag, flag == true means push-down works
     */
   def pptFilterPushDownRule(
-      pf: PPTFilter,
-      pnode: PPTNode,
+      pf: PhysicalFilter,
+      pnode: PhysicalNode,
       ppc: PhysicalPlannerContext
-    ): (Seq[PPTNode], Boolean) = {
+    ): (Seq[PhysicalNode], Boolean) = {
     pf.children match {
-      case Seq(pns @ PPTNodeScan(pattern)) => {
+      case Seq(pns @ PhysicalNodeScan(pattern)) => {
         val patternAndSet = pushExprToNodePattern(pf.expr, pattern)
         if (patternAndSet._3) {
-          if (patternAndSet._2.isEmpty) (Seq(PPTNodeScan(patternAndSet._1)(ppc)), true)
+          if (patternAndSet._2.isEmpty) (Seq(PhysicalNodeScan(patternAndSet._1)(ppc)), true)
           else
-            (Seq(PPTFilter(patternAndSet._2.head)(PPTNodeScan(patternAndSet._1)(ppc), ppc)), true)
+            (
+              Seq(
+                PhysicalFilter(patternAndSet._2.head)(PhysicalNodeScan(patternAndSet._1)(ppc), ppc)
+              ),
+              true
+            )
         } else (null, false)
       }
-      case Seq(prs @ PPTRelationshipScan(rel, left, right)) => {
+      case Seq(prs @ PhysicalRelationshipScan(rel, left, right)) => {
         val patternsAndSet = pushExprToRelationshipPattern(pf.expr, rel, left, right)
         if (patternsAndSet._5) {
           if (patternsAndSet._4.isEmpty)
             (
               Seq(
-                PPTRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(ppc)
+                PhysicalRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(
+                  ppc
+                )
               ),
               true
             )
           else
             (
               Seq(
-                PPTFilter(patternsAndSet._4.head)(
-                  PPTRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(ppc),
+                PhysicalFilter(patternsAndSet._4.head)(
+                  PhysicalRelationshipScan(patternsAndSet._1, patternsAndSet._2, patternsAndSet._3)(
+                    ppc
+                  ),
                   ppc
                 )
               ),
@@ -262,12 +276,12 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
             )
         } else (null, false)
       }
-      case Seq(pep @ PPTExpandPath(rel, right)) => {
+      case Seq(pep @ PhysicalExpandPath(rel, right)) => {
         val expandAndSet = expandPathPushDown(pf.expr, right, pep, ppc)
         if (expandAndSet._2.isEmpty) (Seq(expandAndSet._1), true)
-        else (Seq(PPTFilter(expandAndSet._2.head)(expandAndSet._1, ppc)), true)
+        else (Seq(PhysicalFilter(expandAndSet._2.head)(expandAndSet._1, ppc)), true)
       }
-      case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) =>
+      case Seq(pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex)) =>
         pptFilterThenJoin(pf, pj, ppc)
       case _ => (null, false)
     }
@@ -404,9 +418,9 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   def expandPathPushDown(
       expression: Expression,
       right: NodePattern,
-      pep: PPTExpandPath,
+      pep: PhysicalExpandPath,
       ppc: PhysicalPlannerContext
-    ): (PPTNode, Set[Expression]) = {
+    ): (PhysicalNode, Set[Expression]) = {
     val (nodeLabels, nodeProperties, otherExpressions) = extractFromFilterExpression(expression)
 
     val topExpandPath = bottomUpExpandPath(nodeLabels, nodeProperties, pep, ppc)
@@ -422,11 +436,11 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   def bottomUpExpandPath(
       nodeLabels: Map[String, Seq[LabelName]],
       nodeProperties: Map[String, Option[Expression]],
-      pptNode: PPTNode,
+      pptNode: PhysicalNode,
       ppc: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     pptNode match {
-      case e @ PPTExpandPath(rel, right) =>
+      case e @ PhysicalExpandPath(rel, right) =>
         val newPEP = bottomUpExpandPath(
           nodeLabels: Map[String, Seq[LabelName]],
           nodeProperties: Map[String, Option[Expression]],
@@ -434,12 +448,12 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
           ppc
         )
         val expandRightPattern = getNewNodePattern(right, nodeLabels, nodeProperties)
-        PPTExpandPath(rel, expandRightPattern)(newPEP, ppc)
+        PhysicalExpandPath(rel, expandRightPattern)(newPEP, ppc)
 
-      case r @ PPTRelationshipScan(rel, left, right) => {
+      case r @ PhysicalRelationshipScan(rel, left, right) => {
         val leftPattern = getNewNodePattern(left, nodeLabels, nodeProperties)
         val rightPattern = getNewNodePattern(right, nodeLabels, nodeProperties)
-        PPTRelationshipScan(rel, leftPattern, rightPattern)(ppc)
+        PhysicalRelationshipScan(rel, leftPattern, rightPattern)(ppc)
       }
     }
   }
@@ -499,24 +513,25 @@ object PPTFilterPushDownRule extends PhysicalPlanOptimizerRule {
   }
 }
 
-/** rule to estimate two tables' size in PPTJoin
+/** rule to estimate two tables' size in PhysicalJoin
   * mark the bigger table's position
   */
 object JoinTableSizeEstimateRule extends PhysicalPlanOptimizerRule {
 
-  override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = optimizeBottomUp(
-    plan, {
-      case pnode: PPTNode => {
-        pnode.children match {
-          case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
-            val res = joinRecursion(pj, ppc, isSingleMatch)
-            pnode.withChildren(Seq(res))
+  override def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode =
+    optimizeBottomUp(
+      plan, {
+        case pnode: PhysicalNode => {
+          pnode.children match {
+            case Seq(pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
+              val res = joinRecursion(pj, ppc, isSingleMatch)
+              pnode.withChildren(Seq(res))
+            }
+            case _ => pnode
           }
-          case _ => pnode
         }
       }
-    }
-  )
+    )
 
   def estimateNodeRow(pattern: NodePattern, graphModel: GraphModel): Long = {
     val countMap = mutable.Map[String, Long]()
@@ -554,58 +569,63 @@ object JoinTableSizeEstimateRule extends PhysicalPlanOptimizerRule {
     else graphModel._helper.estimateRelationship(rel.types.head.name)
   }
 
-  def estimate(table: PPTNode, ppc: PhysicalPlannerContext): Long = {
+  def estimate(table: PhysicalNode, ppc: PhysicalPlannerContext): Long = {
     table match {
-      case ps @ PPTNodeScan(pattern) => estimateNodeRow(pattern, ppc.runnerContext.graphModel)
-      case pr @ PPTRelationshipScan(rel, left, right) =>
+      case ps @ PhysicalNodeScan(pattern) => estimateNodeRow(pattern, ppc.runnerContext.graphModel)
+      case pr @ PhysicalRelationshipScan(rel, left, right) =>
         estimateRelationshipRow(rel, left, right, ppc.runnerContext.graphModel)
     }
   }
 
   def estimateTableSize(
-      parent: PPTJoin,
-      table1: PPTNode,
-      table2: PPTNode,
+      parent: PhysicalJoin,
+      table1: PhysicalNode,
+      table2: PhysicalNode,
       ppc: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     val estimateTable1 = estimate(table1, ppc)
     val estimateTable2 = estimate(table2, ppc)
     if (estimateTable1 <= estimateTable2)
-      PPTJoin(parent.filterExpr, parent.isSingleMatch, 1)(table1, table2, ppc)
-    else PPTJoin(parent.filterExpr, parent.isSingleMatch, 0)(table1, table2, ppc)
+      PhysicalJoin(parent.filterExpr, parent.isSingleMatch, 1)(table1, table2, ppc)
+    else PhysicalJoin(parent.filterExpr, parent.isSingleMatch, 0)(table1, table2, ppc)
   }
 
   def joinRecursion(
-      parent: PPTJoin,
+      parent: PhysicalJoin,
       ppc: PhysicalPlannerContext,
       isSingleMatch: Boolean
-    ): PPTNode = {
+    ): PhysicalNode = {
     val t1 = parent.children.head
     val t2 = parent.children.last
 
     val table1 = t1 match {
-      case pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex) =>
+      case pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex) =>
         joinRecursion(pj, ppc, isSingleMatch)
-      case pm @ PPTMerge(mergeSchema, mergeOps) => {
-        val res = joinRecursion(pm.children.head.asInstanceOf[PPTJoin], ppc, isSingleMatch)
+      case pm @ PhysicalMerge(mergeSchema, mergeOps) => {
+        val res = joinRecursion(pm.children.head.asInstanceOf[PhysicalJoin], ppc, isSingleMatch)
         pm.withChildren(Seq(res))
       }
       case _ => t1
     }
     val table2 = t2 match {
-      case pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex) =>
+      case pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex) =>
         joinRecursion(pj, ppc, isSingleMatch)
-      case pm @ PPTMerge(mergeSchema, mergeOps) => {
-        val res = joinRecursion(pm.children.head.asInstanceOf[PPTJoin], ppc, isSingleMatch)
+      case pm @ PhysicalMerge(mergeSchema, mergeOps) => {
+        val res = joinRecursion(pm.children.head.asInstanceOf[PhysicalJoin], ppc, isSingleMatch)
         pm.withChildren(Seq(res))
       }
       case _ => t2
     }
 
-    if ((table1.isInstanceOf[PPTNodeScan] || table1.isInstanceOf[PPTRelationshipScan])
-        && (table2.isInstanceOf[PPTNodeScan] || table2.isInstanceOf[PPTRelationshipScan])) {
+    if ((table1.isInstanceOf[PhysicalNodeScan] || table1.isInstanceOf[PhysicalRelationshipScan])
+        && (table2.isInstanceOf[PhysicalNodeScan] || table2
+          .isInstanceOf[PhysicalRelationshipScan])) {
       estimateTableSize(parent, table1, table2, ppc)
     } else
-      PPTJoin(parent.filterExpr, parent.isSingleMatch, parent.bigTableIndex)(table1, table2, ppc)
+      PhysicalJoin(parent.filterExpr, parent.isSingleMatch, parent.bigTableIndex)(
+        table1,
+        table2,
+        ppc
+      )
   }
 }

@@ -5,25 +5,31 @@ import org.opencypher.v9_0.expressions.{EveryPath, Expression, FunctionInvocatio
 import org.opencypher.v9_0.util.{ASTNode, InputPosition}
 
 //logical plan tree node (operator)
-trait LPTNode extends TreeNode {
-  override type SerialType = LPTNode
-  override val children: Seq[LPTNode] = Seq.empty
+trait LogicalNode extends TreeNode {
+  override type SerialType = LogicalNode
+  override val children: Seq[LogicalNode] = Seq.empty
 }
 
 trait LogicalPlanner {
-  def plan(statement: Statement, plannerContext: LogicalPlannerContext): LPTNode
+  def plan(statement: Statement, plannerContext: LogicalPlannerContext): LogicalNode
 }
 
-//translates an ASTNode into a LPTNode, `in` as input operator
-trait LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode
+//translates an ASTNode into a LogicalNode, `in` as input operator
+trait LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode
 }
 
-//pipelines a set of LPTNodes
-case class PipedTranslators(items: Seq[LPTNodeTranslator]) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+//pipelines a set of LogicalNodes
+case class PipedTranslators(items: Seq[LogicalNodeTranslator]) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     items
-      .foldLeft[Option[LPTNode]](in) { (in, item) =>
+      .foldLeft[Option[LogicalNode]](in) { (in, item) =>
         Some(item.translate(in)(plannerContext))
       }
       .get
@@ -31,10 +37,10 @@ case class PipedTranslators(items: Seq[LPTNodeTranslator]) extends LPTNodeTransl
 }
 
 class DefaultLogicalPlanner(runnerContext: CypherRunnerContext) extends LogicalPlanner {
-  private def translate(node: ASTNode)(implicit lpc: LogicalPlannerContext): LPTNode = {
+  private def translate(node: ASTNode)(implicit lpc: LogicalPlannerContext): LogicalNode = {
     node match {
       case Query(periodicCommitHint: Option[PeriodicCommitHint], part: QueryPart) =>
-        LPTQueryPartTranslator(part).translate(None)
+        LogicalQueryPartTranslator(part).translate(None)
 
       case CreateUniquePropertyConstraint(
           Variable(v1),
@@ -44,41 +50,41 @@ class DefaultLogicalPlanner(runnerContext: CypherRunnerContext) extends LogicalP
         throw UnknownASTNodeException(node)
 
       case CreateIndex(labelName, properties) =>
-        LPTCreateIndex(labelName, properties)
+        LogicalCreateIndex(labelName, properties)
 
       case _ =>
         throw UnknownASTNodeException(node)
     }
   }
 
-  override def plan(statement: Statement, plannerContext: LogicalPlannerContext): LPTNode = {
+  override def plan(statement: Statement, plannerContext: LogicalPlannerContext): LogicalNode = {
     translate(statement)(plannerContext)
   }
 }
 
 /////////////////ProcedureCall/////////////
-case class LPTProcedureCallTranslator(c: UnresolvedCall) extends LPTNodeTranslator {
+case class LogicalProcedureCallTranslator(c: UnresolvedCall) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode = {
+    ): LogicalNode = {
     val UnresolvedCall(
       ns @ Namespace(parts: List[String]),
       pn @ ProcedureName(name: String),
       declaredArguments: Option[Seq[Expression]],
       declaredResult: Option[ProcedureResult]
     ) = c
-    val call = LPTProcedureCall(ns, pn, declaredArguments)
+    val call = LogicalProcedureCall(ns, pn, declaredArguments)
 
     declaredResult match {
       case Some(ProcedureResult(items: IndexedSeq[ProcedureResultItem], where: Option[Where])) =>
         PipedTranslators(
           Seq(
-            LPTSelectTranslator(items.map(item => {
+            LogicalSelectTranslator(items.map(item => {
               val ProcedureResultItem(output, Variable(varname)) = item
               varname -> output.map(_.name)
             })),
-            LPTWhereTranslator(where)
+            LogicalWhereTranslator(where)
           )
         ).translate(Some(call))
 
@@ -87,121 +93,128 @@ case class LPTProcedureCallTranslator(c: UnresolvedCall) extends LPTNodeTranslat
   }
 }
 
-case class LPTProcedureCall(
+case class LogicalProcedureCall(
     procedureNamespace: Namespace,
     procedureName: ProcedureName,
     declaredArguments: Option[Seq[Expression]])
-  extends LPTNode
+  extends LogicalNode
 
 //////////////////Create////////////////
-case class LPTCreateTranslator(c: Create) extends LPTNodeTranslator {
+case class LogicalCreateTranslator(c: Create) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode =
-    LPTCreate(c)(in)
+    ): LogicalNode =
+    LogicalCreate(c)(in)
 }
 
-case class LPTCreate(c: Create)(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalCreate(c: Create)(val in: Option[LogicalNode]) extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 }
 
 //////////////merge//////////////////////
-case class LPTMergeTranslator(m: Merge) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalMergeTranslator(m: Merge) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     val matchInfo = Match(false, m.pattern, Seq.empty, m.where)(m.position)
-    val mergeIn = LPTMatchTranslator(matchInfo).translate(in)
-    val mergeInfo = LPTMerge(m)(Option(mergeIn))
+    val mergeIn = LogicalMatchTranslator(matchInfo).translate(in)
+    val mergeInfo = LogicalMerge(m)(Option(mergeIn))
 
-    if (m.actions.nonEmpty) LPTMergeAction(m.actions)(Option(mergeInfo))
+    if (m.actions.nonEmpty) LogicalMergeAction(m.actions)(Option(mergeInfo))
     else mergeInfo
   }
 }
-case class LPTMerge(m: Merge)(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalMerge(m: Merge)(val in: Option[LogicalNode]) extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 }
-case class LPTMergeAction(m: Seq[MergeAction])(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalMergeAction(m: Seq[MergeAction])(val in: Option[LogicalNode])
+  extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 }
 ///////////////////////////////////////
 
 //////////////////Delete////////////////
-case class LPTDeleteTranslator(delete: Delete) extends LPTNodeTranslator {
+case class LogicalDeleteTranslator(delete: Delete) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode =
-    LPTDelete(delete)(in.get)
+    ): LogicalNode =
+    LogicalDelete(delete)(in.get)
 }
 
-case class LPTDelete(delete: Delete)(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalDelete(delete: Delete)(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 ///////////////////////////////////////
 
 //////////////////Set////////////////
-case class LPTSetClauseTranslator(s: SetClause) extends LPTNodeTranslator {
+case class LogicalSetClauseTranslator(s: SetClause) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode =
-    LPTSetClause(s)(in)
+    ): LogicalNode =
+    LogicalSetClause(s)(in)
 }
 
-case class LPTSetClause(d: SetClause)(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalSetClause(d: SetClause)(val in: Option[LogicalNode]) extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 
 }
 ///////////////////////////////////////
 
 //////////////REMOVE//////////////////
-case class LPTRemoveTranslator(r: Remove) extends LPTNodeTranslator {
+case class LogicalRemoveTranslator(r: Remove) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode =
-    LPTRemove(r)(in)
+    ): LogicalNode =
+    LogicalRemove(r)(in)
 }
 
-case class LPTRemove(r: Remove)(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalRemove(r: Remove)(val in: Option[LogicalNode]) extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 }
 /////////////////////////////////////
 
 //////////////UNWIND//////////////////
-case class LPTUnwindTranslator(u: Unwind) extends LPTNodeTranslator {
+case class LogicalUnwindTranslator(u: Unwind) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode =
+    ): LogicalNode =
 //    in match {
-//      case None => LPTUnwind(u)(None)
-//      case Some(left) => LPTJoin(isSingleMatch = false)(left, LPTUnwind(u)(in))
+//      case None => LogicalUnwind(u)(None)
+//      case Some(left) => LogicalJoin(isSingleMatch = false)(left, LogicalUnwind(u)(in))
 //    }
-    LPTUnwind(u)(in)
+    LogicalUnwind(u)(in)
 }
 
-case class LPTUnwind(u: Unwind)(val in: Option[LPTNode]) extends LPTNode {
-  override val children: Seq[LPTNode] = in.toSeq
+case class LogicalUnwind(u: Unwind)(val in: Option[LogicalNode]) extends LogicalNode {
+  override val children: Seq[LogicalNode] = in.toSeq
 }
 /////////////////////////////////////
 
-case class LPTQueryPartTranslator(part: QueryPart) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalQueryPartTranslator(part: QueryPart) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     part match {
       case SingleQuery(clauses: Seq[Clause]) =>
         PipedTranslators(
           clauses.map {
-            case c: UnresolvedCall => LPTProcedureCallTranslator(c)
-            case r: Return         => LPTReturnTranslator(r)
-            case w: With           => LPTWithTranslator(w)
-            case u: Unwind         => LPTUnwindTranslator(u)
-            case m: Match          => LPTMatchTranslator(m)
-            case c: Create         => LPTCreateTranslator(c)
-            case m: Merge          => LPTMergeTranslator(m)
-            case d: Delete         => LPTDeleteTranslator(d)
-            case s: SetClause      => LPTSetClauseTranslator(s)
-            case r: Remove         => LPTRemoveTranslator(r)
+            case c: UnresolvedCall => LogicalProcedureCallTranslator(c)
+            case r: Return         => LogicalReturnTranslator(r)
+            case w: With           => LogicalWithTranslator(w)
+            case u: Unwind         => LogicalUnwindTranslator(u)
+            case m: Match          => LogicalMatchTranslator(m)
+            case c: Create         => LogicalCreateTranslator(c)
+            case m: Merge          => LogicalMergeTranslator(m)
+            case d: Delete         => LogicalDeleteTranslator(d)
+            case s: SetClause      => LogicalSetClauseTranslator(s)
+            case r: Remove         => LogicalRemoveTranslator(r)
           }
         ).translate(in)
     }
@@ -209,90 +222,104 @@ case class LPTQueryPartTranslator(part: QueryPart) extends LPTNodeTranslator {
 }
 
 ///////////////with,return////////////////
-case class LPTReturnTranslator(r: Return) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalReturnTranslator(r: Return) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     val Return(distinct, ri, orderBy, skip, limit, excludedNames) = r
 
     PipedTranslators(
       Seq(
-        LPTProjectTranslator(ri),
-        LPTSkipTranslator(skip),
-        LPTLimitTranslator(limit),
-        LPTOrderByTranslator(orderBy),
-        LPTSelectTranslator(ri),
-        LPTDistinctTranslator(distinct)
+        LogicalProjectTranslator(ri),
+        LogicalSkipTranslator(skip),
+        LogicalLimitTranslator(limit),
+        LogicalOrderByTranslator(orderBy),
+        LogicalSelectTranslator(ri),
+        LogicalDistinctTranslator(distinct)
       )
     ).translate(in)
   }
 }
 
-case class LPTOrderByTranslator(orderBy: Option[OrderBy]) extends LPTNodeTranslator {
+case class LogicalOrderByTranslator(orderBy: Option[OrderBy]) extends LogicalNodeTranslator {
   override def translate(
-      in: Option[LPTNode]
+      in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LPTNode = {
+    ): LogicalNode = {
     orderBy match {
       case None        => in.get
-      case Some(value) => LPTOrderBy(value.sortItems)(in.get)
+      case Some(value) => LogicalOrderBy(value.sortItems)(in.get)
     }
   }
 
 }
 
-case class LPTOrderBy(sortItem: Seq[SortItem])(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalOrderBy(sortItem: Seq[SortItem])(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
-object LPTSelectTranslator {
-  def apply(ri: ReturnItemsDef): LPTSelectTranslator = LPTSelectTranslator(
+object LogicalSelectTranslator {
+  def apply(ri: ReturnItemsDef): LogicalSelectTranslator = LogicalSelectTranslator(
     ri.items.map(item => item.name -> item.alias.map(_.name))
   )
 }
 
-case class LPTSelectTranslator(columns: Seq[(String, Option[String])]) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
-    LPTSelect(columns)(in.get)
+case class LogicalSelectTranslator(columns: Seq[(String, Option[String])])
+  extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
+    LogicalSelect(columns)(in.get)
   }
 }
 
-case class LPTSelect(columns: Seq[(String, Option[String])])(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalSelect(columns: Seq[(String, Option[String])])(val in: LogicalNode)
+  extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTProject(ri: ReturnItemsDef)(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalProject(ri: ReturnItemsDef)(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTAggregation(
+case class LogicalAggregation(
     aggregatings: Seq[ReturnItem],
     groupings: Seq[ReturnItem]
-  )(val in: LPTNode)
-  extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+  )(val in: LogicalNode)
+  extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTLimit(expression: Expression)(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalLimit(expression: Expression)(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTSkip(expression: Expression)(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalSkip(expression: Expression)(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTFilter(expr: Expression)(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalFilter(expr: Expression)(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
-case class LPTWhereTranslator(where: Option[Where]) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalWhereTranslator(where: Option[Where]) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     where match {
       case None              => in.get
-      case Some(Where(expr)) => LPTFilter(expr)(in.get)
+      case Some(Where(expr)) => LogicalFilter(expr)(in.get)
     }
   }
 }
 
-case class LPTWithTranslator(w: With) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalWithTranslator(w: With) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     (w, in) match {
       case (
           With(
@@ -305,7 +332,7 @@ case class LPTWithTranslator(w: With) extends LPTNodeTranslator {
           ),
           None
           ) =>
-        LPTCreateUnit(items)
+        LogicalCreateUnit(items)
 
       case (
           With(
@@ -320,95 +347,114 @@ case class LPTWithTranslator(w: With) extends LPTNodeTranslator {
           ) =>
         PipedTranslators(
           Seq(
-            LPTProjectTranslator(ri),
-            LPTWhereTranslator(where),
-            LPTSkipTranslator(skip),
-            LPTOrderByTranslator(orderBy),
-            LPTLimitTranslator(limit),
-            LPTSelectTranslator(ri),
-            LPTDistinctTranslator(distinct)
+            LogicalProjectTranslator(ri),
+            LogicalWhereTranslator(where),
+            LogicalSkipTranslator(skip),
+            LogicalOrderByTranslator(orderBy),
+            LogicalLimitTranslator(limit),
+            LogicalSelectTranslator(ri),
+            LogicalDistinctTranslator(distinct)
           )
         ).translate(in)
     }
   }
 }
 
-case class LPTCreateUnit(items: Seq[ReturnItem]) extends LPTNode {}
+case class LogicalCreateUnit(items: Seq[ReturnItem]) extends LogicalNode {}
 
-case class LPTProjectTranslator(ri: ReturnItemsDef) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
-    val newIn = in.getOrElse(LPTCreateUnit(ri.items))
+case class LogicalProjectTranslator(ri: ReturnItemsDef) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
+    val newIn = in.getOrElse(LogicalCreateUnit(ri.items))
     if (ri.containsAggregate) {
       val (aggregatingItems, groupingItems) =
         ri.items.partition(i => i.expression.containsAggregate)
-      LPTAggregation(aggregatingItems, groupingItems)(newIn)
+      LogicalAggregation(aggregatingItems, groupingItems)(newIn)
     } else {
-      LPTProject(ri)(newIn)
+      LogicalProject(ri)(newIn)
     }
   }
 }
 
-case class LPTLimitTranslator(limit: Option[Limit]) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalLimitTranslator(limit: Option[Limit]) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     limit match {
       case None              => in.get
-      case Some(Limit(expr)) => LPTLimit(expr)(in.get)
+      case Some(Limit(expr)) => LogicalLimit(expr)(in.get)
     }
   }
 }
 
-case class LPTDistinctTranslator(distinct: Boolean) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalDistinctTranslator(distinct: Boolean) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     distinct match {
       case false => in.get
-      case true  => LPTDistinct()(in.get)
+      case true  => LogicalDistinct()(in.get)
     }
   }
 }
 
-case class LPTCreateIndex(labelName: LabelName, properties: List[PropertyKeyName]) extends LPTNode
+case class LogicalCreateIndex(labelName: LabelName, properties: List[PropertyKeyName])
+  extends LogicalNode
 
-trait LogicalQueryPart extends LPTNode
-case class LPTSkipTranslator(skip: Option[Skip]) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+trait LogicalQueryPart extends LogicalNode
+case class LogicalSkipTranslator(skip: Option[Skip]) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     skip match {
       case None             => in.get
-      case Some(Skip(expr)) => LPTSkip(expr)(in.get)
+      case Some(Skip(expr)) => LogicalSkip(expr)(in.get)
     }
   }
 }
 
-case class LPTDistinct()(val in: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(in)
+case class LogicalDistinct()(val in: LogicalNode) extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(in)
 }
 
 ///////////////////////////////////////
-case class LPTJoin(val isSingleMatch: Boolean)(val a: LPTNode, val b: LPTNode) extends LPTNode {
-  override val children: Seq[LPTNode] = Seq(a, b)
+case class LogicalJoin(val isSingleMatch: Boolean)(val a: LogicalNode, val b: LogicalNode)
+  extends LogicalNode {
+  override val children: Seq[LogicalNode] = Seq(a, b)
 }
 
 /////////////////match/////////////////
-case class LPTPatternMatch(headNode: NodePattern, chain: Seq[(RelationshipPattern, NodePattern)])
-  extends LPTNode {}
+case class LogicalPatternMatch(
+    headNode: NodePattern,
+    chain: Seq[(RelationshipPattern, NodePattern)])
+  extends LogicalNode {}
 
-case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
-  def translate(in: Option[LPTNode])(implicit plannerContext: LogicalPlannerContext): LPTNode = {
+case class LogicalMatchTranslator(m: Match) extends LogicalNodeTranslator {
+  def translate(
+      in: Option[LogicalNode]
+    )(implicit plannerContext: LogicalPlannerContext
+    ): LogicalNode = {
     //run match
     val Match(optional, Pattern(patternParts: Seq[PatternPart]), hints, where: Option[Where]) = m
     val parts = patternParts.map(matchPatternPart(_)(plannerContext))
-    val matched = parts.drop(1).foldLeft(parts.head)((a, b) => LPTJoin(true)(a, b))
-    val filtered = LPTWhereTranslator(where).translate(Some(matched))
+    val matched = parts.drop(1).foldLeft(parts.head)((a, b) => LogicalJoin(true)(a, b))
+    val filtered = LogicalWhereTranslator(where).translate(Some(matched))
 
     in match {
       case None       => filtered
-      case Some(left) => LPTJoin(false)(left, filtered)
+      case Some(left) => LogicalJoin(false)(left, filtered)
     }
   }
 
   private def matchPatternPart(
       patternPart: PatternPart
     )(implicit lpc: LogicalPlannerContext
-    ): LPTNode = {
+    ): LogicalNode = {
     patternPart match {
       case EveryPath(element: PatternElement) => matchPattern(element)
     }
@@ -417,11 +463,11 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
   private def matchPattern(
       element: PatternElement
     )(implicit lpc: LogicalPlannerContext
-    ): LPTPatternMatch = {
+    ): LogicalPatternMatch = {
     element match {
       //match (m:label1)
       case np: NodePattern =>
-        LPTPatternMatch(np, Seq.empty)
+        LogicalPatternMatch(np, Seq.empty)
 
       //match ()-[]->()
       case rc @ RelationshipChain(
@@ -429,7 +475,7 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
             relationship: RelationshipPattern,
             rightNode: NodePattern
           ) =>
-        LPTPatternMatch(leftNode, Seq(relationship -> rightNode))
+        LogicalPatternMatch(leftNode, Seq(relationship -> rightNode))
 
       //match ()-[]->()-...-[r:type]->(n:label2)
       case rc @ RelationshipChain(
@@ -438,7 +484,7 @@ case class LPTMatchTranslator(m: Match) extends LPTNodeTranslator {
             rightNode: NodePattern
           ) =>
         val mp = matchPattern(leftChain)
-        LPTPatternMatch(mp.headNode, mp.chain :+ (relationship -> rightNode))
+        LogicalPatternMatch(mp.headNode, mp.chain :+ (relationship -> rightNode))
     }
   }
 }
