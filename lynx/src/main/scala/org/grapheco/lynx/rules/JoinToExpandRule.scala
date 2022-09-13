@@ -1,7 +1,7 @@
 package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.physical.PhysicalExpandFromNode
-import org.grapheco.lynx.{PPTJoin, PPTNode, PPTNodeScan, PPTRelationshipScan, PPTSelect, PPTUnwind, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
+import org.grapheco.lynx.{PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan, PhysicalSelect, PhysicalUnwind, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern, SemanticDirection}
 
@@ -11,33 +11,33 @@ import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern, Semant
   *  1. There is a reference variable between the two tables of the Join,
   *      and the reference variable in UNWIND or WITH(in physical plan, WITH will translate to SELECT)
   *
-  *              PPTJoin()
-  *                  ╟──PPTUnwind(Variable(friends),Variable(  friend@119))
-  *                  ║   ╙──PPTSelect(Vector((friends,Some(friends))))
-  *                  ║           ╙──PPTFilter()
-  *                  ║               ╙──PPTRelationshipScan()
-  *                  ╙──PPTFilter()
-  *                      ╙──PPTRelationshipScan(friend@119)
+  *              PhysicalJoin()
+  *                  ╟──PhysicalUnwind(Variable(friends),Variable(  friend@119))
+  *                  ║   ╙──PhysicalSelect(Vector((friends,Some(friends))))
+  *                  ║           ╙──PhysicalFilter()
+  *                  ║               ╙──PhysicalRelationshipScan()
+  *                  ╙──PhysicalFilter()
+  *                      ╙──PhysicalRelationshipScan(friend@119)
   *
   *                       ||
   *                       \/
-  *               PPTFilter()
+  *               PhysicalFilter()
   *                  ╙──PhysicalExpandFromNode(friend@119)
-  *                      ╙──PPTUnwind(Variable(friends),Variable(friend@119))
-  *                          ╙──PPTSelect(Vector((friends,Some(friends))))
-  *                                  ╙──PPTRelationshipScan()
+  *                      ╙──PhysicalUnwind(Variable(friends),Variable(friend@119))
+  *                          ╙──PhysicalSelect(Vector((friends,Some(friends))))
+  *                                  ╙──PhysicalRelationshipScan()
   *
   *
   */
 object JoinToExpandRule extends PhysicalPlanOptimizerRule {
 
-  override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = {
+  override def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode = {
     optimizeBottomUp(
       plan, {
-        case pNode: PPTNode =>
+        case pNode: PhysicalNode =>
           val res = pNode.children.map {
-            case pj: PPTJoin =>
-              getExpandOrPPTJoin(pj, ppc)
+            case pj: PhysicalJoin =>
+              getExpandOrPhysicalJoin(pj, ppc)
             case node => node
           }
           // use withChildren to replace the subtree
@@ -46,7 +46,10 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
     )
   }
 
-  def getExpandOrPPTJoin(pptJoin: PPTJoin, context: PhysicalPlannerContext): PPTNode = {
+  def getExpandOrPhysicalJoin(
+      pptJoin: PhysicalJoin,
+      context: PhysicalPlannerContext
+    ): PhysicalNode = {
     // left table
     val table1 = pptJoin.children.head
     // right table
@@ -58,11 +61,11 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
 
     if (hasReference.nonEmpty) {
       table1 match {
-        case select: PPTSelect =>
+        case select: PhysicalSelect =>
           rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
-        case unwind: PPTUnwind =>
+        case unwind: PhysicalUnwind =>
           rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
-        case relationshipScan: PPTRelationshipScan =>
+        case relationshipScan: PhysicalRelationshipScan =>
           rewriteRightTableToTheTopOfLeftTable(hasReference.head, table1, table2, context)
         case _ => pptJoin
       }
@@ -71,14 +74,14 @@ object JoinToExpandRule extends PhysicalPlanOptimizerRule {
 
   def rewriteRightTableToTheTopOfLeftTable(
       varName: String,
-      leftTable: PPTNode,
-      rightTable: PPTNode,
+      leftTable: PhysicalNode,
+      rightTable: PhysicalNode,
       plannerContext: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     rightTable match {
-      case n: PPTNodeScan => n
-      case r: PPTRelationshipScan => {
-        val PPTRelationshipScan(
+      case n: PhysicalNodeScan => n
+      case r: PhysicalRelationshipScan => {
+        val PhysicalRelationshipScan(
           rel: RelationshipPattern,
           leftNode: NodePattern,
           rightNode: NodePattern
