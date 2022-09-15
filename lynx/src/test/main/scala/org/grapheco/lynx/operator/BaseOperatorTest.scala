@@ -8,7 +8,7 @@ import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, NodePattern, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.InputPosition
-
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -335,6 +335,10 @@ class BaseOperatorTest {
     }
     operator.close()
     result.toArray
+  }
+
+  def getOperatorFlattenResult(operator: ExecutionOperator): List[LynxValue] = {
+    getOperatorAllOutputs(operator).flatMap(batch => batch.batchData).flatten.toList
   }
 
   def prepareNodeScanOperator(

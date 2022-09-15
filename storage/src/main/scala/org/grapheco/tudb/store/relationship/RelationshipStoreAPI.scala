@@ -182,9 +182,12 @@ class RelationshipStoreAPI(
     }
   }
 
-  override def allRelations(withProperty: Boolean = false): Iterator[StoredRelationship] = {
-    if (withProperty) relationStore.all()
-    else inRelationStore.all()
+  override def allRelations(): Iterator[StoredRelationship] = {
+    inRelationStore.all()
+  }
+
+  override def allRelationsWithProperty(): Iterator[StoredRelationshipWithProperty] = {
+    relationStore.all()
   }
 
   override def findOutRelations(

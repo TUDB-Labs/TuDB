@@ -1,6 +1,6 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.{AbstractPPTNode, DataFrame, ExecutionContext, LynxType, NodeFilter, PPTNode, PhysicalPlannerContext, RelationshipFilter}
+import org.grapheco.lynx.{AbstractPhysicalNode, DataFrame, ExecutionContext, LynxType, NodeFilter, PhysicalNode, PhysicalPlannerContext, RelationshipFilter}
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxPath
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
@@ -9,20 +9,18 @@ import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, 
 import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
 
 /**
-  *@author:John117
-  *@createDate:2022/7/20
-  *@description: refer to PPTRelationshipScan
+  *@description: refer to PhysicalRelationshipScan
   */
 case class PhysicalExpandFromNode(
     leftNodeName: String,
     rel: RelationshipPattern,
     rightNode: NodePattern,
     direction: SemanticDirection
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
+  extends AbstractPhysicalNode {
 
-  override val children: Seq[PPTNode] = Seq(in)
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override val schema: Seq[(String, LynxType)] = {
     val RelationshipPattern(
@@ -47,7 +45,7 @@ case class PhysicalExpandFromNode(
     in.schema ++ schema0
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PhysicalExpandFromNode =
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalExpandFromNode =
     PhysicalExpandFromNode(leftNodeName, rel, rightNode, direction)(children0.head, plannerContext)
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {

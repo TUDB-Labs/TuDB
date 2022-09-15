@@ -23,6 +23,35 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
   extends LazyLogging
   with GraphModel {
 
+  /** before delete nodes we should check is the nodes have relationships.
+    * if nodes have relationships but not force to delete, we should throw exception,
+    * otherwise we should delete relationships first then delete nodes.
+    *
+    * @param nodesIDs The ids of nodes to deleted
+    * @param forced   When some nodes have relationships,
+    *                 if it is true, delete any related relationships,
+    *                 otherwise throw an exception
+    */
+  override def deleteNodesSafely(nodesIDs: Iterator[LynxId], forced: Boolean): Unit = {
+    val ids = nodesIDs.toSet
+    val affectedRelationships = ids
+      .map(nid => {
+        val id = nid.toLynxInteger.value
+        findOutRelations(id) ++ findInRelations(id)
+      })
+      .foldLeft(Iterator[StoredRelationship]())((a, b) => a ++ b)
+    // TODO: BATCH DELETE
+    if (affectedRelationships.nonEmpty) {
+      if (forced)
+        deleteRelations(affectedRelationships.map(r => LynxRelationshipId(r.id)))
+      else
+        throw ConstrainViolatedException(
+          s"deleting nodes with relationships, if force to delete, please use DETACH DELETE."
+        )
+    }
+    deleteNodes(ids.toSeq)
+  }
+
   /**
     * Expand function for cypher like (a)-[r1]-(b)-[r2]-(c)
     * when get the left relationship (a)-[r1]-(b), we need to expand relation from (b)
@@ -319,7 +348,7 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
     */
   override def relationships(): Iterator[PathTriple] =
     TuDBStoreContext.getRelationshipAPI
-      .allRelations(true)
+      .allRelationsWithProperty()
       .map(rel =>
         PathTriple(
           nodeAt(rel.from).get.asInstanceOf[LynxNode],
