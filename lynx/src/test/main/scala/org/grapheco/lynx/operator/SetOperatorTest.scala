@@ -66,6 +66,11 @@ class SetOperatorTest extends BaseOperatorTest {
       SET n.surname = 'Taylor'
       RETURN n.name, n.surname
      */
+    val nodeScanOperator = prepareNodeScanOperator(
+      "n",
+      Seq.empty,
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
+    )
     val setItems = Seq(
       SetPropertyItem(
         Property(Variable("n")(defaultPosition), PropertyKeyName("surname")(defaultPosition))(
@@ -73,11 +78,6 @@ class SetOperatorTest extends BaseOperatorTest {
         ),
         StringLiteral("Taylor")(defaultPosition)
       )(defaultPosition)
-    )
-    val nodeScanOperator = prepareNodeScanOperator(
-      "n",
-      Seq.empty,
-      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -339,6 +339,78 @@ class SetOperatorTest extends BaseOperatorTest {
         RETURN at.name, at.age, at.hungry, pn.name, pn.age
      */
     // TODO: wait joinOperator
+    val nodeScanOperator1 = prepareNodeScanOperator(
+      "at",
+      Seq.empty,
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
+    )
+    val nodeScanOperator2 = prepareNodeScanOperator(
+      "pn",
+      Seq.empty,
+      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
+    )
+    val joinOperator = JoinOperator(
+      nodeScanOperator1,
+      nodeScanOperator2,
+      Seq.empty,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val setItems = Seq(
+      SetExactPropertiesFromMapItem(
+        Variable("at")(defaultPosition),
+        Variable("pn")(defaultPosition)
+      )(defaultPosition)
+    )
+    val setOperator =
+      SetOperator(joinOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
+
+    val projectColumn = Seq(
+      (
+        "at.name",
+        Property(
+          Variable("at")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "at.age",
+        Property(
+          Variable("at")(defaultPosition),
+          PropertyKeyName("age")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "at.hungry",
+        Property(
+          Variable("at")(defaultPosition),
+          PropertyKeyName("hungry")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "pn.name",
+        Property(
+          Variable("pn")(defaultPosition),
+          PropertyKeyName("name")(defaultPosition)
+        )(defaultPosition)
+      ),
+      (
+        "pn.age",
+        Property(
+          Variable("pn")(defaultPosition),
+          PropertyKeyName("age")(defaultPosition)
+        )(defaultPosition)
+      )
+    )
+    val projectOperator =
+      ProjectOperator(setOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
+
+    val res = getOperatorAllOutputs(projectOperator).head.batchData.flatten
+    Assert.assertEquals(
+      Seq(LynxString("Peter"), LynxInteger(34), LynxNull, LynxString("Peter"), LynxInteger(34)),
+      res
+    )
+
   }
 
   @Test
