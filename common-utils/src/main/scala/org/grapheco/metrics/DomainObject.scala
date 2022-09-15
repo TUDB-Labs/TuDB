@@ -1,7 +1,7 @@
 package org.grapheco.metrics
 
 object DomainObject {
-  val domainID = "operator"
+  val domainID = "query"
 
   var domain: Domain = new Domain(domainID)
 
@@ -9,7 +9,8 @@ object DomainObject {
     domain.addRecord(r)
   }
 
-  def recordLatency(r: Record): Unit = {
+  def recordLatency(labels: Set[String]): Unit = {
+    val r = new Record(new Label(labels), new Value(0))
     domain.recordLatency(r)
   }
 }

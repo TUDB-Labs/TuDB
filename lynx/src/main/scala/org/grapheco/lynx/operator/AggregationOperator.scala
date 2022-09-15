@@ -38,7 +38,6 @@ case class AggregationOperator(
   }
 
   override def getNextImpl(): RowBatch = {
-    DomainObject.recordLatency(new Record(recordLabel, new Value(0)))
     if (!hasPulledData) {
       val columnNames = in.outputSchema().map(f => f._1)
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
@@ -81,7 +80,6 @@ case class AggregationOperator(
     } else {
       rb = RowBatch(Seq.empty)
     }
-    DomainObject.recordLatency(new Record(recordLabel, new Value(0)))
     rb
   }
 
