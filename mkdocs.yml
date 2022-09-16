@@ -2,8 +2,7 @@ site_name: TuDB - A Distributed Graph Database System
 repo_url: https://github.com/TUDB-Labs/TuDB
 strict: true
 theme:
-  name: material
-  custom_dir: docs/overrides
+  name: readthedocs
   font:
     text: Roboto
     code: Roboto Mono
@@ -25,8 +24,6 @@ theme:
 markdown_extensions:
   - codehilite
   - admonition
-  - pymdownx.superfences
-  - pymdownx.details
   - toc:
       permalink: true
 nav:
