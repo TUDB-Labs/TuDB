@@ -4,11 +4,15 @@ import org.grapheco.lynx.operator._
 import org.grapheco.lynx.physical.PhysicalExpandPath
 import org.grapheco.lynx.types.property.LynxNumber
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
+import org.opencypher.v9_0.ast.AliasedReturnItem
+import org.opencypher.v9_0.expressions.Variable
+import org.opencypher.v9_0.util.InputPosition
 
 /**
   *@description: This class is used to translate physical plan to execution plan.
   */
 class ExecutionPlanCreator {
+  val defaultPosition = InputPosition(0, 0, 0)
   def translator(
       plan: PhysicalNode,
       plannerContext: PhysicalPlannerContext,
@@ -125,6 +129,68 @@ class ExecutionPlanCreator {
           executionContext.expressionContext
         )
       }
+      case create: PhysicalCreate => {
+        val in = create.in.map(child => translator(child, plannerContext, executionContext))
+        CreateOperator(
+          in,
+          create.schemaLocal,
+          create.ops,
+          plannerContext.runnerContext.graphModel,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
+      case delete: PhysicalDelete => {
+        DeleteOperator(
+          translator(delete.in, plannerContext, executionContext),
+          plannerContext.runnerContext.graphModel,
+          delete.delete.forced,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
+      case remove: PhysicalRemove => {
+        RemoveOperator(
+          translator(remove.in, plannerContext, executionContext),
+          remove.removeItems,
+          plannerContext.runnerContext.graphModel,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
+      case distinct: PhysicalDistinct => {
+        val groupExpr = distinct.schema.map(nameAndType =>
+          AliasedReturnItem(
+            Variable(nameAndType._1)(defaultPosition),
+            Variable(nameAndType._1)(defaultPosition)
+          )(defaultPosition)
+        )
+        AggregationOperator(
+          Seq.empty,
+          groupExpr,
+          translator(distinct.children.head, plannerContext, executionContext),
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
+      case unwind: PhysicalUnwind => {
+        if (unwind.in.isDefined) {
+          UnwindOperator(
+            translator(unwind.in.get, plannerContext, executionContext),
+            unwind.variable.name,
+            plannerContext.runnerContext.expressionEvaluator,
+            executionContext.expressionContext
+          )
+        } else {
+          LiteralOperator(
+            unwind.variable.name,
+            unwind.expression,
+            plannerContext.runnerContext.expressionEvaluator,
+            executionContext.expressionContext
+          )
+        }
+      }
+
       case unsupportedPlan => {
         throw new TuDBException(
           TuDBError.LYNX_UNSUPPORTED_OPERATION,
