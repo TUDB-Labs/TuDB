@@ -1,7 +1,7 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx
-import org.grapheco.lynx.physical.PPTExpandPath
+import org.grapheco.lynx.physical.PhysicalExpandPath
 import org.grapheco.lynx.procedure.CallableProcedure
 import org.grapheco.lynx.procedure.exceptions.{UnknownProcedureException, WrongArgumentException, WrongNumberOfArgumentsException}
 import org.grapheco.lynx.types.LynxValue
@@ -17,21 +17,21 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.language.postfixOps
 
-trait PPTNode extends TreeNode {
-  override type SerialType = PPTNode
-  override val children: Seq[PPTNode] = Seq.empty
+trait PhysicalNode extends TreeNode {
+  override type SerialType = PhysicalNode
+  override val children: Seq[PhysicalNode] = Seq.empty
   val schema: Seq[(String, LynxType)]
 
   def execute(implicit ctx: ExecutionContext): DataFrame
 
-  def withChildren(children0: Seq[PPTNode]): PPTNode
+  def withChildren(children0: Seq[PhysicalNode]): PhysicalNode
 }
 
-trait PPTNodeTranslator {
-  def translate(in: Option[PPTNode])(implicit ppc: PhysicalPlannerContext): PPTNode
+trait PhysicalNodeTranslator {
+  def translate(in: Option[PhysicalNode])(implicit ppc: PhysicalPlannerContext): PhysicalNode
 }
 
-trait AbstractPPTNode extends PPTNode {
+trait AbstractPhysicalNode extends PhysicalNode {
 
   val plannerContext: PhysicalPlannerContext
 
@@ -62,96 +62,101 @@ trait AbstractPPTNode extends PPTNode {
 }
 
 trait PhysicalPlanner {
-  def plan(logicalPlan: LPTNode)(implicit plannerContext: PhysicalPlannerContext): PPTNode
+  def plan(logicalPlan: LogicalNode)(implicit plannerContext: PhysicalPlannerContext): PhysicalNode
 }
 
 class DefaultPhysicalPlanner(runnerContext: CypherRunnerContext) extends PhysicalPlanner {
   override def plan(
-      logicalPlan: LPTNode
+      logicalPlan: LogicalNode
     )(implicit plannerContext: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     implicit val runnerContext: CypherRunnerContext = plannerContext.runnerContext
     logicalPlan match {
-      case LPTProcedureCall(
+      case LogicalProcedureCall(
           procedureNamespace: Namespace,
           procedureName: ProcedureName,
           declaredArguments: Option[Seq[Expression]]
           ) =>
-        PPTProcedureCall(
+        PhysicalProcedureCall(
           procedureNamespace: Namespace,
           procedureName: ProcedureName,
           declaredArguments: Option[Seq[Expression]]
         )
-      case lc @ LPTCreate(c: Create) =>
-        PPTCreateTranslator(c).translate(lc.in.map(plan(_)))(plannerContext)
-      case lm @ LPTMerge(m: Merge) =>
-        PPTMergeTranslator(m).translate(lm.in.map(plan(_)))(plannerContext)
-      case lm @ LPTMergeAction(m: Seq[MergeAction]) =>
-        PPTMergeAction(m)(plan(lm.in.get), plannerContext)
-      case ld @ LPTDelete(d: Delete) => PPTDelete(d)(plan(ld.in), plannerContext)
-      case ls @ LPTSelect(columns: Seq[(String, Option[String])]) =>
-        PPTSelect(columns)(plan(ls.in), plannerContext)
-      case lp @ LPTProject(ri)       => PPTProject(ri)(plan(lp.in), plannerContext)
-      case la @ LPTAggregation(a, g) => PPTAggregation(a, g)(plan(la.in), plannerContext)
-      case lc @ LPTCreateUnit(items) => PPTCreateUnit(items)(plannerContext)
-      case lf @ LPTFilter(expr)      => PPTFilter(expr)(plan(lf.in), plannerContext)
-      case ld @ LPTDistinct()        => PPTDistinct()(plan(ld.in), plannerContext)
-      case ll @ LPTLimit(expr)       => PPTLimit(expr)(plan(ll.in), plannerContext)
-      case lo @ LPTOrderBy(sortItem) => PPTOrderBy(sortItem)(plan(lo.in), plannerContext)
-      case ll @ LPTSkip(expr)        => PPTSkip(expr)(plan(ll.in), plannerContext)
-      case lj @ LPTJoin(isSingleMatch) =>
-        PPTJoin(Seq.empty, isSingleMatch)(plan(lj.a), plan(lj.b), plannerContext)
-      case patternMatch: LPTPatternMatch =>
-        PPTPatternMatchTranslator(patternMatch)(plannerContext).translate(None)
-      case li @ LPTCreateIndex(labelName: LabelName, properties: List[PropertyKeyName]) =>
-        PPTCreateIndex(labelName, properties)(plannerContext)
-      case sc @ LPTSetClause(d) =>
-        PPTSetClauseTranslator(d.items).translate(sc.in.map(plan(_)))(plannerContext)
-      case lr @ LPTRemove(r) =>
-        PPTRemoveTranslator(r.items).translate(lr.in.map(plan(_)))(plannerContext)
-      case lu @ LPTUnwind(u) =>
-        PPTUnwindTranslator(u.expression, u.variable).translate(lu.in.map(plan(_)))(plannerContext)
+      case lc @ LogicalCreate(c: Create) =>
+        PhysicalCreateTranslator(c).translate(lc.in.map(plan(_)))(plannerContext)
+      case lm @ LogicalMerge(m: Merge) =>
+        PhysicalMergeTranslator(m).translate(lm.in.map(plan(_)))(plannerContext)
+      case lm @ LogicalMergeAction(m: Seq[MergeAction]) =>
+        PhysicalMergeAction(m)(plan(lm.in.get), plannerContext)
+      case ld @ LogicalDelete(d: Delete) => PhysicalDelete(d)(plan(ld.in), plannerContext)
+      case ls @ LogicalSelect(columns: Seq[(String, Option[String])]) =>
+        PhysicalSelect(columns)(plan(ls.in), plannerContext)
+      case lp @ LogicalProject(ri)       => PhysicalProject(ri)(plan(lp.in), plannerContext)
+      case la @ LogicalAggregation(a, g) => PhysicalAggregation(a, g)(plan(la.in), plannerContext)
+      case lc @ LogicalCreateUnit(items) => PhysicalCreateUnit(items)(plannerContext)
+      case lf @ LogicalFilter(expr)      => PhysicalFilter(expr)(plan(lf.in), plannerContext)
+      case ld @ LogicalDistinct()        => PhysicalDistinct()(plan(ld.in), plannerContext)
+      case ll @ LogicalLimit(expr)       => PhysicalLimit(expr)(plan(ll.in), plannerContext)
+      case lo @ LogicalOrderBy(sortItem) => PhysicalOrderBy(sortItem)(plan(lo.in), plannerContext)
+      case ll @ LogicalSkip(expr)        => PhysicalSkip(expr)(plan(ll.in), plannerContext)
+      case lj @ LogicalJoin(isSingleMatch) =>
+        PhysicalJoin(Seq.empty, isSingleMatch)(plan(lj.a), plan(lj.b), plannerContext)
+      case patternMatch: LogicalPatternMatch =>
+        PhysicalPatternMatchTranslator(patternMatch)(plannerContext).translate(None)
+      case li @ LogicalCreateIndex(labelName: LabelName, properties: List[PropertyKeyName]) =>
+        PhysicalCreateIndex(labelName, properties)(plannerContext)
+      case sc @ LogicalSetClause(d) =>
+        PhysicalSetClauseTranslator(d.items).translate(sc.in.map(plan(_)))(plannerContext)
+      case lr @ LogicalRemove(r) =>
+        PhysicalRemoveTranslator(r.items).translate(lr.in.map(plan(_)))(plannerContext)
+      case lu @ LogicalUnwind(u) =>
+        PhysicalUnwindTranslator(u.expression, u.variable)
+          .translate(lu.in.map(plan(_)))(plannerContext)
     }
   }
 }
 
-case class PPTPatternMatchTranslator(
-    patternMatch: LPTPatternMatch
+case class PhysicalPatternMatchTranslator(
+    patternMatch: LogicalPatternMatch
   )(implicit val plannerContext: PhysicalPlannerContext)
-  extends PPTNodeTranslator {
+  extends PhysicalNodeTranslator {
   private def planPatternMatch(
-      pm: LPTPatternMatch
+      pm: LogicalPatternMatch
     )(implicit ppc: PhysicalPlannerContext
-    ): PPTNode = {
-    val LPTPatternMatch(headNode: NodePattern, chain: Seq[(RelationshipPattern, NodePattern)]) = pm
+    ): PhysicalNode = {
+    val LogicalPatternMatch(headNode: NodePattern, chain: Seq[(RelationshipPattern, NodePattern)]) =
+      pm
     chain.toList match {
       //match (m)
-      case Nil => PPTNodeScan(headNode)(ppc)
+      case Nil => PhysicalNodeScan(headNode)(ppc)
       //match (m)-[r]-(n)
-      case List(Tuple2(rel, rightNode)) => PPTRelationshipScan(rel, headNode, rightNode)(ppc)
+      case List(Tuple2(rel, rightNode)) => PhysicalRelationshipScan(rel, headNode, rightNode)(ppc)
       //match (m)-[r]-(n)-...-[p]-(z)
       case _ =>
         val (lastRelationship, lastNode) = chain.last
         val dropped = chain.dropRight(1)
-        val part = planPatternMatch(LPTPatternMatch(headNode, dropped))(ppc)
-        PPTExpandPath(lastRelationship, lastNode)(part, plannerContext)
+        val part = planPatternMatch(LogicalPatternMatch(headNode, dropped))(ppc)
+        PhysicalExpandPath(lastRelationship, lastNode)(part, plannerContext)
     }
   }
 
-  override def translate(in: Option[PPTNode])(implicit ppc: PhysicalPlannerContext): PPTNode = {
+  override def translate(
+      in: Option[PhysicalNode]
+    )(implicit ppc: PhysicalPlannerContext
+    ): PhysicalNode = {
     planPatternMatch(patternMatch)(ppc)
   }
 }
 
-case class PPTJoin(
+case class PhysicalJoin(
     filterExpr: Seq[Expression],
     val isSingleMatch: Boolean,
     bigTableIndex: Int = 1
-  )(a: PPTNode,
-    b: PPTNode,
+  )(a: PhysicalNode,
+    b: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(a, b)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(a, b)
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df1 = a.execute(ctx)
@@ -176,34 +181,34 @@ case class PPTJoin(
     } else df
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTJoin =
-    PPTJoin(filterExpr, isSingleMatch)(children0.head, children0(1), plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalJoin =
+    PhysicalJoin(filterExpr, isSingleMatch)(children0.head, children0(1), plannerContext)
 
   override val schema: Seq[(String, LynxType)] = (a.schema ++ b.schema).distinct
 }
 
-case class PPTDistinct()(implicit in: PPTNode, val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+case class PhysicalDistinct()(implicit in: PhysicalNode, val plannerContext: PhysicalPlannerContext)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df = in.execute(ctx)
     df.distinct()
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTDistinct =
-    PPTDistinct()(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalDistinct =
+    PhysicalDistinct()(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 }
 
-case class PPTOrderBy(
+case class PhysicalOrderBy(
     sortItem: Seq[SortItem]
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
+  extends AbstractPhysicalNode {
   override val schema: Seq[(String, LynxType)] = in.schema
-  override val children: Seq[PPTNode] = Seq(in)
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df = in.execute(ctx)
@@ -219,16 +224,16 @@ case class PPTOrderBy(
     df.orderBy(sortItems2)(ec)
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTNode =
-    PPTOrderBy(sortItem)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalNode =
+    PhysicalOrderBy(sortItem)(children0.head, plannerContext)
 }
 
-case class PPTLimit(
+case class PhysicalLimit(
     expr: Expression
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df = in.execute(ctx)
@@ -236,18 +241,18 @@ case class PPTLimit(
     df.take(eval(expr).value.asInstanceOf[Number].intValue())
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTLimit =
-    PPTLimit(expr)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalLimit =
+    PhysicalLimit(expr)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 }
 
-case class PPTSkip(
+case class PhysicalSkip(
     expr: Expression
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 
@@ -257,16 +262,16 @@ case class PPTSkip(
     df.skip(eval(expr).value.asInstanceOf[Number].intValue())
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTSkip =
-    PPTSkip(expr)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalSkip =
+    PhysicalSkip(expr)(children0.head, plannerContext)
 }
 
-case class PPTFilter(
+case class PhysicalFilter(
     expr: Expression
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 
@@ -281,14 +286,16 @@ case class PPTFilter(
     }(ec)
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTFilter =
-    PPTFilter(expr)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalFilter =
+    PhysicalFilter(expr)(children0.head, plannerContext)
 }
 
-case class PPTNodeScan(pattern: NodePattern)(implicit val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override def withChildren(children0: Seq[PPTNode]): PPTNodeScan =
-    PPTNodeScan(pattern)(plannerContext)
+case class PhysicalNodeScan(
+    pattern: NodePattern
+  )(implicit val plannerContext: PhysicalPlannerContext)
+  extends AbstractPhysicalNode {
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalNodeScan =
+    PhysicalNodeScan(pattern)(plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val NodePattern(
@@ -337,14 +344,14 @@ case class PPTNodeScan(pattern: NodePattern)(implicit val plannerContext: Physic
   }
 }
 
-case class PPTRelationshipScan(
+case class PhysicalRelationshipScan(
     rel: RelationshipPattern,
     leftNode: NodePattern,
     rightNode: NodePattern
   )(implicit val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override def withChildren(children0: Seq[PPTNode]): PPTRelationshipScan =
-    PPTRelationshipScan(rel, leftNode, rightNode)(plannerContext)
+  extends AbstractPhysicalNode {
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalRelationshipScan =
+    PhysicalRelationshipScan(rel, leftNode, rightNode)(plannerContext)
 
   override val schema: Seq[(String, LynxType)] = {
     val RelationshipPattern(
@@ -490,10 +497,10 @@ case class PPTRelationshipScan(
   }
 }
 
-case class PPTCreateUnit(items: Seq[ReturnItem])(val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override def withChildren(children0: Seq[PPTNode]): PPTCreateUnit =
-    PPTCreateUnit(items)(plannerContext)
+case class PhysicalCreateUnit(items: Seq[ReturnItem])(val plannerContext: PhysicalPlannerContext)
+  extends AbstractPhysicalNode {
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalCreateUnit =
+    PhysicalCreateUnit(items)(plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
     items.map(item => item.name -> typeOf(item.expression))
@@ -503,15 +510,15 @@ case class PPTCreateUnit(items: Seq[ReturnItem])(val plannerContext: PhysicalPla
   }
 }
 
-case class PPTSelect(
+case class PhysicalSelect(
     columns: Seq[(String, Option[String])]
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTSelect =
-    PPTSelect(columns)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalSelect =
+    PhysicalSelect(columns)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
     columns.map(x => x._2.getOrElse(x._1)).map(x => x -> in.schema.find(_._1 == x).get._2)
@@ -522,15 +529,15 @@ case class PPTSelect(
   }
 }
 
-case class PPTProject(
+case class PhysicalProject(
     ri: ReturnItemsDef
-  )(implicit val in: PPTNode,
+  )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTProject =
-    PPTProject(ri)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalProject =
+    PhysicalProject(ri)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
     ri.items.map(x => x.name -> x.expression).map { col =>
@@ -543,19 +550,19 @@ case class PPTProject(
   }
 
   def withReturnItems(items: Seq[ReturnItem]) =
-    PPTProject(ReturnItems(ri.includeExisting, items)(ri.position))(in, plannerContext)
+    PhysicalProject(ReturnItems(ri.includeExisting, items)(ri.position))(in, plannerContext)
 }
 
-case class PPTAggregation(
+case class PhysicalAggregation(
     aggregations: Seq[ReturnItem],
     groupings: Seq[ReturnItem]
-  )(implicit val in: PPTNode,
+  )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTAggregation =
-    PPTAggregation(aggregations, groupings)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalAggregation =
+    PhysicalAggregation(aggregations, groupings)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
     (groupings ++ aggregations).map(x => x.name -> x.expression).map { col =>
@@ -571,14 +578,14 @@ case class PPTAggregation(
   }
 }
 
-case class PPTProcedureCall(
+case class PhysicalProcedureCall(
     procedureNamespace: Namespace,
     procedureName: ProcedureName,
     declaredArguments: Option[Seq[Expression]]
   )(implicit val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override def withChildren(children0: Seq[PPTNode]): PPTProcedureCall =
-    PPTProcedureCall(procedureNamespace, procedureName, declaredArguments)(plannerContext)
+  extends AbstractPhysicalNode {
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalProcedureCall =
+    PhysicalProcedureCall(procedureNamespace, procedureName, declaredArguments)(plannerContext)
 
   val Namespace(parts: List[String]) = procedureNamespace
   val ProcedureName(name: String) = procedureName
@@ -604,18 +611,18 @@ case class PPTProcedureCall(
   }
 }
 
-case class PPTCreateIndex(
+case class PhysicalCreateIndex(
     labelName: LabelName,
     properties: List[PropertyKeyName]
   )(implicit val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
+  extends AbstractPhysicalNode {
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     graphModel._helper.createIndex(labelName.name, properties.map(_.name).toSet)
     DataFrame.empty
   }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTNode = this
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalNode = this
 
   override val schema: Seq[(String, LynxType)] = {
     Seq("CreateIndex" -> CTAny)
@@ -643,25 +650,28 @@ case class MergeRelationship(
   override def getSchema: String = varName
 }
 
-case class PPTMergeAction(
+case class PhysicalMergeAction(
     actions: Seq[MergeAction]
-  )(implicit in: PPTNode,
+  )(implicit in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override def withChildren(children0: Seq[PPTNode]): PPTMergeAction =
-    PPTMergeAction(actions)(children0.head, plannerContext)
+  extends AbstractPhysicalNode {
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalMergeAction =
+    PhysicalMergeAction(actions)(children0.head, plannerContext)
 
-  override val children: Seq[PPTNode] = Seq(in)
+  override val children: Seq[PhysicalNode] = Seq(in)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
-    PPTSetClause(Seq.empty, actions)(in, plannerContext).execute(ctx)
+    PhysicalSetClause(Seq.empty, actions)(in, plannerContext).execute(ctx)
   }
 }
 
-case class PPTMergeTranslator(m: Merge) extends PPTNodeTranslator {
-  def translate(in: Option[PPTNode])(implicit plannerContext: PhysicalPlannerContext): PPTNode = {
+case class PhysicalMergeTranslator(m: Merge) extends PhysicalNodeTranslator {
+  def translate(
+      in: Option[PhysicalNode]
+    )(implicit plannerContext: PhysicalPlannerContext
+    ): PhysicalNode = {
     val definedVars = in.map(_.schema.map(_._1)).getOrElse(Seq.empty).toSet
     val mergeOps = mutable.ArrayBuffer[MergeElement]()
     val mergeSchema = mutable.ArrayBuffer[(String, LynxType)]()
@@ -681,7 +691,7 @@ case class PPTMergeTranslator(m: Merge) extends PPTNodeTranslator {
       }
     }
 
-    PPTMerge(mergeSchema, mergeOps)(in, plannerContext)
+    PhysicalMerge(mergeSchema, mergeOps)(in, plannerContext)
   }
 
   private def buildMerge(
@@ -741,16 +751,16 @@ case class PPTMergeTranslator(m: Merge) extends PPTNodeTranslator {
 }
 
 // if pattern not exists, create all elements in mergeOps
-case class PPTMerge(
+case class PhysicalMerge(
     mergeSchema: Seq[(String, LynxType)],
     mergeOps: Seq[MergeElement]
-  )(implicit val in: Option[PPTNode],
+  )(implicit val in: Option[PhysicalNode],
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = in.toSeq
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = in.toSeq
 
-  override def withChildren(children0: Seq[PPTNode]): PPTMerge =
-    PPTMerge(mergeSchema, mergeOps)(children0.headOption, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalMerge =
+    PhysicalMerge(mergeSchema, mergeOps)(children0.headOption, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = mergeSchema
 
@@ -808,7 +818,7 @@ case class PPTMerge(
     //    }
 
     children match {
-      case Seq(pj @ PPTJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
+      case Seq(pj @ PhysicalJoin(filterExpr, isSingleMatch, bigTableIndex)) => {
         val searchVar = pj.children.head.schema.toMap
         val res = children.map(_.execute).head.records
         if (res.nonEmpty) {
@@ -835,8 +845,8 @@ case class PPTMerge(
               val mergedNodesAndRels = mutable.Map[String, Seq[LynxValue]]()
 
               val forceToCreate = {
-                if (anotherDf.isInstanceOf[PPTExpandPath] || anotherDf
-                      .isInstanceOf[PPTRelationshipScan]) true
+                if (anotherDf.isInstanceOf[PhysicalExpandPath] || anotherDf
+                      .isInstanceOf[PhysicalRelationshipScan]) true
                 else false
               }
 
@@ -890,8 +900,11 @@ case class CreateRelationship(
     varNameToNode: String)
   extends CreateElement
 
-case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
-  def translate(in: Option[PPTNode])(implicit plannerContext: PhysicalPlannerContext): PPTNode = {
+case class PhysicalCreateTranslator(c: Create) extends PhysicalNodeTranslator {
+  def translate(
+      in: Option[PhysicalNode]
+    )(implicit plannerContext: PhysicalPlannerContext
+    ): PhysicalNode = {
     val definedVars = in.map(_.schema.map(_._1)).getOrElse(Seq.empty).toSet
     val (schemaLocal, ops) =
       c.pattern.patternParts.foldLeft((Seq.empty[(String, LynxType)], Seq.empty[CreateElement])) {
@@ -914,7 +927,7 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
           }
       }
 
-    PPTCreate(schemaLocal, ops)(in, plannerContext)
+    PhysicalCreate(schemaLocal, ops)(in, plannerContext)
   }
 
   //returns (varLastNode, schema, ops)
@@ -1027,16 +1040,16 @@ case class PPTCreateTranslator(c: Create) extends PPTNodeTranslator {
   }
 }
 
-case class PPTCreate(
+case class PhysicalCreate(
     schemaLocal: Seq[(String, LynxType)],
     ops: Seq[CreateElement]
-  )(implicit val in: Option[PPTNode],
+  )(implicit val in: Option[PhysicalNode],
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = in.toSeq
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = in.toSeq
 
-  override def withChildren(children0: Seq[PPTNode]): PPTCreate =
-    PPTCreate(schemaLocal, ops)(children0.headOption, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalCreate =
+    PhysicalCreate(schemaLocal, ops)(children0.headOption, plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
     in.map(_.schema).getOrElse(Seq.empty) ++ schemaLocal
@@ -1123,15 +1136,15 @@ case class PPTCreate(
   * @param in
   * @param plannerContext
   */
-case class PPTDelete(
+case class PhysicalDelete(
     delete: Delete
-  )(implicit val in: PPTNode,
+  )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = Seq(in)
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTDelete =
-    PPTDelete(delete)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalDelete =
+    PhysicalDelete(delete)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = Seq.empty
 
@@ -1165,23 +1178,26 @@ case class PPTDelete(
 }
 
 //////// SET ///////
-case class PPTSetClauseTranslator(setItems: Seq[SetItem]) extends PPTNodeTranslator {
-  override def translate(in: Option[PPTNode])(implicit ppc: PhysicalPlannerContext): PPTNode = {
-    PPTSetClause(setItems)(in.get, ppc)
+case class PhysicalSetClauseTranslator(setItems: Seq[SetItem]) extends PhysicalNodeTranslator {
+  override def translate(
+      in: Option[PhysicalNode]
+    )(implicit ppc: PhysicalPlannerContext
+    ): PhysicalNode = {
+    PhysicalSetClause(setItems)(in.get, ppc)
   }
 }
 
-case class PPTSetClause(
+case class PhysicalSetClause(
     var setItems: Seq[SetItem],
     mergeAction: Seq[MergeAction] = Seq.empty
-  )(implicit val in: PPTNode,
+  )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
+  extends AbstractPhysicalNode {
 
-  override val children: Seq[PPTNode] = Seq(in)
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTSetClause =
-    PPTSetClause(setItems)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalSetClause =
+    PhysicalSetClause(setItems)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 
@@ -1346,22 +1362,25 @@ case class PPTSetClause(
 ////////////////////
 
 /////////REMOVE//////////////
-case class PPTRemoveTranslator(removeItems: Seq[RemoveItem]) extends PPTNodeTranslator {
-  override def translate(in: Option[PPTNode])(implicit ppc: PhysicalPlannerContext): PPTNode = {
-    PPTRemove(removeItems)(in.get, ppc)
+case class PhysicalRemoveTranslator(removeItems: Seq[RemoveItem]) extends PhysicalNodeTranslator {
+  override def translate(
+      in: Option[PhysicalNode]
+    )(implicit ppc: PhysicalPlannerContext
+    ): PhysicalNode = {
+    PhysicalRemove(removeItems)(in.get, ppc)
   }
 }
 
-case class PPTRemove(
+case class PhysicalRemove(
     removeItems: Seq[RemoveItem]
-  )(implicit val in: PPTNode,
+  )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
+  extends AbstractPhysicalNode {
 
-  override val children: Seq[PPTNode] = Seq(in)
+  override val children: Seq[PhysicalNode] = Seq(in)
 
-  override def withChildren(children0: Seq[PPTNode]): PPTRemove =
-    PPTRemove(removeItems)(children0.head, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalRemove =
+    PhysicalRemove(removeItems)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] = in.schema
 
@@ -1423,20 +1442,23 @@ case class PPTRemove(
 ////////////////////////////
 
 /////////UNWIND//////////////
-case class PPTUnwindTranslator(expression: Expression, variable: Variable)
-  extends PPTNodeTranslator {
-  override def translate(in: Option[PPTNode])(implicit ppc: PhysicalPlannerContext): PPTNode = {
-    PPTUnwind(expression, variable)(in, ppc)
+case class PhysicalUnwindTranslator(expression: Expression, variable: Variable)
+  extends PhysicalNodeTranslator {
+  override def translate(
+      in: Option[PhysicalNode]
+    )(implicit ppc: PhysicalPlannerContext
+    ): PhysicalNode = {
+    PhysicalUnwind(expression, variable)(in, ppc)
   }
 }
 
-case class PPTUnwind(
+case class PhysicalUnwind(
     expression: Expression,
     variable: Variable
-  )(implicit val in: Option[PPTNode],
+  )(implicit val in: Option[PhysicalNode],
     val plannerContext: PhysicalPlannerContext)
-  extends AbstractPPTNode {
-  override val children: Seq[PPTNode] = in.toSeq
+  extends AbstractPhysicalNode {
+  override val children: Seq[PhysicalNode] = in.toSeq
 
   override val schema: Seq[(String, LynxType)] =
     in.map(_.schema).getOrElse(Seq.empty) ++ Seq((variable.name, CTAny)) // TODO it is CTAny?
@@ -1474,8 +1496,8 @@ case class PPTUnwind(
       )
     }
 
-  override def withChildren(children0: Seq[PPTNode]): PPTUnwind =
-    PPTUnwind(expression, variable)(children0.headOption, plannerContext)
+  override def withChildren(children0: Seq[PhysicalNode]): PhysicalUnwind =
+    PhysicalUnwind(expression, variable)(children0.headOption, plannerContext)
 }
 ////////////////////////////
 
