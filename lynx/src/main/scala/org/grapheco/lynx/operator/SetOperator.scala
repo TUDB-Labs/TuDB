@@ -25,13 +25,11 @@ case class SetOperator(
   override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
   override val exprContext: ExpressionContext = expressionContext
   private var columnNames: Seq[String] = _
-  private var columnTypeByName: Map[String, LynxType] = _
   private var columnIndexByName: Map[String, Int] = _
 
   override def openImpl(): Unit = {
     in.open()
     columnNames = in.outputSchema().map(f => f._1)
-    columnTypeByName = in.outputSchema().toMap
     columnIndexByName = columnNames.zipWithIndex.toMap
   }
 
@@ -41,23 +39,21 @@ case class SetOperator(
 
     val updatedBatchData = batchData.map(record => {
       val variableValueByName = columnNames.zip(record).toMap
-      val variableNameByValue =
-        variableValueByName.map(nameAndValue => (nameAndValue._2, nameAndValue._1))
       var updatedRecord = record
       setItems.foreach {
         case SetPropertyItem(property, propertyValueExpr) => {
-          val Property(entity, propKeyName) = property
-          val lynxValue =
-            expressionEvaluator.eval(entity)(expressionContext.withVars(variableValueByName))
+          val Property(entityExpr, propKeyName) = property
+          val entity =
+            expressionEvaluator.eval(entityExpr)(expressionContext.withVars(variableValueByName))
 
-          lynxValue match {
+          entity match {
             case LynxNull => {}
             case _ => {
               val prop = expressionEvaluator
                 .eval(propertyValueExpr)(expressionContext.withVars(variableValueByName))
                 .value
               updatedRecord = setProperty(
-                variableNameByValue(lynxValue),
+                variableValueByName.find(nameAndValue => nameAndValue._2 == entity).get._1,
                 Map(propKeyName.name -> prop),
                 updatedRecord,
                 variableValueByName,
@@ -119,7 +115,7 @@ case class SetOperator(
         }
         case unknown => {
           throw new TuDBException(
-            TuDBError.UNKNOWN_ERROR,
+            TuDBError.LYNX_UNSUPPORTED_OPERATION,
             s"Not support setItem: ${unknown.toString}"
           )
         }
@@ -170,7 +166,7 @@ case class SetOperator(
       variableValueByName: Map[String, LynxValue],
       cleanExistProperties: Boolean
     ): Seq[LynxValue] = {
-    val recordType = columnTypeByName(entityVar)
+    val recordType = variableValueByName(entityVar).lynxType
     recordType match {
       case CTNode => {
         val nodeId = variableValueByName(entityVar).asInstanceOf[LynxNode].id
