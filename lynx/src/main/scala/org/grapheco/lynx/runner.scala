@@ -55,44 +55,49 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     queryParser.parse(query)
 
   def run(query: String, param: Map[String, Any]): LynxResult = {
-    val queryLabel = query
+    DomainObject.pushLabel(query)
 
-    DomainObject.recordLatency(Set(queryLabel))
+    DomainObject.recordLatency(null)
 
-    val parserLabel = "parser"
-    DomainObject.recordLatency(Set(queryLabel, parserLabel))
+    DomainObject.pushLabel("parser")
+    DomainObject.recordLatency(null)
     val (statement, param2, state) = queryParser.parse(query)
     logger.debug(s"AST tree: ${statement}")
-    DomainObject.recordLatency(Set(queryLabel, parserLabel))
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
 
-    val logicalPlanLabel = "logical-plan"
     val logicalPlannerContext = LogicalPlannerContext(param ++ param2, runnerContext)
-    DomainObject.recordLatency(Set(queryLabel, logicalPlanLabel))
+    DomainObject.pushLabel("logical-plan")
+    DomainObject.recordLatency(null)
     val logicalPlan = logicalPlanner.plan(statement, logicalPlannerContext)
     logger.debug(s"logical plan: \r\n${logicalPlan.pretty}")
-    DomainObject.recordLatency(Set(queryLabel, logicalPlanLabel))
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
 
-    val physicalPlanLabel = "physical-plan"
     val physicalPlannerContext = PhysicalPlannerContext(param ++ param2, runnerContext)
-    DomainObject.recordLatency(Set(queryLabel, physicalPlanLabel))
+    DomainObject.pushLabel("physical-plan")
+    DomainObject.recordLatency(null)
     val physicalPlan = physicalPlanner.plan(logicalPlan)(physicalPlannerContext)
     logger.debug(s"physical plan: \r\n${physicalPlan.pretty}")
-    DomainObject.recordLatency(Set(queryLabel, physicalPlanLabel))
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
 
-    val optimizerLabel = "optimizer"
-    DomainObject.recordLatency(Set(queryLabel, optimizerLabel))
+    DomainObject.pushLabel("optimizer")
+    DomainObject.recordLatency(null)
     val optimizedPhysicalPlan = physicalPlanOptimizer.optimize(physicalPlan, physicalPlannerContext)
     logger.debug(s"optimized physical plan: \r\n${optimizedPhysicalPlan.pretty}")
-    DomainObject.recordLatency(Set(queryLabel, optimizerLabel))
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
 
-    val executeLabel = "execute"
     val ctx = ExecutionContext(physicalPlannerContext, statement, param ++ param2)
-    DomainObject.recordLatency(Set(queryLabel, executeLabel))
+    DomainObject.pushLabel("execute")
+    DomainObject.recordLatency(null)
     val df = optimizedPhysicalPlan.execute(ctx)
     graphModel.write.commit
-    DomainObject.recordLatency(Set(queryLabel, executeLabel))
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
 
-    DomainObject.recordLatency(Set(queryLabel))
+    DomainObject.recordLatency(null)
     new LynxResult() with PlanAware {
       val schema = df.schema
       val columnNames = schema.map(_._1)

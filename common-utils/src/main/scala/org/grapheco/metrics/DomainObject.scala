@@ -1,7 +1,10 @@
 package org.grapheco.metrics
 
+import scala.collection.mutable.Stack
+
 object DomainObject {
   val domainID = "query"
+  var stackedLabels = Stack[String]()
 
   var domain: Domain = new Domain(domainID)
 
@@ -10,7 +13,25 @@ object DomainObject {
   }
 
   def recordLatency(labels: Set[String]): Unit = {
-    val r = new Record(new Label(labels), new Value(0))
+    var completeLabels = labels
+    if (completeLabels == null) {
+      completeLabels = Set[String]()
+    }
+
+    for (l <- stackedLabels) {
+      if (!completeLabels.contains(l)) {
+        completeLabels += l
+      }
+    }
+    val r = new Record(new Label(completeLabels), new Value(0))
     domain.recordLatency(r)
+  }
+
+  def pushLabel(l: String): Unit = {
+    stackedLabels.push(l)
+  }
+
+  def popLabel(): String = {
+    stackedLabels.pop()
   }
 }
