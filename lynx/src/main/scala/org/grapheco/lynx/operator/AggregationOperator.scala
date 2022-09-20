@@ -74,13 +74,8 @@ case class AggregationOperator(
       hasPulledData = true
     }
 
-    var rb: RowBatch = null
-    if (allGroupedData.nonEmpty) {
-      rb = RowBatch(allGroupedData.next())
-    } else {
-      rb = RowBatch(Seq.empty)
-    }
-    rb
+    if (allGroupedData.nonEmpty) RowBatch(allGroupedData.next())
+    else RowBatch(Seq.empty)
   }
 
   override def closeImpl(): Unit = {}

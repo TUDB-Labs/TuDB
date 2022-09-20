@@ -59,7 +59,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
 
     DomainObject.recordLatency(null)
 
-    DomainObject.pushLabel("parser")
+    DomainObject.pushLabel("ast-plan")
     DomainObject.recordLatency(null)
     val (statement, param2, state) = queryParser.parse(query)
     logger.debug(s"AST tree: ${statement}")
