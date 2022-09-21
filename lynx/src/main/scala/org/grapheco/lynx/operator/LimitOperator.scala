@@ -12,14 +12,12 @@ import scala.collection.mutable.ArrayBuffer
   *@description: This operator is used to limit return data. eg: [1,2,3,4], limit 2, then return [1, 2]
   */
 case class LimitOperator(
-    limitDataSize: Int,
     in: ExecutionOperator,
+    limitDataSize: Int,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
 
   var isLimitDone: Boolean = false
   var countLimitNum: Int = 0

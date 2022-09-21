@@ -22,8 +22,6 @@ case class SetOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
   private var columnNames: Seq[String] = _
   private var columnIndexByName: Map[String, Int] = _
 

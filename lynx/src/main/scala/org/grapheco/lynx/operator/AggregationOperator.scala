@@ -10,14 +10,13 @@ import org.opencypher.v9_0.ast.ReturnItem
   *                and evaluates aggregations by values of `aggregationItems`.
   */
 case class AggregationOperator(
+    in: ExecutionOperator,
     aggregationItems: Seq[ReturnItem],
     groupingItems: Seq[ReturnItem],
-    in: ExecutionOperator,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = Seq(in)
 
   val aggregationExprs = aggregationItems.map(x => x.name -> x.expression)
   val groupingExprs = groupingItems.map(x => x.name -> x.expression)
@@ -41,8 +40,8 @@ case class AggregationOperator(
       val result = if (groupingExprs.nonEmpty) {
         allData
           .map(record => {
-            val recordCtx = exprContext.withVars(columnNames.zip(record).toMap)
-            groupingExprs.map(col => evalExpr(col._2)(recordCtx)) -> recordCtx
+            val recordCtx = expressionContext.withVars(columnNames.zip(record).toMap)
+            groupingExprs.map(col => expressionEvaluator.eval(col._2)(recordCtx)) -> recordCtx
           })
           .toSeq // each row point to a recordCtx
           // group by record

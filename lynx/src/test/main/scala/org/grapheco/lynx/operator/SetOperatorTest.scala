@@ -105,7 +105,7 @@ class SetOperatorTest extends BaseOperatorTest {
   }
 
   @Test
-  def testSetCaseTrueProperty(): Unit = {
+  def testSetPropertyWithCaseClause1(): Unit = {
     /*
         MATCH (n {name:'Andy'})
         SET (CASE WHEN n.age = 36 THEN n END).worksIn = 'Malmo'
@@ -168,7 +168,7 @@ class SetOperatorTest extends BaseOperatorTest {
   }
 
   @Test
-  def testSetCaseFalseProperty(): Unit = {
+  def testSetPropertyWithCaseClause2(): Unit = {
     /*
         MATCH (n {name:'Andy'})
         SET (CASE WHEN n.age = 55 THEN n END).worksIn = 'Malmo'

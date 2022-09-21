@@ -50,8 +50,8 @@ class DeleteOperatorTest extends BaseOperatorTest {
       ctx.expressionContext
     )
     val selectOperator = SelectOperator(
-      Seq(("animal", Option("animal")), ("person", Option("person"))),
       joinOperator,
+      Seq(("animal", Option("animal")), ("person", Option("person"))),
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -72,8 +72,8 @@ class DeleteOperatorTest extends BaseOperatorTest {
   def testDeleteNodeWithoutRelationship(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
-      Seq(("n", Option("n"))),
       nodeScanOperator,
+      Seq(("n", Option("n"))),
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -103,8 +103,8 @@ class DeleteOperatorTest extends BaseOperatorTest {
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
-      Seq(("n", Option("n"))),
       nodeScanOperator,
+      Seq(("n", Option("n"))),
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -132,8 +132,8 @@ class DeleteOperatorTest extends BaseOperatorTest {
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
-      Seq(("n", Option("n"))),
       nodeScanOperator,
+      Seq(("n", Option("n"))),
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -179,8 +179,8 @@ class DeleteOperatorTest extends BaseOperatorTest {
       ctx.expressionContext
     )
     val selectOperator = SelectOperator(
-      Seq(("r", Option("r"))),
       pathScanOperator,
+      Seq(("r", Option("r"))),
       expressionEvaluator,
       ctx.expressionContext
     )

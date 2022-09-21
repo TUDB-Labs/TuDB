@@ -14,8 +14,6 @@ case class ProjectOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
   override val children: Seq[ExecutionOperator] = Seq(in)
 
   var projectSchema: Seq[(String, LynxType)] = Seq.empty
@@ -33,8 +31,8 @@ case class ProjectOperator(
   override def getNextImpl(): RowBatch = {
     val sourceData = in.getNext()
     val projectData = sourceData.batchData.map(rowData => {
-      val recordCtx = exprContext.withVars(inColumnNames.zip(rowData).toMap)
-      projectColumnExpr.map(col => evalExpr(col._2)(recordCtx))
+      val recordCtx = expressionContext.withVars(inColumnNames.zip(rowData).toMap)
+      projectColumnExpr.map(col => expressionEvaluator.eval(col._2)(recordCtx))
     })
     RowBatch(projectData)
   }
