@@ -42,4 +42,6 @@ case class SelectOperator(
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = outPutSchema
+
+  override def getOperatorName(): String = "Select"
 }

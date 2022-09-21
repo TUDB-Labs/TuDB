@@ -54,5 +54,7 @@ case class FilterOperator(
 
   override def closeImpl(): Unit = {}
 
+  override def getOperatorName(): String = "Filter"
+
   override def outputSchema(): Seq[(String, LynxType)] = in.outputSchema()
 }

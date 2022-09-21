@@ -51,6 +51,8 @@ case class OrderByOperator(
 
   override def outputSchema(): Seq[(String, LynxType)] = in.outputSchema()
 
+  override def getOperatorName(): String = "OrderBy"
+
   private def sortByItem(
       a: Seq[LynxValue],
       b: Seq[LynxValue],

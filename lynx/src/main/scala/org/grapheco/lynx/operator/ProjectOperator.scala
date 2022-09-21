@@ -42,4 +42,6 @@ case class ProjectOperator(
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = projectSchema
+
+  override def getOperatorName(): String = "Project"
 }

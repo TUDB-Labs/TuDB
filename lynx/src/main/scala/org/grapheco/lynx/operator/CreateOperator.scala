@@ -117,6 +117,8 @@ case class CreateOperator(
 
   override def outputSchema(): Seq[(String, LynxType)] = schema
 
+  override def getOperatorName(): String = "Create"
+
   private def nodeInputRef(varname: String, ctxMap: Map[String, LynxValue]): NodeInputRef = {
     ctxMap
       .get(varname)

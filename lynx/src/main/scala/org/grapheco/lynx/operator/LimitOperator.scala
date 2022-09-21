@@ -51,4 +51,6 @@ case class LimitOperator(
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = in.outputSchema()
+
+  override def getOperatorName(): String = "Limit"
 }

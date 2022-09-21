@@ -159,4 +159,6 @@ case class PathScanOperator(
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = schema
+
+  override def getOperatorName(): String = "PathScan"
 }

@@ -1,6 +1,7 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.types.LynxValue
+import org.grapheco.metrics.DomainObject
 import org.opencypher.v9_0.expressions.Expression
 
 /**
@@ -31,6 +32,8 @@ trait ExecutionOperator extends TreeNode {
   }
   // to be implemented by concrete operators
   def getNextImpl(): RowBatch
+
+  def getOperatorName(): String
 
   def close(): Unit = {
     closeImpl()

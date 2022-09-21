@@ -67,4 +67,5 @@ case class NodeScanOperator(
 
   override def outputSchema(): Seq[(String, LynxType)] = schema
 
+  override def getOperatorName(): String = "NodeScan"
 }

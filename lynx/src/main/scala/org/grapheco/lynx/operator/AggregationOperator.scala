@@ -86,4 +86,6 @@ case class AggregationOperator(
   override def closeImpl(): Unit = {}
 
   override def outputSchema(): Seq[(String, LynxType)] = schema
+
+  override def getOperatorName(): String = "Aggregation"
 }
