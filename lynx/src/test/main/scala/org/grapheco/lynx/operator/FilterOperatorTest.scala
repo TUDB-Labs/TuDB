@@ -47,7 +47,7 @@ class FilterOperatorTest extends BaseOperatorTest {
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val filterOperator =
-      FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 
     val result = getOperatorAllOutputs(filterOperator)
 
@@ -72,7 +72,7 @@ class FilterOperatorTest extends BaseOperatorTest {
 
     val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
     val filterOperator =
-      FilterOperator(filterExpr, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 
     val result = getOperatorAllOutputs(filterOperator)
 

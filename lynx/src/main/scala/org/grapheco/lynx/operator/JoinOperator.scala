@@ -17,8 +17,6 @@ case class JoinOperator(
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(smallTable, largeTable)
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
 
   var joinedTableSchema: Seq[(String, LynxType)] = _
   var joinCols: Seq[String] = _
@@ -73,8 +71,10 @@ case class JoinOperator(
       })
       filterExpression.foreach(expr => {
         joinedRecords = joinedRecords.filter(row => {
-          exprEvaluator
-            .eval(expr)(exprContext.withVars(joinedTableSchema.map(f => f._1).zip(row).toMap)) match {
+          expressionEvaluator
+            .eval(expr)(
+              expressionContext.withVars(joinedTableSchema.map(f => f._1).zip(row).toMap)
+            ) match {
             case LynxBoolean(v) => v
             case LynxNull       => false
           }
