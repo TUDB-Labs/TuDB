@@ -1,21 +1,16 @@
 package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.procedure.ProcedureExpression
-import org.grapheco.lynx.{PPTFilter, PPTJoin, PPTNode, PPTNodeScan, PPTRelationshipScan, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
+import org.grapheco.lynx.{PhysicalFilter, PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
 import org.opencypher.v9_0.expressions.{Ands, ContainerIndex, Equals, Expression, FunctionInvocation, HasLabels, In, ListLiteral, MapExpression, NodePattern, Not, Property, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable.ArrayBuffer
 
-/**
-  *@author:John117
-  *@createDate:2022/7/8
-  *@description:
-  */
 /** rule to check is there any reference property between two match clause
-  * if there is any reference property, extract it to PPTJoin().
+  * if there is any reference property, extract it to PhysicalJoin().
   * like:
-  * PPTJoin()                                             PPTJoin(m.city == n.city)
+  * PhysicalJoin()                                             PhysicalJoin(m.city == n.city)
   * ||                                    ====>           ||
   * match (n:person{name:'alex'})                         match (n:person{name:'alex'})
   * match (m:person where m.city=n.city})                 match (m:person)
@@ -24,13 +19,13 @@ import scala.collection.mutable.ArrayBuffer
 
 object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
 
-  override def apply(plan: PPTNode, ppc: PhysicalPlannerContext): PPTNode = {
+  override def apply(plan: PhysicalNode, ppc: PhysicalPlannerContext): PhysicalNode = {
     optimizeBottomUp(
       plan, {
-        case pNode: PPTNode =>
+        case pNode: PhysicalNode =>
           val res = pNode.children.map {
-            case pj: PPTJoin =>
-              getNewPPTJoin(pj, ppc)
+            case pj: PhysicalJoin =>
+              getNewPhysicalJoin(pj, ppc)
             case node => node
           }
           // use withChildren to replace the subtree
@@ -39,7 +34,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
     )
   }
 
-  def getNewPPTJoin(pptJoin: PPTJoin, ppc: PhysicalPlannerContext): PPTNode = {
+  def getNewPhysicalJoin(pptJoin: PhysicalJoin, ppc: PhysicalPlannerContext): PhysicalNode = {
     // left table
     val table1 = pptJoin.children.head
     // right table
@@ -57,7 +52,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
       )
 
     if (referenceExpressionArray.nonEmpty) {
-      PPTJoin(referenceExpressionArray.toSeq, pptJoin.isSingleMatch, pptJoin.bigTableIndex)(
+      PhysicalJoin(referenceExpressionArray.toSeq, pptJoin.isSingleMatch, pptJoin.bigTableIndex)(
         table1,
         newTable2,
         ppc
@@ -294,24 +289,24 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
   }
 
   def getNewTableWithoutReferenceExpression(
-      pptNode: PPTNode,
+      pptNode: PhysicalNode,
       referenceSchema: Seq[String],
       referenceExpressionArray: ArrayBuffer[Expression],
       ppc: PhysicalPlannerContext
-    ): PPTNode = {
+    ): PhysicalNode = {
     val noReferenceExpressionArray = ArrayBuffer[Expression]()
     pptNode match {
       // check is there any reference in nodePattern, if have, add to referenceExpressionArray
-      case ps @ PPTNodeScan(nodePattern) => {
+      case ps @ PhysicalNodeScan(nodePattern) => {
         val newNodePattern = getReferenceFromNodePattern(
           nodePattern,
           referenceSchema,
           referenceExpressionArray
         )
-        PPTNodeScan(newNodePattern)(ppc)
+        PhysicalNodeScan(newNodePattern)(ppc)
       }
-      // check is there any reference in PPTFilter, if have, add to referenceExpressionArray
-      case pf @ PPTFilter(expr) => {
+      // check is there any reference in PhysicalFilter, if have, add to referenceExpressionArray
+      case pf @ PhysicalFilter(expr) => {
         val referAndNoRefer =
           getReferenceFromExpression(
             expr,
@@ -320,17 +315,20 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
             noReferenceExpressionArray
           )
         referAndNoRefer._2.size match {
-          // empty PPTFilter, then remove it
+          // empty PhysicalFilter, then remove it
           case 0 => pf.children.head
-          // new PPTFilter
-          case 1 => PPTFilter(referAndNoRefer._2.head)(pf.children.head, ppc)
-          // new PPTFilter with Ands Expression
+          // new PhysicalFilter
+          case 1 => PhysicalFilter(referAndNoRefer._2.head)(pf.children.head, ppc)
+          // new PhysicalFilter with Ands Expression
           case _ =>
-            PPTFilter(Ands(referAndNoRefer._2.toSet)(InputPosition(0, 0, 0)))(pf.children.head, ppc)
+            PhysicalFilter(Ands(referAndNoRefer._2.toSet)(InputPosition(0, 0, 0)))(
+              pf.children.head,
+              ppc
+            )
         }
       }
       // check is there any reference in leftNodePattern and rightNodePattern, if have, add to referenceExpressionArray
-      case pr @ PPTRelationshipScan(rel, leftNodePattern, rightNodePattern) => {
+      case pr @ PhysicalRelationshipScan(rel, leftNodePattern, rightNodePattern) => {
         val newLeftNodePattern = getReferenceFromNodePattern(
           leftNodePattern,
           referenceSchema,
@@ -341,7 +339,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
           referenceSchema,
           referenceExpressionArray
         )
-        PPTRelationshipScan(rel, newLeftNodePattern, newRightNodePattern)(ppc)
+        PhysicalRelationshipScan(rel, newLeftNodePattern, newRightNodePattern)(ppc)
       }
       case default => default
     }

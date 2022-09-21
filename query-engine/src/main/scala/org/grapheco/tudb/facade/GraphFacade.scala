@@ -423,6 +423,13 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
         data: Array[(LynxPropertyKey, Any)],
         cleanExistProperties: Boolean
       ): Iterator[Option[LynxNode]] = nodeIds.map { id =>
+      if (cleanExistProperties) {
+        val nodeProperties = nodeAt(id).get.properties
+        removeNodesProperties(
+          Iterator(id),
+          nodeProperties.keys.map(f => LynxPropertyKey(f)).toArray
+        )
+      }
       data.foreach {
         case (key, value) =>
           TuDBStoreContext.getNodeStoreAPI.nodeSetProperty(

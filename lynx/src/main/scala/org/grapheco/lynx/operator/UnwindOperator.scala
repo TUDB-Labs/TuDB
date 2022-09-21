@@ -23,8 +23,7 @@ case class UnwindOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = Seq(in)
   var colNames: Seq[String] = _
 
   override def openImpl(): Unit = {

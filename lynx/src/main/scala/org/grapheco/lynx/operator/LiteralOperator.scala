@@ -13,8 +13,6 @@ case class LiteralOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
   var isEvalDone: Boolean = false
 
   override def openImpl(): Unit = {}

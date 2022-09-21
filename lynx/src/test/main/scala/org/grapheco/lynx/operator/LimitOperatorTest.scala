@@ -37,7 +37,7 @@ class LimitOperatorTest extends BaseOperatorTest {
   def testLimitZeroData(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
     val skipOperator =
-      LimitOperator(0, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      LimitOperator(nodeScanOperator, 0, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
@@ -51,7 +51,7 @@ class LimitOperatorTest extends BaseOperatorTest {
   def testLimitData(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
     val skipOperator =
-      LimitOperator(2, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      LimitOperator(nodeScanOperator, 2, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(
@@ -68,7 +68,7 @@ class LimitOperatorTest extends BaseOperatorTest {
   def testLimitDataSizeBiggerThanDataSize(): Unit = {
     val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
     val skipOperator =
-      LimitOperator(20, nodeScanOperator, expressionEvaluator, ctx.expressionContext)
+      LimitOperator(nodeScanOperator, 20, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
     Assert.assertTrue(
       CollectionUtils.isEqualCollection(

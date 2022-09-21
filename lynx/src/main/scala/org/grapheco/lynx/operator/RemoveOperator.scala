@@ -18,8 +18,8 @@ case class RemoveOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = Seq(in)
+
   private var schemaNames: Seq[String] = _
   private var schemaTypes: Map[String, LynxType] = _
   private var schemaWithIndex: Map[String, Int] = _

@@ -86,11 +86,11 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
 
       override def getASTStatement(): (Statement, Map[String, Any]) = (statement, param2)
 
-      override def getLogicalPlan(): LPTNode = logicalPlan
+      override def getLogicalPlan(): LogicalNode = logicalPlan
 
-      override def getPhysicalPlan(): PPTNode = physicalPlan
+      override def getPhysicalPlan(): PhysicalNode = physicalPlan
 
-      override def getOptimizerPlan(): PPTNode = optimizedPhysicalPlan
+      override def getOptimizerPlan(): PhysicalNode = optimizedPhysicalPlan
 
       override def cache(): LynxResult = {
         val source = this
@@ -170,11 +170,11 @@ trait LynxResult {
 trait PlanAware {
   def getASTStatement(): (Statement, Map[String, Any])
 
-  def getLogicalPlan(): LPTNode
+  def getLogicalPlan(): LogicalNode
 
-  def getPhysicalPlan(): PPTNode
+  def getPhysicalPlan(): PhysicalNode
 
-  def getOptimizerPlan(): PPTNode
+  def getOptimizerPlan(): PhysicalNode
 }
 
 /** labels note: the node with both LABEL1 and LABEL2 labels.

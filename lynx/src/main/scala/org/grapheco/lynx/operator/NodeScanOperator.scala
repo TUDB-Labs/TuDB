@@ -18,8 +18,6 @@ case class NodeScanOperator(
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq.empty
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
 
   var schema: Seq[(String, LynxType)] = Seq.empty
   var dataSource: Iterator[RowBatch] = Iterator.empty
@@ -45,7 +43,8 @@ case class NodeScanOperator(
           nodeLabels,
           properties
             .map(prop =>
-              evalExpr(prop)(exprContext)
+              expressionEvaluator
+                .eval(prop)(expressionContext)
                 .asInstanceOf[LynxMap]
                 .value
                 .map(kv => (LynxPropertyKey(kv._1), kv._2))
