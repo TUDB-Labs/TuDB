@@ -28,7 +28,11 @@ trait ExecutionOperator extends TreeNode {
 
   // empty RowBatch means the end of output
   def getNext(): RowBatch = {
-    getNextImpl()
+    val opName = getOperatorName()
+    DomainObject.recordLatency(Set[String](opName))
+    val rb = getNextImpl()
+    DomainObject.recordLatency(Set[String](opName))
+    rb
   }
   // to be implemented by concrete operators
   def getNextImpl(): RowBatch
