@@ -12,12 +12,6 @@ trait ExecutionOperator extends TreeNode {
 
   val numRowsPerBatch = 1
 
-  val exprEvaluator: ExpressionEvaluator
-  val exprContext: ExpressionContext
-
-  def evalExpr(expr: Expression)(implicit exprContext: ExpressionContext): LynxValue =
-    exprEvaluator.eval(expr)
-
   // prepare for processing
   def open(): Unit = {
     openImpl()

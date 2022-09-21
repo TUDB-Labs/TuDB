@@ -8,13 +8,12 @@ import scala.collection.mutable.ArrayBuffer
   *@description: This operator is used to skip data. eg: [1,2,3,4], skip 2, then return [3,4]
   */
 case class SkipOperator(
-    skipDataSize: Int,
     in: ExecutionOperator,
+    skipDataSize: Int,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = Seq(in)
 
   val outputRows: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer.empty
   var isSkipDone: Boolean = false

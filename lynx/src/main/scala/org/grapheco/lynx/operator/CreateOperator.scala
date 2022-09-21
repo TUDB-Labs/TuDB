@@ -19,8 +19,7 @@ case class CreateOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
+  override val children: Seq[ExecutionOperator] = in.map(Seq(_)).getOrElse(Seq.empty)
 
   val nodesInput = ArrayBuffer[(String, NodeInput)]()
   val relationshipsInput = ArrayBuffer[(String, RelationshipInput)]()

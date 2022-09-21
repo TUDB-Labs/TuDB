@@ -20,8 +20,6 @@ case class ExpandOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
   override val children: Seq[ExecutionOperator] = Seq(in)
 
   var schema: Seq[(String, LynxType)] = Seq.empty

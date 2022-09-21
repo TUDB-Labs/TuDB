@@ -25,10 +25,6 @@ case class PathScanOperator(
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-  override val children: Seq[ExecutionOperator] = Seq.empty
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
-
   var schema: Seq[(String, LynxType)] = Seq.empty
   var dataSource: Iterator[RowBatch] = Iterator.empty
 
@@ -91,7 +87,8 @@ case class PathScanOperator(
           leftNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
           leftNodeProps
             .map(expr =>
-              evalExpr(expr)(exprContext)
+              expressionEvaluator
+                .eval(expr)(expressionContext)
                 .asInstanceOf[LynxMap]
                 .value
                 .map(kv => (LynxPropertyKey(kv._1), kv._2))
@@ -102,7 +99,8 @@ case class PathScanOperator(
           types.map(relTypeName => relTypeName.name).map(LynxRelationshipType),
           relProps
             .map(expr =>
-              evalExpr(expr)(exprContext)
+              expressionEvaluator
+                .eval(expr)(expressionContext)
                 .asInstanceOf[LynxMap]
                 .value
                 .map(kv => (LynxPropertyKey(kv._1), kv._2))
@@ -113,7 +111,8 @@ case class PathScanOperator(
           rightNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
           rightNodeProps
             .map(expr =>
-              evalExpr(expr)(exprContext)
+              expressionEvaluator
+                .eval(expr)(expressionContext)
                 .asInstanceOf[LynxMap]
                 .value
                 .map(kv => (LynxPropertyKey(kv._1), kv._2))

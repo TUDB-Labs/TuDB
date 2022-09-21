@@ -52,9 +52,9 @@ class AggregationOperatorTest extends BaseOperatorTest {
     )
 
     val groupByOperator = AggregationOperator(
+      nodeOperator,
       aggregationExpr,
       groupExpr,
-      nodeOperator,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -79,9 +79,9 @@ class AggregationOperatorTest extends BaseOperatorTest {
     )
 
     val groupByOperator = AggregationOperator(
+      nodeOperator,
       aggregationExpr,
       groupExpr,
-      nodeOperator,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -125,9 +125,9 @@ class AggregationOperatorTest extends BaseOperatorTest {
     )
 
     val groupByOperator = AggregationOperator(
+      nodeOperator,
       aggregationExpr,
       groupExpr,
-      nodeOperator,
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -185,9 +185,9 @@ class AggregationOperatorTest extends BaseOperatorTest {
     )
 
     val groupByOperator = AggregationOperator(
+      nodeOperator,
       aggregationExpr,
       groupExpr,
-      nodeOperator,
       expressionEvaluator,
       ctx.expressionContext
     )
