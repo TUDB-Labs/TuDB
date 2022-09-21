@@ -39,24 +39,27 @@ case class SetOperator(
 
     val updatedBatchData = batchData.map(record => {
       val variableValueByName = columnNames.zip(record).toMap
+      val variableNameByValue =
+        variableValueByName.map(nameAndValue => (nameAndValue._2, nameAndValue._1))
+
       var updatedRecord = record
       setItems.foreach {
         case SetPropertyItem(property, propertyValueExpr) => {
           val Property(entityExpr, propKeyName) = property
           val entity =
             expressionEvaluator.eval(entityExpr)(expressionContext.withVars(variableValueByName))
-
           entity match {
             case LynxNull => {}
             case _ => {
               val prop = expressionEvaluator
                 .eval(propertyValueExpr)(expressionContext.withVars(variableValueByName))
                 .value
+              val entityIndex = columnIndexByName(variableNameByValue(entity))
               updatedRecord = setProperty(
-                variableValueByName.find(nameAndValue => nameAndValue._2 == entity).get._1,
-                Map(propKeyName.name -> prop),
+                entity,
+                entityIndex,
+                Array(propKeyName.name -> prop),
                 updatedRecord,
-                variableValueByName,
                 false
               )
             }
@@ -71,45 +74,65 @@ case class SetOperator(
           )
         }
         case SetIncludingPropertiesFromMapItem(variable, expression) => {
-          val lynxValue =
-            expressionEvaluator.eval(expression)(expressionContext.withVars(variableValueByName))
-          lynxValue match {
-            case map: LynxMap => {
-              val props = map.value.map(nameAndValue => (nameAndValue._1, nameAndValue._2.value))
-              updatedRecord =
-                setProperty(variable.name, props, updatedRecord, variableValueByName, false)
-            }
+          val entity =
+            expressionEvaluator.eval(variable)(expressionContext.withVars(variableValueByName))
+          entity match {
             case LynxNull => {}
-            case unknown => {
-              throw new TuDBException(
-                TuDBError.UNKNOWN_ERROR,
-                s"Not support expr: ${unknown.toString}"
-              )
+            case _ => {
+              val entityIndex = columnIndexByName(variableNameByValue(entity))
+              val propValue =
+                expressionEvaluator.eval(expression)(
+                  expressionContext.withVars(variableValueByName)
+                )
+              propValue match {
+                case map: LynxMap => {
+                  val props =
+                    map.value.map(nameAndValue => (nameAndValue._1, nameAndValue._2.value)).toArray
+                  updatedRecord = setProperty(entity, entityIndex, props, updatedRecord, false)
+                }
+                case LynxNull => {}
+                case unknown => {
+                  throw new TuDBException(
+                    TuDBError.LYNX_UNSUPPORTED_OPERATION,
+                    s"Not support expr: ${unknown.toString}"
+                  )
+                }
+              }
             }
           }
         }
         case SetExactPropertiesFromMapItem(variable, expression) => {
-          val lynxValue =
-            expressionEvaluator.eval(expression)(expressionContext.withVars(variableValueByName))
-          lynxValue match {
-            case maskNode: LynxNode =>
-              updatedRecord = copyPropertiesFromNodeAndCleanExistProperties(
-                variable.name,
-                maskNode,
-                updatedRecord,
-                variableValueByName
-              )
-            case map: LynxMap => {
-              val props = map.value.map(nameAndValue => (nameAndValue._1, nameAndValue._2.value))
-              updatedRecord =
-                setProperty(variable.name, props, updatedRecord, variableValueByName, true)
-            }
+          val entity =
+            expressionEvaluator.eval(variable)(expressionContext.withVars(variableValueByName))
+          entity match {
             case LynxNull => {}
-            case unknown => {
-              throw new TuDBException(
-                TuDBError.UNKNOWN_ERROR,
-                s"Not support expr: ${unknown.toString}"
-              )
+            case _ => {
+              val propValue =
+                expressionEvaluator.eval(expression)(
+                  expressionContext.withVars(variableValueByName)
+                )
+              val entityIndex = columnIndexByName(variableNameByValue(entity))
+              propValue match {
+                case maskNode: LynxNode =>
+                  updatedRecord = copyPropertiesFromNodeAndCleanExistProperties(
+                    variable.name,
+                    maskNode,
+                    updatedRecord,
+                    variableValueByName
+                  )
+                case map: LynxMap => {
+                  val props =
+                    map.value.map(nameAndValue => (nameAndValue._1, nameAndValue._2.value)).toArray
+                  updatedRecord = setProperty(entity, entityIndex, props, updatedRecord, true)
+                }
+                case LynxNull => {}
+                case unknown => {
+                  throw new TuDBException(
+                    TuDBError.LYNX_UNSUPPORTED_OPERATION,
+                    s"Not support expr: ${unknown.toString}"
+                  )
+                }
+              }
             }
           }
         }
@@ -162,30 +185,30 @@ case class SetOperator(
   }
 
   private def setProperty(
-      entityVar: String,
-      props: Map[String, Any],
+      entityValue: LynxValue,
+      entityIndex: Int,
+      props: Array[(String, Any)],
       updatedRecord: Seq[LynxValue],
-      variableValueByName: Map[String, LynxValue],
       cleanExistProperties: Boolean
     ): Seq[LynxValue] = {
-    val recordType = variableValueByName(entityVar).lynxType
+    val recordType = entityValue.lynxType
     recordType match {
       case CTNode => {
-        val nodeId = variableValueByName(entityVar).asInstanceOf[LynxNode].id
+        val nodeId = entityValue.asInstanceOf[LynxNode].id
         val updatedNode =
           graphModel
-            .setNodesProperties(Iterator(nodeId), props.toArray, cleanExistProperties)
+            .setNodesProperties(Iterator(nodeId), props, cleanExistProperties)
             .next()
             .get
-        updatedRecord.updated(columnIndexByName(entityVar), updatedNode)
+        updatedRecord.updated(entityIndex, updatedNode)
       }
       case CTRelationship => {
-        val relId = variableValueByName(entityVar).asInstanceOf[LynxRelationship].id
+        val relId = entityValue.asInstanceOf[LynxRelationship].id
         val updatedRel = graphModel
-          .setRelationshipsProperties(Iterator(relId), props.toArray)
+          .setRelationshipsProperties(Iterator(relId), props)
           .next()
           .get
-        updatedRecord.updated(columnIndexByName(entityVar), updatedRel)
+        updatedRecord.updated(entityIndex, updatedRel)
       }
     }
   }
