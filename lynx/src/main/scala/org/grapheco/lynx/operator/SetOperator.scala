@@ -125,7 +125,9 @@ case class SetOperator(
     RowBatch(updatedBatchData)
   }
 
-  override def closeImpl(): Unit = {}
+  override def closeImpl(): Unit = {
+    graphModel.write.commit
+  }
 
   override def outputSchema(): Seq[(String, LynxType)] = in.outputSchema()
 
