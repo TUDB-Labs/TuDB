@@ -39,8 +39,8 @@ class ExecutionPlanCreator {
       }
       case filter: PhysicalFilter => {
         FilterOperator(
-          filter.expr,
           translator(filter.children.head, plannerContext, executionContext),
+          filter.expr,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
@@ -56,17 +56,17 @@ class ExecutionPlanCreator {
       }
       case select: PhysicalSelect => {
         SelectOperator(
-          select.columns,
           translator(select.children.head, plannerContext, executionContext),
+          select.columns,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
       }
       case aggregation: PhysicalAggregation => {
         AggregationOperator(
+          translator(aggregation.in, plannerContext, executionContext),
           aggregation.aggregations,
           aggregation.groupings,
-          translator(aggregation.in, plannerContext, executionContext),
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
@@ -96,13 +96,12 @@ class ExecutionPlanCreator {
       case limit: PhysicalLimit => {
         val limitNumber = plannerContext.runnerContext.expressionEvaluator
           .eval(limit.expr)(executionContext.expressionContext)
-          .value
           .asInstanceOf[LynxNumber]
           .number
           .intValue()
         LimitOperator(
-          limitNumber,
           translator(limit.children.head, plannerContext, executionContext),
+          limitNumber,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
@@ -110,21 +109,20 @@ class ExecutionPlanCreator {
       case skip: PhysicalSkip => {
         val skipNumber = plannerContext.runnerContext.expressionEvaluator
           .eval(skip.expr)(executionContext.expressionContext)
-          .value
           .asInstanceOf[LynxNumber]
           .number
           .intValue()
         SkipOperator(
-          skipNumber,
           translator(skip.children.head, plannerContext, executionContext),
+          skipNumber,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
       }
       case orderBy: PhysicalOrderBy => {
         OrderByOperator(
-          orderBy.sortItem,
           translator(orderBy.children.head, plannerContext, executionContext),
+          orderBy.sortItem,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
@@ -149,6 +147,15 @@ class ExecutionPlanCreator {
           executionContext.expressionContext
         )
       }
+      case setClause: PhysicalSetClause => {
+        SetOperator(
+          translator(setClause.in, plannerContext, executionContext),
+          setClause.setItems,
+          plannerContext.runnerContext.graphModel,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
       case remove: PhysicalRemove => {
         RemoveOperator(
           translator(remove.in, plannerContext, executionContext),
@@ -166,9 +173,9 @@ class ExecutionPlanCreator {
           )(defaultPosition)
         )
         AggregationOperator(
+          translator(distinct.children.head, plannerContext, executionContext),
           Seq.empty,
           groupExpr,
-          translator(distinct.children.head, plannerContext, executionContext),
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
@@ -190,7 +197,6 @@ class ExecutionPlanCreator {
           )
         }
       }
-
       case unsupportedPlan => {
         throw new TuDBException(
           TuDBError.LYNX_UNSUPPORTED_OPERATION,

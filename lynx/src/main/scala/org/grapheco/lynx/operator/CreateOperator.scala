@@ -31,12 +31,15 @@ case class CreateOperator(
 
   var isCreateDone: Boolean = false
 
-  val schema: Seq[(String, LynxType)] = in
-    .map(i => i.outputSchema())
-    .getOrElse(Seq.empty) ++ toCreateSchema
+  var schema: Seq[(String, LynxType)] = Seq.empty
 
   override def openImpl(): Unit = {
-    if (isInDefined) in.get.open()
+    if (isInDefined) {
+      in.get.open()
+      schema = in
+        .map(i => i.outputSchema())
+        .getOrElse(Seq.empty) ++ toCreateSchema
+    } else schema = toCreateSchema
   }
 
   override def getNextImpl(): RowBatch = {
@@ -56,9 +59,7 @@ case class CreateOperator(
             labels: Seq[LabelName],
             properties: Option[Expression]
             ) =>
-          if (!createdSchemaWithValue.contains(varName) && nodesInput
-                .find(_._1 == varName)
-                .isEmpty) {
+          if (!createdSchemaWithValue.contains(varName) && !nodesInput.exists(_._1 == varName)) {
             nodesInput += varName -> NodeInput(
               labels.map(_.name).map(LynxNodeLabel),
               properties
