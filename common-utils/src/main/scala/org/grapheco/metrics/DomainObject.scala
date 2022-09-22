@@ -28,10 +28,23 @@ object DomainObject {
   }
 
   def pushLabel(l: String): Unit = {
+    for (existLabel <- stackedLabels) {
+      if (existLabel == l) {
+        return
+      }
+    }
     stackedLabels.push(l)
   }
 
   def popLabel(): String = {
     stackedLabels.pop()
+  }
+
+  def clearLabels(): Unit = {
+    stackedLabels.clear()
+  }
+
+  def clearRecords(): Unit = {
+    domain.records = Vector()
   }
 }
