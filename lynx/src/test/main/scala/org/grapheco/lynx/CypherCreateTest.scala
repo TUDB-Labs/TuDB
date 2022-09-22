@@ -202,7 +202,7 @@ class CypherCreateTest extends TestBase {
     var rs = runOnDemoGraph(
       "match (m:person) CREATE (n {name: 'God', age: 10000}), (n)-[r:LOVES]->(m) return n,r,m"
     ).show()
-    Assert.assertEquals(NODE_SIZE + 1, all_nodes.size)
+    Assert.assertEquals(NODE_SIZE + 2, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 2, all_rels.size)
 
     Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")))
