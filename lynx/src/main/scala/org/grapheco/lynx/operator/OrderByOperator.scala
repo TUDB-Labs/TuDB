@@ -13,14 +13,12 @@ import org.opencypher.v9_0.expressions.Expression
   *@description: This operator is used to sort data by specified expressions.
   */
 case class OrderByOperator(
-    sortItem: Seq[SortItem],
     in: ExecutionOperator,
+    sortItem: Seq[SortItem],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
 
   var sortItems: Seq[(Expression, OrderByType)] = sortItem.map {
     case AscSortItem(expression)  => (expression, OrderByType.ASC)

@@ -13,14 +13,12 @@ import scala.collection.mutable.ArrayBuffer
   *@description: Filter operator is used to get data that contains a specific pattern.
   */
 case class FilterOperator(
-    filterExpr: Expression,
     in: ExecutionOperator,
+    filterExpr: Expression,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
 
   var columnNames: Seq[String] = Seq.empty
   val outputRows: ArrayBuffer[Seq[LynxValue]] = ArrayBuffer()
@@ -41,7 +39,9 @@ case class FilterOperator(
         } else return RowBatch(Seq.empty)
       }
       inputRows.batchData.foreach(inputRow => {
-        evalExpr(filterExpr)(exprContext.withVars(columnNames.zip(inputRow).toMap)) match {
+        expressionEvaluator.eval(filterExpr)(
+          expressionContext.withVars(columnNames.zip(inputRow).toMap)
+        ) match {
           case LynxBoolean(passFilter) => if (passFilter) outputRows.append(inputRow)
           case LynxNull                => {}
         }

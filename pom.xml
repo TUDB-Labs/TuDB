@@ -27,7 +27,7 @@
         <scala.version>2.12.8</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <scala.compat.version>2.12</scala.compat.version>
-        <netty.version>4.1.81.Final</netty.version>
+        <netty.version>4.1.82.Final</netty.version>
         <junit.version>4.13.2</junit.version>
         <rocksdb.version>7.5.3</rocksdb.version>
         <scala-logging.version>3.8.0</scala-logging.version>
@@ -118,7 +118,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.21.5</version>
+                <version>3.21.6</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>

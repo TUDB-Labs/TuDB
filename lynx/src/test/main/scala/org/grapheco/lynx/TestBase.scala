@@ -124,7 +124,7 @@ class TestBase extends LazyLogging {
             TestNode(
               old.id,
               old.labels,
-              if (cleanExistProperties) Map.empty
+              if (cleanExistProperties) data.toMap.mapValues(LynxValue.apply)
               else old.props ++ data.toMap.mapValues(LynxValue.apply)
             )
         )

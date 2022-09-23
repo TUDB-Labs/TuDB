@@ -9,14 +9,11 @@ import org.opencypher.v9_0.util.symbols.CypherType
   *@description:
   */
 case class SelectOperator(
-    columnsToSelect: Seq[(String, Option[String])],
     in: ExecutionOperator,
+    columnsToSelect: Seq[(String, Option[String])],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
-
-  override val exprEvaluator: ExpressionEvaluator = expressionEvaluator
-  override val exprContext: ExpressionContext = expressionContext
   override val children: Seq[ExecutionOperator] = Seq(in)
 
   var inSchemaWithIndex: Map[String, (CypherType, Int)] = Map.empty
