@@ -18,12 +18,14 @@ jobs:
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
+      - name: set PY
+        run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - uses: actions/cache@v3
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          path: /home/gitRunner/pre-commit
+          key: pre-commit-3|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v3.0.0
         env:
-          PRE_COMMIT_HOME: ~/.cache/pre-commit
+          PRE_COMMIT_HOME: /home/gitRunner/pre-commit
         with:
           extra_args: --files ${{ steps.file_changes.outputs.files}}
