@@ -68,10 +68,10 @@ jobs:
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - uses: actions/cache@v3
         with:
-          path: /opt/hostedtoolcache/pre-commit
+          path: /home/runner/pre-commit
           key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v3.0.0
         env:
-          PRE_COMMIT_HOME: /opt/hostedtoolcache/pre-commit
+          PRE_COMMIT_HOME: /home/runner/pre-commit
         with:
           extra_args: --files ${{ steps.file_changes.outputs.files}}
