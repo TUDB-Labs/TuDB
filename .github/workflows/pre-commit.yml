@@ -18,49 +18,9 @@ jobs:
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
-      - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
-        with:
-          output: ' '
       - uses: DamianReeves/write-file-action@v1.0
         with:
-          path: /home/gitRunner/.m2/settings.xml
-          contents: |
-            <settings>
-              <servers>
-                  <server>
-                      <id>maven-public</id>
-                      <username>admin</username>
-                      <password>qohpof-vigkag-5hastA</password>
-                  </server>
-                  <server>
-                      <id>maven-snapshot</id>
-                      <username>admin</username>
-                      <password>qohpof-vigkag-5hastA</password>
-                  </server>
-              </servers>
-              <mirrors>
-                  <mirror>
-                      <id>alimaven</id>
-                      <mirrorOf>central</mirrorOf>
-                      <name>aliyun maven</name>
-                      <url>https://maven.aliyun.com/repository/public/</url>
-                  </mirror>
-                  <mirror>
-                      <id>maven-public</id>
-                      <mirrorOf>*</mirrorOf>
-                      <name>pandadb public</name>
-                      <url>http://123.57.165.135:30100/repository/maven-public</url>
-                  </mirror>
-                  <mirror>
-                      <id>maven-snapshot</id>
-                      <mirrorOf>*</mirrorOf>
-                      <name>pandadb snapshot</name>
-                      <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
-                  </mirror>
-              </mirrors>
-            </settings>
-          write-mode: append
+          path: /mnt/nvme1/tudb/maven/apache-maven-3.8.6/conf/settings.xml
       - name: set PY
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - uses: actions/cache@v3
