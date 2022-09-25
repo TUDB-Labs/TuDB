@@ -18,9 +18,7 @@ jobs:
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
-      - uses: DamianReeves/write-file-action@v1.0
-        with:
-          path: /mnt/nvme1/tudb/maven/apache-maven-3.8.6/conf/settings.xml
+
       - name: set PY
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - uses: actions/cache@v3
