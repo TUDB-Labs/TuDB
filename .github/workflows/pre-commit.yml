@@ -18,58 +18,14 @@ jobs:
        pull-requests: write
     steps:
       - uses: actions/checkout@v3
-        env:
-          AGENT_TOOLSDIRECTORY: /opt/hostedtoolcache
-          RUNNER_TOOL_CACHE: /opt/hostedtoolcache
-      - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
-        with:
-          output: ' '
-      - uses: DamianReeves/write-file-action@v1.0
-        with:
-          path: /home/runner/.m2/settings.xml
-          contents: |
-            <settings>
-              <servers>
-                  <server>
-                      <id>maven-public</id>
-                      <username>admin</username>
-                      <password>qohpof-vigkag-5hastA</password>
-                  </server>
-                  <server>
-                      <id>maven-snapshot</id>
-                      <username>admin</username>
-                      <password>qohpof-vigkag-5hastA</password>
-                  </server>
-              </servers>
-              <mirrors>
-                  <mirror>
-                      <id>alimaven</id>
-                      <mirrorOf>central</mirrorOf>
-                      <name>aliyun maven</name>
-                      <url>https://maven.aliyun.com/repository/public/</url>
-                  </mirror>
-                  <mirror>
-                      <id>maven-public</id>
-                      <mirrorOf>*</mirrorOf>
-                      <name>pandadb public</name>
-                      <url>http://123.57.165.135:30100/repository/maven-public</url>
-                  </mirror>
-                  <mirror>
-                      <id>maven-snapshot</id>
-                      <mirrorOf>*</mirrorOf>
-                      <name>pandadb snapshot</name>
-                      <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
-                  </mirror>
-              </mirrors>
-            </settings>
-          write-mode: append
       - name: set PY
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - uses: actions/cache@v3
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          path: /home/gitRunner/pre-commit
+          key: pre-commit-3|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v3.0.0
+        env:
+          PRE_COMMIT_HOME: /home/gitRunner/pre-commit
         with:
           extra_args: --files ${{ steps.file_changes.outputs.files}}
