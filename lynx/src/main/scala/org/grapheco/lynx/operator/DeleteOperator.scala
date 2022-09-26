@@ -13,7 +13,7 @@ import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 case class DeleteOperator(
     in: ExecutionOperator,
     graphModel: GraphModel,
-    toDeleteVariableExprs: Seq[Expression],
+    toDeleteEntityExprs: Seq[Expression],
     forceToDelete: Boolean,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -35,7 +35,7 @@ case class DeleteOperator(
 
       batchData.foreach(rowData => {
         val variableValueByName = inColumnNames.zip(rowData).toMap
-        toDeleteVariableExprs.foreach(expr => {
+        toDeleteEntityExprs.foreach(expr => {
           val toDeleteEntity =
             expressionEvaluator.eval(expr)(expressionContext.withVars(variableValueByName))
           toDeleteEntity.lynxType match {
