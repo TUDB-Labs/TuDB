@@ -138,6 +138,16 @@ class ExecutionPlanCreator {
           executionContext.expressionContext
         )
       }
+      case createUnit: PhysicalCreateUnit => {
+        val schemaNames = createUnit.schema.map(nameAndType => nameAndType._1)
+        val literalExpressions = createUnit.items.map(returnItem => returnItem.expression)
+        LiteralOperator(
+          schemaNames,
+          literalExpressions,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
       case delete: PhysicalDelete => {
         DeleteOperator(
           translator(delete.in, plannerContext, executionContext),
@@ -190,8 +200,8 @@ class ExecutionPlanCreator {
           )
         } else {
           LiteralOperator(
-            unwind.variable.name,
-            unwind.expression,
+            Seq(unwind.variable.name),
+            Seq(unwind.expression),
             plannerContext.runnerContext.expressionEvaluator,
             executionContext.expressionContext
           )
