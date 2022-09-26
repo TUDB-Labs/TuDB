@@ -24,7 +24,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <scala.version>2.12.8</scala.version>
+        <scala.version>2.13.9</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <scala.compat.version>2.12</scala.compat.version>
         <netty.version>4.1.82.Final</netty.version>
