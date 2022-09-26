@@ -152,6 +152,7 @@ class ExecutionPlanCreator {
         DeleteOperator(
           translator(delete.in, plannerContext, executionContext),
           plannerContext.runnerContext.graphModel,
+          delete.delete.expressions,
           delete.delete.forced,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
