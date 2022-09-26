@@ -27,6 +27,16 @@ class ExecutionPlanCreator {
           executionContext.expressionContext
         )
       }
+      case expandPath: PhysicalExpandPath => {
+        ExpandOperator(
+          translator(expandPath.children.head, plannerContext, executionContext),
+          expandPath.rel,
+          expandPath.rightNode,
+          plannerContext.runnerContext.graphModel,
+          plannerContext.runnerContext.expressionEvaluator,
+          executionContext.expressionContext
+        )
+      }
       case PhysicalRelationshipScan(relPattern, leftPattern, rightPattern) => {
         PathScanOperator(
           relPattern,

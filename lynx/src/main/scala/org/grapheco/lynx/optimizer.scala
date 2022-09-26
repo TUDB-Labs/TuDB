@@ -34,7 +34,7 @@ class DefaultPhysicalPlanOptimizer(runnerContext: CypherRunnerContext)
   val rules = Seq[PhysicalPlanOptimizerRule](
     RemoveNullProject,
     PhysicalFilterPushDownRule,
-    JoinToExpandRule,
+//    JoinToExpandRule,
     ExtractJoinReferenceRule,
     JoinTableSizeEstimateRule
   )

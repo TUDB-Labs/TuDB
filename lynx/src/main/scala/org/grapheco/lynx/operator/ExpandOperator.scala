@@ -129,6 +129,7 @@ case class ExpandOperator(
         expandPath
           .flatMap(pathTriple => path ++ Seq(pathTriple.storedRelation, pathTriple.endNode))
       )
+      .filter(row => lastNode != row.last) // can not go back
       .toSeq
   }
 }

@@ -16,7 +16,7 @@ class CypherQueryTest extends TestBase {
       |(c{name:"CNIC", age: 10}),
       |(a)-[:knows]->(b),
       |(b)-[:knows]->(c),
-      |(a)-[]->(c)
+      |(a)-[:knows]->(c)
       |""".stripMargin)
   @Test
   def testQueryUnit(): Unit = {
@@ -193,10 +193,10 @@ class CypherQueryTest extends TestBase {
   @Test
   def testQueryMultipleMatchs(): Unit = {
     var rs = runOnDemoGraph("match ()-[r]-(n) match (n)-[s]-() return r,s")
-    Assert.assertEquals(6, rs.records.size)
+    Assert.assertEquals(12, rs.records.size)
 
     rs = runOnDemoGraph("match ()-[r]->(n) match (n)-[s]-() return r,s")
-    Assert.assertEquals(3, rs.records.size)
+    Assert.assertEquals(6, rs.records.size)
 
     rs = runOnDemoGraph("match (m)-[r]->(n) match (n)-[s]->(x) return r,s")
     Assert.assertEquals(1, rs.records.size)
