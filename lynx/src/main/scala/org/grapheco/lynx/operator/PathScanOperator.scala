@@ -142,7 +142,7 @@ case class PathScanOperator(
           .grouped(numRowsPerBatch)
           .map(batch =>
             batch.map(pathTriple =>
-              Seq(pathTriple.head.startNode, LynxPath(pathTriple), pathTriple.head.endNode)
+              Seq(pathTriple.head.startNode, LynxPath(pathTriple), pathTriple.last.endNode)
             )
           )
           .map(f => RowBatch(f))
