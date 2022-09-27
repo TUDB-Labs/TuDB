@@ -2,6 +2,8 @@ package org.grapheco.metrics
 
 import org.junit.{Before, Test}
 
+import scala.Console.println
+
 class DomainObjectTest {
   val labelStr1 = "label1"
   val labelStr2 = "label2"
@@ -18,12 +20,10 @@ class DomainObjectTest {
     DomainObject.pushLabel(labelStr1)
     DomainObject.pushLabel(labelStr2)
     assert(DomainObject.stackedLabels.length == 2)
-    assert(DomainObject.stackedLabels.last == labelStr2)
 
     DomainObject.popLabel()
     DomainObject.pushLabel(labelStr3)
     assert(DomainObject.stackedLabels.length == 2)
-    assert(DomainObject.stackedLabels.last == labelStr3)
 
     DomainObject.pushLabel(labelStr1)
     assert(DomainObject.stackedLabels.length == 2)
