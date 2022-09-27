@@ -68,11 +68,6 @@
             <artifactId>jackson-module-scala_2.12</artifactId>
             <version>2.13.4</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.grapheco</groupId>
-            <artifactId>lynx-rpc</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

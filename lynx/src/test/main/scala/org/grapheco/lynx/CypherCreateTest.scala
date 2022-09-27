@@ -205,25 +205,31 @@ class CypherCreateTest extends TestBase {
     Assert.assertEquals(NODE_SIZE + 2, all_nodes.size)
     Assert.assertEquals(REL_SIZE + 2, all_rels.size)
 
-    Assert.assertEquals(LynxString("God"), all_nodes(NODE_SIZE).property(LynxPropertyKey("name")))
-    Assert.assertEquals(LynxInteger(10000), all_nodes(NODE_SIZE).property(LynxPropertyKey("age")))
-
     Assert.assertEquals(
       LynxString("God"),
-      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name"))
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("name")).get
     )
     Assert.assertEquals(
       LynxInteger(10000),
-      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("age"))
+      all_nodes(NODE_SIZE).property(LynxPropertyKey("age")).get
     )
 
-    Assert.assertEquals("LOVES", all_rels(REL_SIZE).relationType.get)
-    Assert.assertEquals((NODE_SIZE + 1).toLong, all_rels(REL_SIZE).startNodeId)
-    Assert.assertEquals(1.toLong, all_rels(REL_SIZE).endNodeId)
+    Assert.assertEquals(
+      LynxString("God"),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("name")).get
+    )
+    Assert.assertEquals(
+      LynxInteger(10000),
+      all_nodes(NODE_SIZE + 1).property(LynxPropertyKey("age")).get
+    )
 
-    Assert.assertEquals("LOVES", all_rels(REL_SIZE + 1).relationType.get)
-    Assert.assertEquals((NODE_SIZE + 2).toLong, all_rels(REL_SIZE + 1).startNodeId)
-    Assert.assertEquals(2.toLong, all_rels(REL_SIZE + 1).endNodeId)
+    Assert.assertEquals(LynxRelationshipType("LOVES"), all_rels(REL_SIZE).relationType.get)
+    Assert.assertEquals((NODE_SIZE + 1).toLong, all_rels(REL_SIZE).startNodeId.value)
+    Assert.assertEquals(1.toLong, all_rels(REL_SIZE).endNodeId.value)
+
+    Assert.assertEquals(LynxRelationshipType("LOVES"), all_rels(REL_SIZE + 1).relationType.get)
+    Assert.assertEquals((NODE_SIZE + 2).toLong, all_rels(REL_SIZE + 1).startNodeId.value)
+    Assert.assertEquals(2.toLong, all_rels(REL_SIZE + 1).endNodeId.value)
   }
 
   @Test
