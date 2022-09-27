@@ -9,7 +9,7 @@ import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, 
 import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
 
 /**
-  *@description: refer to PhysicalRelationshipScan
+  *@description: refer to PhysicalRelationshipScan, add a parameter of leftNodeName
   */
 case class PhysicalExpandFromNode(
     leftNodeName: String,
