@@ -3,7 +3,7 @@ package org.grapheco.lynx
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.{SemanticErrorDef, SemanticFeature, SemanticState}
-import org.opencypher.v9_0.expressions.{CaseExpression, FunctionInvocation, RegexMatch}
+import org.opencypher.v9_0.expressions.FunctionInvocation
 import org.opencypher.v9_0.frontend.PlannerName
 import org.opencypher.v9_0.frontend.phases.CompilationPhaseTracer.CompilationPhase
 import org.opencypher.v9_0.frontend.phases.CompilationPhaseTracer.CompilationPhase.AST_REWRITE

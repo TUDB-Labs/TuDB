@@ -11,7 +11,7 @@ import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, Lynx
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue, TypeSystem}
 import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.SemanticState
-import org.opencypher.v9_0.expressions.{LabelName, PropertyKeyName, Range, SemanticDirection}
+import org.opencypher.v9_0.expressions.SemanticDirection
 import org.opencypher.v9_0.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 
 import scala.annotation.tailrec
