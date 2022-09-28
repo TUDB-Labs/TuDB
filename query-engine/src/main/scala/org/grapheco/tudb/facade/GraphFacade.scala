@@ -2,6 +2,7 @@ package org.grapheco.tudb.facade
 
 import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx._
+import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural._
 import org.grapheco.tudb.facade.helper.{ExpandFromNodeHelper, PathHelper}

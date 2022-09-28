@@ -1,7 +1,7 @@
 package org.grapheco.lynx.procedure.functions
 
+import org.grapheco.lynx.LynxProcedureException
 import org.grapheco.lynx.func.LynxProcedure
-import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, LynxNull, LynxString}

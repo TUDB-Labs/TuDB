@@ -1,6 +1,7 @@
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
+import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.procedure.functions.TimeFunctions
 import org.grapheco.lynx.procedure.{CallableProcedure, DefaultProcedureRegistry, ProcedureRegistry}
 import org.grapheco.lynx.util.Profiler

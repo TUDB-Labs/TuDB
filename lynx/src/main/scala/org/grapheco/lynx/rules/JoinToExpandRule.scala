@@ -1,7 +1,8 @@
 package org.grapheco.lynx.rules
 
-import org.grapheco.lynx.physical.PhysicalExpandFromNode
-import org.grapheco.lynx.{PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan, PhysicalSelect, PhysicalUnwind, PhysicalPlanOptimizerRule, PhysicalPlannerContext}
+import org.grapheco.lynx.physical.{PhysicalExpandFromNode, PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan, PhysicalSelect, PhysicalUnwind}
+import org.grapheco.lynx.PhysicalPlanOptimizerRule
+import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern, SemanticDirection}
 

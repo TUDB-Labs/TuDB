@@ -1,6 +1,9 @@
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
+import org.grapheco.lynx.logical.LogicalNode
+import org.grapheco.lynx.physical.{NodeInput, PhysicalNode, RelationshipInput}
+import org.grapheco.lynx.planner.{DefaultLogicalPlanner, DefaultPhysicalPlanner, ExecutionContext, LogicalPlanner, LogicalPlannerContext, PhysicalPlanner, PhysicalPlannerContext, PlanAware}
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
 import org.grapheco.lynx.procedure.{DefaultProcedureRegistry, ProcedureRegistry}
 import org.grapheco.lynx.util.FormatUtils
@@ -111,50 +114,6 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
       }
     }
   }
-
-}
-
-//TODO: LogicalPlannerContext vs. PhysicalPlannerContext?
-object LogicalPlannerContext {
-  def apply(
-      queryParameters: Map[String, Any],
-      runnerContext: CypherRunnerContext
-    ): LogicalPlannerContext =
-    new LogicalPlannerContext(
-      queryParameters.mapValues(runnerContext.typeSystem.wrap).mapValues(_.lynxType).toSeq,
-      runnerContext
-    )
-}
-
-case class LogicalPlannerContext(
-    parameterTypes: Seq[(String, LynxType)],
-    runnerContext: CypherRunnerContext)
-
-object PhysicalPlannerContext {
-  def apply(
-      queryParameters: Map[String, Any],
-      runnerContext: CypherRunnerContext
-    ): PhysicalPlannerContext =
-    new PhysicalPlannerContext(
-      queryParameters.mapValues(runnerContext.typeSystem.wrap).mapValues(_.lynxType).toSeq,
-      runnerContext
-    )
-}
-
-case class PhysicalPlannerContext(
-    parameterTypes: Seq[(String, LynxType)],
-    runnerContext: CypherRunnerContext,
-    var pptContext: mutable.Map[String, Any] = mutable.Map.empty) {}
-
-//TODO: context.context??
-case class ExecutionContext(
-    physicalPlannerContext: PhysicalPlannerContext,
-    statement: Statement,
-    queryParameters: Map[String, Any]) {
-  val expressionContext = ExpressionContext(
-    this,
-    queryParameters.map(x => x._1 -> physicalPlannerContext.runnerContext.typeSystem.wrap(x._2))
-  )
 }
 
 trait LynxResult {
@@ -165,16 +124,6 @@ trait LynxResult {
   def columns(): Seq[String]
 
   def records(): Iterator[Map[String, LynxValue]]
-}
-
-trait PlanAware {
-  def getASTStatement(): (Statement, Map[String, Any])
-
-  def getLogicalPlan(): LogicalNode
-
-  def getPhysicalPlan(): PhysicalNode
-
-  def getOptimizerPlan(): PhysicalNode
 }
 
 /** labels note: the node with both LABEL1 and LABEL2 labels.
@@ -720,22 +669,4 @@ trait TreeNode {
     recTreeToString(List(this), "", Nil)
     lines.mkString("\n")
   }
-}
-
-trait LynxException extends RuntimeException {}
-
-case class ParsingException(msg: String) extends LynxException {
-  override def getMessage: String = msg
-}
-
-case class ConstrainViolatedException(msg: String) extends LynxException {
-  override def getMessage: String = msg
-}
-
-case class ProcedureUnregisteredException(msg: String) extends LynxException {
-  override def getMessage: String = msg
-}
-
-case class NoIndexManagerException(msg: String) extends LynxException {
-  override def getMessage: String = msg
 }

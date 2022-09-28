@@ -1,6 +1,6 @@
 package org.grapheco.lynx
 
-import org.grapheco.lynx.procedure.exceptions.LynxProcedureException
+import org.grapheco.lynx.planner.ExecutionContext
 import org.grapheco.lynx.procedure.{ProcedureExpression, ProcedureRegistry}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.types.property._

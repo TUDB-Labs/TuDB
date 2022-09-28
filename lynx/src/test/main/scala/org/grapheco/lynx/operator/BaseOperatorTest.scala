@@ -1,13 +1,16 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
+import org.grapheco.lynx.planner.ExecutionContext
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, ContextualNodeInputRef, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, GraphModel, Index, IndexManager, NodeFilter, NodeInput, NodeInputRef, PathTriple, PhysicalPlannerContext, QueryParser, RelationshipInput, RowBatch, Statistics, StoredNodeInputRef, WriteTask}
+import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionOperator, ExpressionEvaluator, GraphModel, Index, IndexManager, NodeFilter, PathTriple, RowBatch, Statistics, WriteTask}
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, NodePattern, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.InputPosition
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer

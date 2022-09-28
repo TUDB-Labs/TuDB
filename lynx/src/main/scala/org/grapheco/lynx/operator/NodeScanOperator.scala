@@ -2,7 +2,7 @@ package org.grapheco.lynx.operator
 
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
-import org.grapheco.lynx.{CypherRunnerContext, ExecutionContext, ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, NodeFilter, PhysicalPlannerContext, RowBatch, TreeNode}
+import org.grapheco.lynx.{CypherRunnerContext, ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, NodeFilter, RowBatch, TreeNode}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern}
 import org.opencypher.v9_0.util.symbols.CTNode
 
