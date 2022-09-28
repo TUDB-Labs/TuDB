@@ -8,7 +8,7 @@ import org.grapheco.lynx.util.Profiler
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxInteger, LynxNull}
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
-import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.{LynxResult, LynxValue}
 import org.opencypher.v9_0.util.symbols.{CTInteger, CTString}
 
 import scala.collection.mutable

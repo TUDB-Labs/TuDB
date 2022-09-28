@@ -3,7 +3,8 @@ package org.grapheco.tudb
 
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
-import org.grapheco.lynx.{LynxResult, PathTriple}
+import org.grapheco.lynx.PathTriple
+import org.grapheco.lynx.types.LynxResult
 import org.grapheco.lynx.types.property.{LynxNumber, LynxPath, LynxString}
 import org.grapheco.lynx.types.structural.LynxNodeLabel
 import org.grapheco.lynx.types.time.LynxTemporalValue
