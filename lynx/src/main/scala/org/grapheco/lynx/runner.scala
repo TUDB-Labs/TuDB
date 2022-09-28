@@ -8,7 +8,7 @@ import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunction
 import org.grapheco.lynx.procedure.{DefaultProcedureRegistry, ProcedureRegistry}
 import org.grapheco.lynx.util.FormatUtils
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
-import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue, TypeSystem}
+import org.grapheco.lynx.types.{DefaultTypeSystem, LynxResult, LynxValue, TypeSystem}
 import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.SemanticState
 import org.opencypher.v9_0.expressions.SemanticDirection
@@ -114,16 +114,6 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
       }
     }
   }
-}
-
-trait LynxResult {
-  def show(limit: Int = 20): Unit
-
-  def cache(): LynxResult
-
-  def columns(): Seq[String]
-
-  def records(): Iterator[Map[String, LynxValue]]
 }
 
 /** labels note: the node with both LABEL1 and LABEL2 labels.
