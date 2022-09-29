@@ -47,4 +47,13 @@ object DomainObject {
   def clearRecords(): Unit = {
     domain.records = Vector()
   }
+
+  def printRecords(inputLabelSet: Set[String]): Unit = {
+    var labelSet = inputLabelSet
+    if (labelSet == null) {
+      labelSet = Set[String]()
+    }
+    val label = new Label(labelSet)
+    domain.printRecordByLabel(label)
+  }
 }

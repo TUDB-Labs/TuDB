@@ -98,6 +98,9 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     DomainObject.popLabel()
 
     DomainObject.recordLatency(null)
+
+    DomainObject.printRecords(Set(query))
+
     new LynxResult() with PlanAware {
       val schema = df.schema
       val columnNames = schema.map(_._1)
