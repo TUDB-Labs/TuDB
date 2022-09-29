@@ -1,8 +1,10 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.graph.GraphModel
+import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
-import org.grapheco.lynx.{CypherRunnerContext, ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, NodeFilter, RowBatch, TreeNode}
+import org.grapheco.lynx.{CypherRunnerContext, ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch, TreeNode}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern}
 import org.opencypher.v9_0.util.symbols.CTNode
 

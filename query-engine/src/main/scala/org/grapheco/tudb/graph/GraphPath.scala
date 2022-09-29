@@ -1,6 +1,6 @@
 package org.grapheco.tudb.graph
 
-import org.grapheco.lynx.PathTriple
+import org.grapheco.lynx.graph.PathTriple
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
 
 /** @author:John117

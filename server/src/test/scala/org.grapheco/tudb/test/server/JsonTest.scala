@@ -1,11 +1,10 @@
 /** Copyright (c) 2022 TuDB * */
 package org.grapheco.tudb.test.server
 
-import org.grapheco.lynx.PathTriple
+import org.grapheco.lynx.graph.PathTriple
 import org.grapheco.lynx.types.{LynxResult, LynxValue}
 import org.grapheco.lynx.types.property.{LynxPath, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxRelationshipType}
-import org.grapheco.lynx.util.FormatUtils
 import org.grapheco.tudb.store.node.TuNode
 import org.grapheco.tudb.store.relationship.TuRelationship
 import org.junit._

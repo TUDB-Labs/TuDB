@@ -1,6 +1,7 @@
 package org.grapheco.tudb.commons
 
-import org.grapheco.lynx.{PathTriple, RelationshipFilter}
+import org.grapheco.lynx.graph.PathTriple
+import org.grapheco.lynx.physical.filters.RelationshipFilter
 import org.grapheco.lynx.types.structural.LynxNode
 import org.grapheco.tudb.facade.GraphFacade
 import org.grapheco.tudb.graph.GraphPath

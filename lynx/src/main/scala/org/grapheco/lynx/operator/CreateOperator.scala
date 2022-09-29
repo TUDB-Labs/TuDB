@@ -1,10 +1,11 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, CreateElement, CreateNode, CreateRelationship, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
-import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, RowBatch}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, RelTypeName}
 
 import scala.collection.mutable.ArrayBuffer

@@ -1,7 +1,6 @@
 package org.grapheco.tudb.commons
 
-import org.grapheco.lynx.RelationshipFilter
-import org.grapheco.tudb.facade.GraphFacade
+import org.grapheco.lynx.physical.filters.RelationshipFilter
 import org.grapheco.tudb.graph.{GraphHop, GraphPath}
 
 import scala.collection.mutable.ArrayBuffer

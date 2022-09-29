@@ -4,7 +4,9 @@ import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputR
 import org.grapheco.lynx.planner.ExecutionContext
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionOperator, ExpressionEvaluator, GraphModel, Index, IndexManager, NodeFilter, PathTriple, RowBatch, Statistics, WriteTask}
+import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionOperator, ExpressionEvaluator, RowBatch}
+import org.grapheco.lynx.graph.{GraphModel, Index, IndexManager, PathTriple, Statistics, WriteTask}
+import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}

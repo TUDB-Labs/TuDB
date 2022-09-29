@@ -1,7 +1,8 @@
 package org.grapheco.lynx.physical
 
+import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.planner.{ExecutionContext, PhysicalPlannerContext}
-import org.grapheco.lynx.{DataFrame, LynxType, NodeFilter}
+import org.grapheco.lynx.{DataFrame, LynxType}
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern}

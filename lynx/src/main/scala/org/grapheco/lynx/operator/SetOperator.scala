@@ -1,10 +1,11 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxNull
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
-import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, RowBatch}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.ast.{SetExactPropertiesFromMapItem, SetIncludingPropertiesFromMapItem, SetItem, SetLabelItem, SetPropertyItem}
 import org.opencypher.v9_0.expressions.{CaseExpression, Expression, MapExpression, Property, PropertyKeyName, Variable}

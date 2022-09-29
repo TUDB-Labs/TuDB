@@ -1,6 +1,6 @@
 package org.grapheco.lynx.operator
 
-import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, RowBatch}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.util.symbols.CypherType
 
 /**

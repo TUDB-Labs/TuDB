@@ -2,12 +2,11 @@ package org.grapheco.lynx.operator
 
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
-import org.grapheco.lynx.operator.NodeScanOperator
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, MapExpression, NodePattern, PropertyKeyName, SignedDecimalIntegerLiteral, StringLiteral, Variable}
+import org.opencypher.v9_0.expressions.{Expression, LabelName, MapExpression, NodePattern, PropertyKeyName, SignedDecimalIntegerLiteral, StringLiteral, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 import scala.collection.mutable.ArrayBuffer

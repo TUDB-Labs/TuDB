@@ -1,8 +1,9 @@
 package org.grapheco.lynx.operator
 
+import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
-import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, GraphModel, LynxType, RowBatch, SyntaxErrorException}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch, SyntaxErrorException}
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
 /**
