@@ -64,17 +64,17 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
 
     val physicalPlannerContext = PhysicalPlannerContext(param ++ param2, runnerContext)
     val physicalPlan = physicalPlanner.plan(logicalPlan)(physicalPlannerContext)
-    println(s"physical plan: \r\n${physicalPlan.pretty}")
+    logger.debug(s"physical plan: \r\n${physicalPlan.pretty}")
 
     val optimizedPhysicalPlan = physicalPlanOptimizer.optimize(physicalPlan, physicalPlannerContext)
-    println(s"optimized physical plan: \r\n${optimizedPhysicalPlan.pretty}")
+    logger.debug(s"optimized physical plan: \r\n${optimizedPhysicalPlan.pretty}")
 
     val ctx = ExecutionContext(physicalPlannerContext, statement, param ++ param2)
 
     val executionCreator = new ExecutionPlanCreator()
     val executionPlan =
       executionCreator.translator(optimizedPhysicalPlan, physicalPlannerContext, ctx)
-    println(s"execution plan: \r\n${executionPlan.pretty}")
+    logger.debug(s"execution plan: \r\n${executionPlan.pretty}")
 
     val result =
       OperatorUtils.getOperatorAllOutputs(executionPlan).flatMap(batch => batch.batchData)
