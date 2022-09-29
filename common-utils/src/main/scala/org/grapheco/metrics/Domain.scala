@@ -36,7 +36,7 @@ class Domain(dID: String) {
   }
 
   def printRecord(r: Record): Unit = {
-    printf("[%s]%s", dID, r.toString())
+    printf("[%s]%s\n", dID, r.toString())
   }
 
   def filterRecords(l: Label): Set[Record] = {
