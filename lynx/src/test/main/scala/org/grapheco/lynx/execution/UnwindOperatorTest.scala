@@ -59,13 +59,55 @@ class UnwindOperatorTest extends BaseOperatorTest {
 
     val operator = UnwindOperator(
       literalOperator,
-      "n",
+      Seq("n"),
       expressionEvaluator,
       ctx.expressionContext
     )
     val res = getOperatorFlattenResult(operator)
     Assert.assertEquals(
       List(LynxInteger(1), LynxInteger(2), LynxInteger(3)),
+      res
+    )
+  }
+
+  @Test
+  def testUnwindLiterals(): Unit = {
+    /*
+        unwind [1,2,3] as n, [4, 5, 6] as m
+        return n, m
+     */
+    val exprs = Seq(
+      ListLiteral(
+        Seq(
+          SignedDecimalIntegerLiteral("1")(defaultPosition),
+          SignedDecimalIntegerLiteral("2")(defaultPosition),
+          SignedDecimalIntegerLiteral("3")(defaultPosition)
+        )
+      )(defaultPosition),
+      ListLiteral(
+        Seq(
+          SignedDecimalIntegerLiteral("4")(defaultPosition),
+          SignedDecimalIntegerLiteral("5")(defaultPosition),
+          SignedDecimalIntegerLiteral("6")(defaultPosition)
+        )
+      )(defaultPosition)
+    )
+
+    val literalOperator =
+      LiteralOperator(Seq("n", "m"), exprs, expressionEvaluator, ctx.expressionContext)
+
+    val operator = UnwindOperator(
+      literalOperator,
+      Seq("n", "m"),
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val res = getOperatorAllOutputs(operator).flatMap(rowBatch => rowBatch.batchData).toList
+    Assert.assertEquals(
+      List(
+        List(LynxInteger(1), LynxInteger(2), LynxInteger(3)),
+        List(LynxInteger(4), LynxInteger(5), LynxInteger(6))
+      ),
       res
     )
 
@@ -101,7 +143,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
 
     val operator = UnwindOperator(
       literalOperator,
-      "n",
+      Seq("n"),
       expressionEvaluator,
       ctx.expressionContext
     )
@@ -136,7 +178,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
       ProjectOperator(nodeScanOperator, projectColumn, expressionEvaluator, ctx.expressionContext)
     val unwindOp = UnwindOperator(
       projectOperator,
-      "n.lst",
+      Seq("n.lst"),
       expressionEvaluator,
       ctx.expressionContext
     )

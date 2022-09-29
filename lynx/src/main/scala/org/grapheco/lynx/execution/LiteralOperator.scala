@@ -8,7 +8,7 @@ import org.opencypher.v9_0.util.symbols.CTAny
   *@description: This operator is used to eval Literal expression.
   */
 case class LiteralOperator(
-    schemaNames: Seq[String],
+    colNames: Seq[String],
     literalExpressions: Seq[Expression],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -29,5 +29,5 @@ case class LiteralOperator(
 
   override def closeImpl(): Unit = {}
 
-  override def outputSchema(): Seq[(String, LynxType)] = schemaNames.map(name => (name, CTAny))
+  override def outputSchema(): Seq[(String, LynxType)] = colNames.map(name => (name, CTAny))
 }
