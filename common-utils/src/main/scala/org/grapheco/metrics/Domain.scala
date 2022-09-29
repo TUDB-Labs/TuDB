@@ -1,10 +1,12 @@
 package org.grapheco.metrics
 
-import util.control.Breaks
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class Domain(dID: String) {
   var records: Vector[Record] = Vector()
   val id: String = dID
+  val logger = LoggerFactory.getLogger(dID)
 
   def addRecord(r: Record): Unit = {
     records = records :+ r
@@ -36,7 +38,7 @@ class Domain(dID: String) {
   }
 
   def printRecord(r: Record): Unit = {
-    printf("[%s]%s\n", dID, r.toString())
+    logger.info(r.toString())
   }
 
   def filterRecords(l: Label): Set[Record] = {
