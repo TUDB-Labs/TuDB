@@ -54,7 +54,8 @@ class UnwindOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
-    val literalOperator = LiteralOperator("n", expr, expressionEvaluator, ctx.expressionContext)
+    val literalOperator =
+      LiteralOperator(Seq("n"), Seq(expr), expressionEvaluator, ctx.expressionContext)
 
     val operator = UnwindOperator(
       literalOperator,
@@ -95,7 +96,8 @@ class UnwindOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
-    val literalOperator = LiteralOperator("n", expr, expressionEvaluator, ctx.expressionContext)
+    val literalOperator =
+      LiteralOperator(Seq("n"), Seq(expr), expressionEvaluator, ctx.expressionContext)
 
     val operator = UnwindOperator(
       literalOperator,
