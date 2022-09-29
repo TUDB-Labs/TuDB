@@ -1,6 +1,6 @@
-package org.grapheco.lynx.planner
+package org.grapheco.lynx
 
-import org.grapheco.lynx.ExpressionContext
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.opencypher.v9_0.ast.Statement
 
 /**

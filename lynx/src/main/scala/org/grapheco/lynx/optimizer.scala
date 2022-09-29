@@ -1,7 +1,7 @@
 package org.grapheco.lynx
 
-import org.grapheco.lynx.physical.{PhysicalNode}
-import org.grapheco.lynx.planner.PhysicalPlannerContext
+import org.grapheco.lynx.physical.PhysicalNode
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.rules.{ExtractJoinReferenceRule, JoinTableSizeEstimateRule, JoinToExpandRule, PhysicalFilterPushDownRule, RemoveNullProject}
 
 trait PhysicalPlanOptimizer {

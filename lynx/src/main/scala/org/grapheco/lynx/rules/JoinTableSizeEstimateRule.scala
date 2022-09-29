@@ -2,8 +2,8 @@ package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical.{PhysicalJoin, PhysicalMerge, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan}
-import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.opencypher.v9_0.expressions.{Literal, MapExpression, NodePattern, RelationshipPattern}
 
 import scala.collection.mutable

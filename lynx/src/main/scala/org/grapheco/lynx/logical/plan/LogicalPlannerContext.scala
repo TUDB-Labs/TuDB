@@ -1,4 +1,4 @@
-package org.grapheco.lynx.planner
+package org.grapheco.lynx.logical.plan
 
 import org.grapheco.lynx.{CypherRunnerContext, LynxType}
 

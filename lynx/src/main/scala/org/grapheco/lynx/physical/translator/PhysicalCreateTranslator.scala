@@ -1,8 +1,8 @@
 package org.grapheco.lynx.physical.translator
 
 import org.grapheco.lynx.physical.{CreateElement, CreateNode, CreateRelationship, PhysicalCreate, PhysicalNode}
-import org.grapheco.lynx.planner.PhysicalPlannerContext
-import org.grapheco.lynx.{LynxType}
+import org.grapheco.lynx.LynxType
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.ast.Create
 import org.opencypher.v9_0.expressions.{EveryPath, Expression, LabelName, LogicalVariable, NodePattern, Range, RelTypeName, RelationshipChain, RelationshipPattern, SemanticDirection}

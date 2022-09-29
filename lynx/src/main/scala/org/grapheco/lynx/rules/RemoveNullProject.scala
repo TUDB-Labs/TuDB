@@ -1,8 +1,8 @@
 package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical.{PhysicalNode, PhysicalProject}
-import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.opencypher.v9_0.ast.AliasedReturnItem
 
 /**

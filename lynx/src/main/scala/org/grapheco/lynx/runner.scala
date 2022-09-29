@@ -3,8 +3,9 @@ package org.grapheco.lynx
 import com.typesafe.scalalogging.LazyLogging
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.logical.LogicalNode
+import org.grapheco.lynx.logical.plan.{DefaultLogicalPlanner, LogicalPlanner, LogicalPlannerContext}
 import org.grapheco.lynx.physical.PhysicalNode
-import org.grapheco.lynx.planner.{DefaultLogicalPlanner, DefaultPhysicalPlanner, ExecutionContext, LogicalPlanner, LogicalPlannerContext, PhysicalPlanner, PhysicalPlannerContext, PlanAware}
+import org.grapheco.lynx.physical.plan.{DefaultPhysicalPlanner, PhysicalPlanner, PhysicalPlannerContext}
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
 import org.grapheco.lynx.procedure.{DefaultProcedureRegistry, ProcedureRegistry}
 import org.grapheco.lynx.util.FormatUtils

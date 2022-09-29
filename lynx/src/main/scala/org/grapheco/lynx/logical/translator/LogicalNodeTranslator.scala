@@ -1,7 +1,7 @@
 package org.grapheco.lynx.logical.translator
 
 import org.grapheco.lynx.logical.LogicalNode
-import org.grapheco.lynx.planner.LogicalPlannerContext
+import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 
 /**
   *@description: translates an ASTNode into a LogicalNode, `in` as input operator

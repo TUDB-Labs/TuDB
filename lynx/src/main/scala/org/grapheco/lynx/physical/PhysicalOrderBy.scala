@@ -1,7 +1,7 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.planner.{ExecutionContext, PhysicalPlannerContext}
-import org.grapheco.lynx.{DataFrame, ExpressionContext, LynxType}
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
+import org.grapheco.lynx.{DataFrame, ExecutionContext, ExpressionContext, LynxType}
 import org.opencypher.v9_0.ast.{AscSortItem, DescSortItem, SortItem}
 import org.opencypher.v9_0.expressions.Expression
 

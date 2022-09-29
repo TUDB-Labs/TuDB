@@ -1,7 +1,7 @@
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalAggregation, LogicalCreateUnit, LogicalNode, LogicalProject}
-import org.grapheco.lynx.planner.LogicalPlannerContext
 import org.opencypher.v9_0.ast.ReturnItemsDef
 
 /**

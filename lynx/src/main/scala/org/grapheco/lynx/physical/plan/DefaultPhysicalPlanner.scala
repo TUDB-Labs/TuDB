@@ -1,11 +1,11 @@
-package org.grapheco.lynx.planner
+package org.grapheco.lynx.physical.plan
 
-import org.grapheco.lynx.{CypherRunnerContext}
-import org.grapheco.lynx.logical.{LogicalAggregation, LogicalCreate, LogicalCreateIndex, LogicalCreateUnit, LogicalDelete, LogicalDistinct, LogicalFilter, LogicalJoin, LogicalLimit, LogicalMerge, LogicalMergeAction, LogicalNode, LogicalOrderBy, LogicalPatternMatch, LogicalProcedureCall, LogicalProject, LogicalRemove, LogicalSelect, LogicalSetClause, LogicalSkip, LogicalUnwind}
-import org.grapheco.lynx.physical.translator.{PhysicalCreateTranslator, PhysicalMergeTranslator, PhysicalPatternMatchTranslator, PhysicalRemoveTranslator, PhysicalSetClauseTranslator, PhysicalUnwindTranslator}
-import org.grapheco.lynx.physical.{PhysicalAggregation, PhysicalCreateIndex, PhysicalCreateUnit, PhysicalDelete, PhysicalDistinct, PhysicalFilter, PhysicalJoin, PhysicalLimit, PhysicalMergeAction, PhysicalNode, PhysicalOrderBy, PhysicalProcedureCall, PhysicalProject, PhysicalSelect, PhysicalSkip}
+import org.grapheco.lynx.CypherRunnerContext
+import org.grapheco.lynx.logical._
+import org.grapheco.lynx.physical.translator._
+import org.grapheco.lynx.physical._
 import org.opencypher.v9_0.ast.{Create, Delete, Merge, MergeAction}
-import org.opencypher.v9_0.expressions.{Expression, LabelName, Namespace, ProcedureName, PropertyKeyName}
+import org.opencypher.v9_0.expressions._
 
 /**
   *@description:

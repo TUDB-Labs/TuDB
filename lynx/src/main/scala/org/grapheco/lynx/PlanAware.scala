@@ -1,4 +1,4 @@
-package org.grapheco.lynx.planner
+package org.grapheco.lynx
 
 import org.grapheco.lynx.logical.LogicalNode
 import org.grapheco.lynx.physical.PhysicalNode

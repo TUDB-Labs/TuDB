@@ -1,7 +1,7 @@
 package org.grapheco.lynx.physical.translator
 
-import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.grapheco.lynx.logical.LogicalPatternMatch
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical.{PhysicalExpandPath, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan}
 import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern}
 

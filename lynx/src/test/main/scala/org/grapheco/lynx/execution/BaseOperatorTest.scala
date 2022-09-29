@@ -1,10 +1,10 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
-import org.grapheco.lynx.planner.ExecutionContext
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionOperator, ExpressionEvaluator, RowBatch}
+import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, RowBatch}
 import org.grapheco.lynx.graph.{GraphModel, Index, IndexManager, PathTriple, Statistics, WriteTask}
 import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
@@ -44,7 +44,7 @@ class BaseOperatorTest {
   val runnerContext =
     CypherRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
 
-  val ctx = ExecutionContext(null, null, Map.empty)
+  val ctx = lynx.ExecutionContext(null, null, Map.empty)
 
   case class TestId(value: Long) extends LynxId {
     override def toLynxInteger: LynxInteger = LynxInteger(value)

@@ -1,7 +1,7 @@
 package org.grapheco.lynx.physical.translator
 
-import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.grapheco.lynx.physical.PhysicalNode
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 
 /**
   *@description:

@@ -1,4 +1,4 @@
-package org.grapheco.lynx.planner
+package org.grapheco.lynx.logical.plan
 
 import org.grapheco.lynx.logical.LogicalNode
 import org.opencypher.v9_0.ast.Statement

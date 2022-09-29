@@ -1,8 +1,8 @@
 package org.grapheco.lynx.rules
 
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical.{PhysicalExpandPath, PhysicalFilter, PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan}
-import org.grapheco.lynx.planner.PhysicalPlannerContext
 import org.opencypher.v9_0.expressions.{Ands, Equals, Expression, HasLabels, LabelName, MapExpression, NodePattern, Property, PropertyKeyName, RegexMatch, RelTypeName, RelationshipPattern, Variable}
 import org.opencypher.v9_0.util.InputPosition
 

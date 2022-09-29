@@ -1,8 +1,8 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.planner.{ExecutionContext, PhysicalPlannerContext}
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.{DataFrame, DataFrameOps, ExpressionContext, LynxType, TreeNode}
+import org.grapheco.lynx.{DataFrame, DataFrameOps, ExecutionContext, ExpressionContext, LynxType, TreeNode}
 import org.opencypher.v9_0.ast.ReturnItem
 import org.opencypher.v9_0.expressions.Expression
 

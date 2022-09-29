@@ -1,7 +1,7 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.planner.{ExecutionContext, PhysicalPlannerContext}
-import org.grapheco.lynx.{DataFrame, LynxType, UnknownProcedureException, WrongArgumentException}
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
+import org.grapheco.lynx.{DataFrame, ExecutionContext, LynxType, UnknownProcedureException, WrongArgumentException}
 import org.grapheco.lynx.types.property.LynxNull
 import org.opencypher.v9_0.expressions.{Expression, Namespace, ProcedureName}
 

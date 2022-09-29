@@ -1,7 +1,7 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.planner.{ExecutionContext, PhysicalPlannerContext}
-import org.grapheco.lynx.{DataFrame, LynxType, SyntaxErrorException}
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
+import org.grapheco.lynx.{DataFrame, ExecutionContext, LynxType, SyntaxErrorException}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxNull
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
