@@ -1,6 +1,6 @@
 package org.grapheco.lynx
 
-import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.{LynxResult, LynxValue}
 import org.grapheco.lynx.types.property.LynxString
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
 import org.junit.{Assert, Test}

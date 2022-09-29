@@ -1,13 +1,15 @@
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.lynx.procedure.functions.TimeFunctions
-import org.grapheco.lynx.procedure.{CallableProcedure, DefaultProcedureRegistry, ProcedureRegistry}
+import org.grapheco.lynx.graph.{GraphModel, Index, IndexManager, PathTriple, Statistics, WriteTask}
+import org.grapheco.lynx.physical.filters.NodeFilter
+import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
+import org.grapheco.lynx.procedure.CallableProcedure
 import org.grapheco.lynx.util.Profiler
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxInteger, LynxNull}
 import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
-import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.{LynxResult, LynxValue}
 import org.opencypher.v9_0.util.symbols.{CTInteger, CTString}
 
 import scala.collection.mutable

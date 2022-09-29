@@ -1,6 +1,8 @@
 package org.grapheco.lynx.physical
 
-import org.grapheco.lynx.{AbstractPhysicalNode, DataFrame, ExecutionContext, LynxType, NodeFilter, PhysicalNode, PhysicalPlannerContext, RelationshipFilter}
+import org.grapheco.lynx.physical.filters.{NodeFilter, RelationshipFilter}
+import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
+import org.grapheco.lynx.{DataFrame, ExecutionContext, LynxType}
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxPath
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}

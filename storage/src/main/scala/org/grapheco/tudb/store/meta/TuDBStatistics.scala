@@ -1,6 +1,6 @@
 package org.grapheco.tudb.store.meta
 
-import org.grapheco.lynx
+import org.grapheco.lynx.graph.Statistics
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxInteger
@@ -27,7 +27,7 @@ object TuDBStatistics {
   val emptyLong: Array[Byte] = BaseSerializer.encodeLong(0)
 }
 
-class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends lynx.Statistics {
+class TuDBStatistics(path: String, rocksdbCfgPath: String = "default") extends Statistics {
 
   val db: KeyValueDB = RocksDBStorage.getDB(
     s"${path}/${DBNameMap.statisticsDB}",

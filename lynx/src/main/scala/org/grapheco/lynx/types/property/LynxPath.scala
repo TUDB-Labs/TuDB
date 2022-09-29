@@ -1,6 +1,7 @@
 package org.grapheco.lynx.types.property
 
-import org.grapheco.lynx.{LynxType, PathTriple}
+import org.grapheco.lynx.{LynxType}
+import org.grapheco.lynx.graph.PathTriple
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
 import org.opencypher.v9_0.util.symbols.CTPath
