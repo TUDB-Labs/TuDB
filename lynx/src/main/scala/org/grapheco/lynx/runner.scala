@@ -1,6 +1,7 @@
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
+import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.logical.LogicalNode
 import org.grapheco.lynx.physical.PhysicalNode
 import org.grapheco.lynx.planner.{DefaultLogicalPlanner, DefaultPhysicalPlanner, ExecutionContext, LogicalPlanner, LogicalPlannerContext, PhysicalPlanner, PhysicalPlannerContext, PlanAware}
@@ -10,12 +11,7 @@ import org.grapheco.lynx.util.FormatUtils
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxResult, LynxValue, TypeSystem}
 import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.SemanticState
-import org.opencypher.v9_0.expressions.{LabelName, PropertyKeyName, Range, SemanticDirection}
-import org.opencypher.v9_0.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 import org.grapheco.metrics.DomainObject
-
-import scala.annotation.tailrec
-import scala.collection.mutable
 
 case class CypherRunnerContext(
     typeSystem: TypeSystem,
