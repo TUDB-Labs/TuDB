@@ -27,6 +27,6 @@ class Record(l: Label, v: Value) {
   }
 
   override def toString(): String = {
-    String.format("[%s][%s][%s]%s", label.toString(), timestamp.toString(), value.toString())
+    String.format("[%s][%s]%s", label.toString(), timestamp.toString(), value.toString())
   }
 }
