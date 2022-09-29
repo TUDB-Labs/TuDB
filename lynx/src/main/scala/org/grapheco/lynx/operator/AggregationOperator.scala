@@ -3,6 +3,7 @@ package org.grapheco.lynx.operator
 import org.grapheco.lynx.operator.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
+import org.grapheco.metrics.{Label, Record, Value, DomainObject}
 import org.opencypher.v9_0.ast.ReturnItem
 
 /**
@@ -25,6 +26,8 @@ case class AggregationOperator(
 
   var allGroupedData: Iterator[Array[Seq[LynxValue]]] = Iterator.empty
   var hasPulledData: Boolean = false
+
+  val recordLabel = new Label(Set("Aggregation"))
 
   override def openImpl(): Unit = {
     in.open()

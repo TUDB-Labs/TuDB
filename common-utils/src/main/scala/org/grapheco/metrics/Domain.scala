@@ -48,5 +48,4 @@ class Domain(dID: String) {
     }
     filterRecords
   }
-
 }
