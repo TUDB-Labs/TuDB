@@ -19,7 +19,7 @@ import org.opencypher.v9_0.util.symbols.CTAny
   */
 case class UnwindOperator(
     in: ExecutionOperator,
-    toUnwindSchemaName: String,
+    toUnwindColumnNames: Seq[String],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
@@ -32,8 +32,7 @@ case class UnwindOperator(
   }
 
   override def getNextImpl(): RowBatch = {
-    if (!colNames.contains(toUnwindSchemaName)) return RowBatch(Seq.empty)
-
+    // TODO: plan to guarantee toUnwindColumnNames in colNames.
     var batchData: Seq[Seq[LynxValue]] = Seq.empty
     var unwindResult: Seq[Seq[LynxValue]] = Seq.empty
     do {
@@ -41,11 +40,13 @@ case class UnwindOperator(
       if (batchData.isEmpty) return RowBatch(Seq.empty)
       unwindResult = batchData.flatMap(rowData => {
         val recordMap = colNames.zip(rowData).toMap
-        val unwindValue = recordMap(toUnwindSchemaName) match {
-          case lst: LynxList      => lst.value
-          case element: LynxValue => List(element)
-        }
-        unwindValue.map(lynxValue => Seq(lynxValue))
+        val unwindValues = toUnwindColumnNames.map(name => {
+          recordMap(name) match {
+            case lst: LynxList      => lst.value
+            case element: LynxValue => List(element)
+          }
+        })
+        unwindValues
       })
     } while (unwindResult.isEmpty)
 
@@ -54,5 +55,6 @@ case class UnwindOperator(
 
   override def closeImpl(): Unit = {}
 
-  override def outputSchema(): Seq[(String, LynxType)] = Seq((toUnwindSchemaName, CTAny))
+  override def outputSchema(): Seq[(String, LynxType)] =
+    toUnwindColumnNames.map(name => (name, CTAny))
 }

@@ -5,11 +5,11 @@ import org.opencypher.v9_0.expressions.Expression
 import org.opencypher.v9_0.util.symbols.CTAny
 
 /**
-  *@description: This operator is used to eval Literal expression.
+  *@description: This operator is used to evaluate single Literal-only row. There can be one or more Literal columns.
   */
 case class LiteralOperator(
-    schemaName: String,
-    literalExpression: Expression,
+    colNames: Seq[String],
+    literalExpressions: Seq[Expression],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
@@ -19,13 +19,15 @@ case class LiteralOperator(
 
   override def getNextImpl(): RowBatch = {
     if (!isEvalDone) {
-      val literal = expressionEvaluator.eval(literalExpression)(expressionContext)
+      val literals =
+        literalExpressions.map(expr => expressionEvaluator.eval(expr)(expressionContext))
+
       isEvalDone = true
-      RowBatch(Seq(Seq(literal)))
+      RowBatch(Seq(literals))
     } else RowBatch(Seq.empty)
   }
 
   override def closeImpl(): Unit = {}
 
-  override def outputSchema(): Seq[(String, LynxType)] = Seq((schemaName, CTAny))
+  override def outputSchema(): Seq[(String, LynxType)] = colNames.map(name => (name, CTAny))
 }
