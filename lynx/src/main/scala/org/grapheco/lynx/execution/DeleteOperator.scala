@@ -2,54 +2,70 @@ package org.grapheco.lynx.execution
 
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
+import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxRelationship}
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch, SyntaxErrorException}
+import org.opencypher.v9_0.expressions.Expression
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   *@description: This operator is used to delete nodes and relationships.
-  *               1. The data from 'in' all need to be deleted.
-  *               2. If node to be deleted has attached edges, forceToDelete must be true otherwise throw Exception.
+  *               1. If node to be deleted has attached edges, forceToDelete must be true otherwise throw Exception.
   */
 case class DeleteOperator(
     in: ExecutionOperator,
     graphModel: GraphModel,
+    entitiesToDelete: Seq[Expression],
     forceToDelete: Boolean,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
 
-  var deleteTypes: Seq[LynxType] = Seq.empty
+  var inputColumnNames: Seq[String] = Seq.empty
 
   override def openImpl(): Unit = {
     in.open()
-    deleteTypes = in.outputSchema().map(nameAndType => nameAndType._2).distinct
+    inputColumnNames = in.outputSchema().map(nameAndType => nameAndType._1)
   }
 
   override def getNextImpl(): RowBatch = {
-    var batchData: Seq[LynxValue] = Seq.empty
+    var batchData: Seq[Seq[LynxValue]] = Seq.empty
+    val toDeleteNodeIds = ArrayBuffer[LynxId]()
+    val toDeleteRelIds = ArrayBuffer[LynxId]()
     do {
-      batchData = in.getNext().batchData.flatten
+      batchData = in.getNext().batchData
       if (batchData.isEmpty) return RowBatch(Seq.empty)
-      deleteTypes.foreach {
-        case CTNode => {
-          val ids = batchData
-            .filter(lynxValue => lynxValue.isInstanceOf[LynxNode])
-            .map(lynxValue => lynxValue.asInstanceOf[LynxNode].id)
-            .iterator
-          graphModel.deleteNodesSafely(ids, forceToDelete)
+
+      batchData.foreach(rowData => {
+        val variableValueByName = inputColumnNames.zip(rowData).toMap
+        entitiesToDelete.foreach(expr => {
+          val toDeleteEntity =
+            expressionEvaluator.eval(expr)(expressionContext.withVars(variableValueByName))
+          toDeleteEntity.lynxType match {
+            case CTNode => {
+              val id = toDeleteEntity.asInstanceOf[LynxNode].id
+              toDeleteNodeIds.append(id)
+            }
+            case CTRelationship => {
+              val id = toDeleteEntity.asInstanceOf[LynxRelationship].id
+              toDeleteRelIds.append(id)
+            }
+            case elementType =>
+              throw SyntaxErrorException(s"expected Node or Relationship, but a ${elementType}")
+          }
+        })
+        if (toDeleteNodeIds.nonEmpty) {
+          graphModel.deleteNodesSafely(toDeleteNodeIds.toIterator, forceToDelete)
+          toDeleteNodeIds.clear()
         }
-        case CTRelationship => {
-          val ids = batchData
-            .filter(lynxValue => lynxValue.isInstanceOf[LynxRelationship])
-            .map(lynxValue => lynxValue.asInstanceOf[LynxRelationship].id)
-            .iterator
-          graphModel.deleteRelations(ids)
+        if (toDeleteRelIds.nonEmpty) {
+          graphModel.deleteRelations(toDeleteRelIds.toIterator)
+          toDeleteRelIds.clear()
         }
-        case elementType =>
-          throw SyntaxErrorException(s"expected Node or Relationship, but a ${elementType}")
-      }
+      })
+
     } while (batchData.nonEmpty)
 
     RowBatch(Seq.empty)

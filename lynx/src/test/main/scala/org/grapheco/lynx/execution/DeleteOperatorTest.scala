@@ -58,6 +58,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     val deleteOperator = DeleteOperator(
       selectOperator,
       model,
+      Seq(Variable("animal")(defaultPosition), Variable("person")(defaultPosition)),
       false,
       expressionEvaluator,
       ctx.expressionContext
@@ -80,6 +81,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     val deleteOperator = DeleteOperator(
       selectOperator,
       model,
+      Seq(Variable("n")(defaultPosition)),
       false,
       expressionEvaluator,
       ctx.expressionContext
@@ -111,6 +113,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     val deleteOperator = DeleteOperator(
       selectOperator,
       model,
+      Seq(Variable("n")(defaultPosition)),
       false,
       expressionEvaluator,
       ctx.expressionContext
@@ -140,6 +143,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     val deleteOperator = DeleteOperator(
       selectOperator,
       model,
+      Seq(Variable("n")(defaultPosition)),
       true,
       expressionEvaluator,
       ctx.expressionContext
@@ -187,6 +191,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     val deleteOperator = DeleteOperator(
       selectOperator,
       model,
+      Seq(Variable("r")(defaultPosition)),
       false,
       expressionEvaluator,
       ctx.expressionContext
