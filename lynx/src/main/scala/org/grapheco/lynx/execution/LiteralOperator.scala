@@ -5,7 +5,7 @@ import org.opencypher.v9_0.expressions.Expression
 import org.opencypher.v9_0.util.symbols.CTAny
 
 /**
-  *@description: This operator is used to eval Literal expression.
+  *@description: This operator is used to evaluate single Literal-only row. There can be one or more Literal columns.
   */
 case class LiteralOperator(
     colNames: Seq[String],

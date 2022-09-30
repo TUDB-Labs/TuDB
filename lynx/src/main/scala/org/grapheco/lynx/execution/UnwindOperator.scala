@@ -32,8 +32,7 @@ case class UnwindOperator(
   }
 
   override def getNextImpl(): RowBatch = {
-    if (colNames.intersect(toUnwindColumnNames).isEmpty) return RowBatch(Seq.empty)
-
+    // TODO: plan to guarantee toUnwindColumnNames in colNames.
     var batchData: Seq[Seq[LynxValue]] = Seq.empty
     var unwindResult: Seq[Seq[LynxValue]] = Seq.empty
     do {
