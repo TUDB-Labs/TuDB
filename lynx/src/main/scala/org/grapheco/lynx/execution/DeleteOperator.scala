@@ -16,18 +16,18 @@ import scala.collection.mutable.ArrayBuffer
 case class DeleteOperator(
     in: ExecutionOperator,
     graphModel: GraphModel,
-    toDeleteEntityExprs: Seq[Expression],
+    entitiesToDelete: Seq[Expression],
     forceToDelete: Boolean,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
 
-  var inColumnNames: Seq[String] = Seq.empty
+  var inputColumnNames: Seq[String] = Seq.empty
 
   override def openImpl(): Unit = {
     in.open()
-    inColumnNames = in.outputSchema().map(nameAndType => nameAndType._1)
+    inputColumnNames = in.outputSchema().map(nameAndType => nameAndType._1)
   }
 
   override def getNextImpl(): RowBatch = {
@@ -39,8 +39,8 @@ case class DeleteOperator(
       if (batchData.isEmpty) return RowBatch(Seq.empty)
 
       batchData.foreach(rowData => {
-        val variableValueByName = inColumnNames.zip(rowData).toMap
-        toDeleteEntityExprs.foreach(expr => {
+        val variableValueByName = inputColumnNames.zip(rowData).toMap
+        entitiesToDelete.foreach(expr => {
           val toDeleteEntity =
             expressionEvaluator.eval(expr)(expressionContext.withVars(variableValueByName))
           toDeleteEntity.lynxType match {
