@@ -14,6 +14,7 @@ import org.opencypher.v9_0.util.InputPosition
   */
 class ExecutionPlanCreator {
   val defaultPosition = InputPosition(0, 0, 0)
+
   def translate(
       plan: PhysicalNode,
       plannerContext: PhysicalPlannerContext,
