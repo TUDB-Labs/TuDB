@@ -316,8 +316,8 @@ class NodeStoreAPI(
           nodesWB.delete(NodeSerializer.encodeNodeKey(nid, lid))
         })
       labelWB.deleteRange(
-        NodeSerializer.encodeNodeKey(nid, 0),
-        NodeSerializer.encodeNodeKey(nid, -1)
+        NodeSerializer.encodeNodeLabelKey(nid, 0),
+        NodeSerializer.encodeNodeLabelKey(nid, -1)
       )
       removePropertyIndexByNodeId(nid)
     })
