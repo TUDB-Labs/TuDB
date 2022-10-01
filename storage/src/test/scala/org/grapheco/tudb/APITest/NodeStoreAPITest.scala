@@ -194,6 +194,17 @@ class NodeStoreAPITest {
     Assert.assertEquals(2, nodeStoreAPI.allNodes().size)
     nodeStoreAPI.deleteNodes(Array(1L, 2L).toIterator)
     Assert.assertEquals(0, nodeStoreAPI.allNodes().size)
+
+    nodeStoreAPI.addNode(
+      new StoredNodeWithProperty(1L, labelIds1, node1InBytes)
+    )
+    nodeStoreAPI.addNode(
+      new StoredNodeWithProperty(2L, labelIds2, node2InBytes)
+    )
+    Assert.assertEquals(2, nodeStoreAPI.allNodes().size)
+    nodeStoreAPI.deleteNodes(Array(1L).toIterator)
+    nodeStoreAPI.deleteNodes(Array(2L).toIterator)
+    Assert.assertEquals(0, nodeStoreAPI.allNodes().size)
   }
 
   @Test
