@@ -8,6 +8,8 @@ import org.grapheco.lynx.types.structural.{LynxId, LynxNode, LynxNodeLabel, Lynx
 import org.opencypher.v9_0.expressions.SemanticDirection
 import org.opencypher.v9_0.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
   *@description:
   */
@@ -191,17 +193,32 @@ trait GraphModel {
       direction: SemanticDirection,
       upperLimit: Option[Int],
       lowerLimit: Option[Int]
-    ): Iterator[Seq[PathTriple]] =
-    (direction match {
-      case BOTH     => relationships().flatMap(item => Seq(item, item.revert))
-      case INCOMING => relationships().map(_.revert)
-      case OUTGOING => relationships()
-    }).filter {
-        case PathTriple(startNode, rel, endNode, _) =>
-          relationshipFilter.matches(rel) && startNodeFilter.matches(startNode) && endNodeFilter
-            .matches(endNode)
-      }
-      .map(Seq(_))
+    ): Iterator[Seq[PathTriple]] = {
+
+    val lowerHop = lowerLimit.getOrElse(1)
+    val upperHop = upperLimit.getOrElse(1)
+    if (lowerHop == 1 && upperHop == 1) {
+      (direction match {
+        case BOTH     => relationships().flatMap(item => Seq(item, item.revert))
+        case INCOMING => relationships().map(_.revert)
+        case OUTGOING => relationships()
+      }).filter {
+          case PathTriple(startNode, rel, endNode, _) =>
+            relationshipFilter.matches(rel) && startNodeFilter.matches(startNode) && endNodeFilter
+              .matches(endNode)
+        }
+        .map(Seq(_))
+    } else {
+      GraphModelHelper(this).getPathWithLength(
+        startNodeFilter,
+        relationshipFilter,
+        endNodeFilter,
+        lowerHop,
+        upperHop,
+        direction
+      )
+    }
+  }
 
   /** Take a node as the starting or ending node and expand in a certain direction.
     * @param nodeId The id of this node
