@@ -86,7 +86,7 @@ object BaseSerializer extends BaseSerializer {
     _bytebuf.writeBytes(bytes)
     _bytebuf.readerIndex(readIndex)
     val long = _bytebuf.readLong()
-    _bytebuf.clear()
+    _bytebuf.release()
     long
   }
 
@@ -101,7 +101,7 @@ object BaseSerializer extends BaseSerializer {
     _bytebuf.writeBytes(bytes)
     _bytebuf.readerIndex(readIndex)
     val int = _bytebuf.readInt()
-    _bytebuf.clear()
+    _bytebuf.release()
     int
   }
 
