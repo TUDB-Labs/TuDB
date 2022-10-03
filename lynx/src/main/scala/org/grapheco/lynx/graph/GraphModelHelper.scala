@@ -2,7 +2,7 @@ package org.grapheco.lynx.graph
 
 import org.grapheco.lynx.physical.filters.{NodeFilter, RelationshipFilter}
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
+import org.grapheco.lynx.types.structural.{LynxId, LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.opencypher.v9_0.expressions.SemanticDirection
 
 import scala.collection.mutable.ArrayBuffer
@@ -50,31 +50,38 @@ case class GraphModelHelper(graphModel: GraphModel) {
       direction: SemanticDirection
     ): Iterator[Seq[PathTriple]] = {
     // naive implementation
-    direction match {
-      case SemanticDirection.OUTGOING => {
-        getOutgoingPathWithLength(
-          leftNodeFilter,
-          relationshipFilter,
-          rightNodeFilter,
-          lowerHop,
-          upperHop
-        )
+    val allPathTriples = direction match {
+      case SemanticDirection.INCOMING => {
+        graphModel
+          .relationships()
+          .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
+          .map(pathTriple => pathTriple.revert)
+          .toArray
       }
-      case SemanticDirection.INCOMING => { ??? }
-      case SemanticDirection.BOTH     => { ??? }
+      case _ => {
+        graphModel
+          .relationships()
+          .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
+          .toArray
+      }
     }
+    getHops(
+      leftNodeFilter,
+      rightNodeFilter,
+      allPathTriples,
+      lowerHop,
+      upperHop,
+      direction
+    )
   }
-  private def getOutgoingPathWithLength(
+  private def getHops(
       leftNodeFilter: NodeFilter,
-      relationshipFilter: RelationshipFilter,
       rightNodeFilter: NodeFilter,
+      allPathTriples: Array[PathTriple],
       lowerHop: Int,
-      upperHop: Int
+      upperHop: Int,
+      direction: SemanticDirection
     ): Iterator[Seq[PathTriple]] = {
-    val allPathTriples = graphModel
-      .relationships()
-      .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
-      .toArray
     val collectedHopPaths = ArrayBuffer[Seq[Seq[PathTriple]]]()
 
     if (lowerHop == 0) {
@@ -89,13 +96,28 @@ case class GraphModelHelper(graphModel: GraphModel) {
         .map(pathTriple => Seq(pathTriple))
       collectedHopPaths.append(firstHopPaths)
     }
-    outgoingHopSearchHelper(upperHop, collectedHopPaths, allPathTriples)
 
     val filteredResult = ArrayBuffer[Seq[Seq[PathTriple]]]()
-    collectedHopPaths.foreach(hopPaths => {
-      val filtered = hopPaths.filter(oneOfPaths => rightNodeFilter.matches(oneOfPaths.last.endNode))
-      if (filtered.nonEmpty) filteredResult.append(filtered)
-    })
+
+    direction match {
+      case SemanticDirection.BOTH => {
+        bothSearchHelper(lowerHop, upperHop, collectedHopPaths, allPathTriples)
+        collectedHopPaths.foreach(hopPaths => {
+          val filtered = hopPaths.filter(oneOfPaths => {
+            rightNodeFilter.matches(oneOfPaths.last.endNode)
+          })
+          if (filtered.nonEmpty) filteredResult.append(filtered)
+        })
+      }
+      case _ => {
+        inOutHopSearchHelper(upperHop, collectedHopPaths, allPathTriples)
+        collectedHopPaths.foreach(hopPaths => {
+          val filtered =
+            hopPaths.filter(oneOfPaths => rightNodeFilter.matches(oneOfPaths.last.endNode))
+          if (filtered.nonEmpty) filteredResult.append(filtered)
+        })
+      }
+    }
 
     if (lowerHop == 0) {
       filteredResult
@@ -109,7 +131,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
         .toIterator
     }
   }
-  private def outgoingHopSearchHelper(
+  private def inOutHopSearchHelper(
       upperHop: Int,
       collectedHopPaths: ArrayBuffer[Seq[Seq[PathTriple]]],
       allPathTriples: Array[PathTriple]
@@ -119,13 +141,10 @@ case class GraphModelHelper(graphModel: GraphModel) {
       val nextHopPaths = {
         val nextHop = previousHopPaths
           .flatMap(oneOfPreviousHopPaths => {
+            val thisPathRelationships = oneOfPreviousHopPaths.map(p => p.storedRelation)
             val nextPaths = allPathTriples
               .filter(pathTriple => pathTriple.startNode == oneOfPreviousHopPaths.last.endNode)
-              .filter(pathTriple =>
-                !oneOfPreviousHopPaths
-                  .map(p => p.storedRelation)
-                  .contains(pathTriple.storedRelation)
-              ) // circle check
+              .filter(pathTriple => !thisPathRelationships.contains(pathTriple.storedRelation)) // circle check
               .toSeq
 
             if (nextPaths.nonEmpty)
@@ -138,6 +157,61 @@ case class GraphModelHelper(graphModel: GraphModel) {
         nextHop
       }
       collectedHopPaths.append(nextHopPaths)
+    }
+    collectedHopPaths
+  }
+
+  private def bothSearchHelper(
+      lowerHop: Int,
+      upperHop: Int,
+      collectedHopPaths: ArrayBuffer[Seq[Seq[PathTriple]]],
+      allPathTriples: Array[PathTriple]
+    ): ArrayBuffer[Seq[Seq[PathTriple]]] = {
+    for (epoch <- 0 until upperHop) {
+      val previousHopPaths = collectedHopPaths(epoch)
+      val nextHopPaths = {
+        val nextHop = previousHopPaths
+          .flatMap(oneOfPreviousHopPaths => {
+            val thisPathRelationships = oneOfPreviousHopPaths.map(p => p.storedRelation)
+            val nextPaths = allPathTriples
+              .filter(pathTriple =>
+                pathTriple.startNode == oneOfPreviousHopPaths.last.endNode ||
+                  pathTriple.endNode == oneOfPreviousHopPaths.last.endNode
+              )
+              .filter(pathTriple => !thisPathRelationships.contains(pathTriple.storedRelation)) // circle check
+              .toSeq
+
+            if (nextPaths.nonEmpty)
+              nextPaths.map(oneOfSinglePath => oneOfPreviousHopPaths ++ Seq(oneOfSinglePath))
+            else Seq.empty
+          })
+          .filter(pathTriples => pathTriples.nonEmpty)
+
+        if (nextHop.isEmpty) return collectedHopPaths
+        nextHop
+      }
+
+      val noRepeatPaths: ArrayBuffer[Seq[PathTriple]] = ArrayBuffer.empty
+      val pathRelIds: ArrayBuffer[Set[LynxId]] = ArrayBuffer.empty
+      if (lowerHop != 0) {
+        nextHopPaths.foreach(paths => {
+          val relIds = paths.map(p => p.storedRelation.id).toSet
+          if (!pathRelIds.contains(relIds)) {
+            noRepeatPaths.append(paths)
+            pathRelIds.append(relIds)
+          }
+        })
+      } else {
+        nextHopPaths.foreach(paths => {
+          val relIds = paths.drop(1).map(p => p.storedRelation.id).toSet
+          if (!pathRelIds.contains(relIds)) {
+            noRepeatPaths.append(paths)
+            pathRelIds.append(relIds)
+          }
+        })
+      }
+
+      collectedHopPaths.append(noRepeatPaths)
     }
     collectedHopPaths
   }

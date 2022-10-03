@@ -60,6 +60,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
   def prepareOutgoingHopsData(): Unit = {
     all_nodes.clear()
     all_rels.clear()
+    val extraNode = TestNode(
+      TestId(8L),
+      Seq(LynxNodeLabel("Person")),
+      Map(
+        LynxPropertyKey("name") -> LynxValue("A"),
+        LynxPropertyKey("age") -> LynxValue(233)
+      )
+    )
     val n1 = TestNode(
       TestId(1L),
       Seq(LynxNodeLabel("Person")),
@@ -137,10 +145,60 @@ class PathScanOperatorTest extends BaseOperatorTest {
       Option(LynxRelationshipType("KNOW")),
       Map.empty
     )
-    all_nodes.append(n1, n2, n3, n4, n5, n6, n7)
+    all_nodes.append(n1, n2, n3, n4, n5, n6, n7, extraNode)
     all_rels.append(r1, r2, r3, r4, r5, r6)
   }
 
+  def prepareBothHopsData(): Unit = {
+    all_nodes.clear()
+    all_rels.clear()
+
+    val n1 = TestNode(
+      TestId(1L),
+      Seq(LynxNodeLabel("Person")),
+      Map(LynxPropertyKey("name") -> LynxValue("A"))
+    )
+    val n2 = TestNode(
+      TestId(2L),
+      Seq(LynxNodeLabel("Person")),
+      Map(LynxPropertyKey("name") -> LynxValue("B"))
+    )
+    val n3 = TestNode(
+      TestId(3L),
+      Seq(LynxNodeLabel("Person")),
+      Map(LynxPropertyKey("name") -> LynxValue("C"))
+    )
+    val n4 = TestNode(
+      TestId(4L),
+      Seq(LynxNodeLabel("Person")),
+      Map(LynxPropertyKey("name") -> LynxValue("D"))
+    )
+
+    val r1 = TestRelationship(
+      TestId(1L),
+      TestId(1L),
+      TestId(2L),
+      Option(LynxRelationshipType("KNOW")),
+      Map.empty
+    )
+    val r2 = TestRelationship(
+      TestId(2L),
+      TestId(1L),
+      TestId(3L),
+      Option(LynxRelationshipType("KNOW")),
+      Map.empty
+    )
+    val r3 = TestRelationship(
+      TestId(3L),
+      TestId(4L),
+      TestId(3L),
+      Option(LynxRelationshipType("KNOW")),
+      Map.empty
+    )
+
+    all_nodes.append(n1, n2, n3, n4)
+    all_rels.append(r1, r2, r3)
+  }
   @Test
   def testRelationshipScan(): Unit = {
     val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
@@ -255,10 +313,10 @@ class PathScanOperatorTest extends BaseOperatorTest {
     val resultData =
       getOperatorAllOutputs(relationshipScanOperator).flatMap(inputBatch => inputBatch.batchData)
 
-    // 0 hop: 7
+    // 0 hop: 8
     // 1 hop: 6
     // 2 hop: 3
-    Assert.assertEquals(7 + 6 + 3, resultData.length)
+    Assert.assertEquals(8 + 6 + 3, resultData.length)
 
     val relPattern2 = RelationshipPattern(
       None,
@@ -290,7 +348,7 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 1 hop: 6
     // 2 hop: 3
     // 3 hop: 1
-    Assert.assertEquals(7 + 6 + 3 + 1, resultData2.length)
+    Assert.assertEquals(8 + 6 + 3 + 1, resultData2.length)
 
     val relPattern3 = RelationshipPattern(
       None,
@@ -321,5 +379,259 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 2 hop: 3
     // 3 hop: 1
     Assert.assertEquals(3 + 1, resultData3.length)
+  }
+  @Test
+  def testIncomingHopSearch(): Unit = {
+    prepareOutgoingHopsData()
+    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val relPattern1 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.INCOMING
+    )(defaultPosition)
+
+    val relationshipScanOperator = PathScanOperator(
+      relPattern1,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val resultData =
+      getOperatorAllOutputs(relationshipScanOperator).flatMap(inputBatch => inputBatch.batchData)
+
+    // 0 hop: 8
+    // 1 hop: 6
+    // 2 hop: 3
+    Assert.assertEquals(8 + 6 + 3, resultData.length)
+
+    val relPattern2 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("1000")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.INCOMING
+    )(defaultPosition)
+    val relationshipScanOperator2 = PathScanOperator(
+      relPattern2,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+
+    val resultData2 =
+      getOperatorAllOutputs(relationshipScanOperator2).flatMap(inputBatch => inputBatch.batchData)
+
+    // 0 hop: 7
+    // 1 hop: 6
+    // 2 hop: 3
+    // 3 hop: 1
+    Assert.assertEquals(8 + 6 + 3 + 1, resultData2.length)
+
+    val relPattern3 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("3")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.INCOMING
+    )(defaultPosition)
+    val relationshipScanOperator3 = PathScanOperator(
+      relPattern3,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+
+    val resultData3 =
+      getOperatorAllOutputs(relationshipScanOperator3).flatMap(inputBatch => inputBatch.batchData)
+
+    // 2 hop: 3
+    // 3 hop: 1
+    Assert.assertEquals(3 + 1, resultData3.length)
+  }
+
+  @Test
+  def testOutgoingIncomingHopSearchWithSpecifiedNodes(): Unit = {
+    prepareOutgoingHopsData()
+
+    val leftPattern = NodePattern(
+      None,
+      Seq.empty,
+      Option(
+        MapExpression(
+          Seq(
+            (
+              PropertyKeyName("name")(InputPosition(0, 0, 0)),
+              StringLiteral("A")(InputPosition(0, 0, 0))
+            )
+          )
+        )(InputPosition(0, 0, 0))
+      )
+    )(defaultPosition)
+    val rightPattern = NodePattern(
+      None,
+      Seq.empty,
+      Option(
+        MapExpression(
+          Seq(
+            (
+              PropertyKeyName("name")(InputPosition(0, 0, 0)),
+              StringLiteral("G")(InputPosition(0, 0, 0))
+            )
+          )
+        )(InputPosition(0, 0, 0))
+      )
+    )(defaultPosition)
+    val relPattern1 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("10")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.OUTGOING
+    )(defaultPosition)
+
+    val relationshipScanOperator1 = PathScanOperator(
+      relPattern1,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val resultData =
+      getOperatorAllOutputs(relationshipScanOperator1).flatMap(inputBatch => inputBatch.batchData)
+
+    Assert.assertEquals(1, resultData.length)
+
+    val relPattern2 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("10")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.INCOMING
+    )(defaultPosition)
+
+    val relationshipScanOperator2 = PathScanOperator(
+      relPattern2,
+      rightPattern,
+      leftPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val resultData2 =
+      getOperatorAllOutputs(relationshipScanOperator2).flatMap(inputBatch => inputBatch.batchData)
+
+    Assert.assertEquals(1, resultData2.length)
+  }
+
+  @Test
+  def testBothHopSearch(): Unit = {
+    prepareBothHopsData()
+    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    val relPattern = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("1")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("100")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.BOTH
+    )(defaultPosition)
+
+    val relationshipScanOperator = PathScanOperator(
+      relPattern,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val resultData =
+      getOperatorAllOutputs(relationshipScanOperator).flatMap(inputBatch => inputBatch.batchData)
+
+    // 1 hop: 3
+    // 2 hop: 1
+    Assert.assertEquals(4, resultData.length)
+
+    val relPattern2 = RelationshipPattern(
+      None,
+      Seq(RelTypeName("KNOW")(defaultPosition)),
+      Option(
+        Option(
+          Range(
+            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
+            Option(UnsignedDecimalIntegerLiteral("100")(defaultPosition))
+          )(defaultPosition)
+        )
+      ),
+      None,
+      SemanticDirection.BOTH
+    )(defaultPosition)
+
+    val relationshipScanOperator2 = PathScanOperator(
+      relPattern2,
+      leftPattern,
+      rightPattern,
+      model,
+      expressionEvaluator,
+      ctx.expressionContext
+    )
+    val resultData2 =
+      getOperatorAllOutputs(relationshipScanOperator2).flatMap(inputBatch => inputBatch.batchData)
+
+    // 0 hop: 4
+    // 1 hop: 3
+    // 2 hop: 1
+    Assert.assertEquals(8, resultData2.length)
   }
 }
