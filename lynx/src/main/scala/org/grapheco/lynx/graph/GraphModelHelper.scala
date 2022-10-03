@@ -65,7 +65,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
           .toArray
       }
     }
-    getHops(
+    getHopsPaths(
       leftNodeFilter,
       rightNodeFilter,
       allPathTriples,
@@ -74,7 +74,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
       direction
     )
   }
-  private def getHops(
+  private def getHopsPaths(
       leftNodeFilter: NodeFilter,
       rightNodeFilter: NodeFilter,
       allPathTriples: Array[PathTriple],
@@ -101,10 +101,11 @@ case class GraphModelHelper(graphModel: GraphModel) {
 
     direction match {
       case SemanticDirection.BOTH => {
-        bothSearchHelper(lowerHop, upperHop, collectedHopPaths, allPathTriples)
+        bothHopSearchHelper(lowerHop, upperHop, collectedHopPaths, allPathTriples)
         collectedHopPaths.foreach(hopPaths => {
           val filtered = hopPaths.filter(oneOfPaths => {
-            rightNodeFilter.matches(oneOfPaths.last.endNode)
+            rightNodeFilter.matches(oneOfPaths.last.endNode) ||
+              rightNodeFilter.matches(oneOfPaths.last.startNode)
           })
           if (filtered.nonEmpty) filteredResult.append(filtered)
         })
@@ -161,7 +162,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
     collectedHopPaths
   }
 
-  private def bothSearchHelper(
+  private def bothHopSearchHelper(
       lowerHop: Int,
       upperHop: Int,
       collectedHopPaths: ArrayBuffer[Seq[Seq[PathTriple]]],
@@ -210,7 +211,6 @@ case class GraphModelHelper(graphModel: GraphModel) {
           }
         })
       }
-
       collectedHopPaths.append(noRepeatPaths)
     }
     collectedHopPaths
