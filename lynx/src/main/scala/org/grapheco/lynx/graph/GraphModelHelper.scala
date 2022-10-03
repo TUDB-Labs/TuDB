@@ -142,10 +142,13 @@ case class GraphModelHelper(graphModel: GraphModel) {
       val nextHopPaths = {
         val nextHop = previousHopPaths
           .flatMap(oneOfPreviousHopPaths => {
-            val thisPathRelationships = oneOfPreviousHopPaths.map(p => p.storedRelation)
+            val relationshipsOfCurrentPaths = oneOfPreviousHopPaths.map(p => p.storedRelation)
+            val lastNodeOfCurrentPaths = oneOfPreviousHopPaths.last.endNode
+
             val nextPaths = allPathTriples
-              .filter(pathTriple => pathTriple.startNode == oneOfPreviousHopPaths.last.endNode)
-              .filter(pathTriple => !thisPathRelationships.contains(pathTriple.storedRelation)) // circle check
+              .filter(pathTriple => pathTriple.startNode == lastNodeOfCurrentPaths)
+              .filter(pathTriple => !relationshipsOfCurrentPaths.contains(pathTriple.storedRelation)
+              ) // circle check
               .toSeq
 
             if (nextPaths.nonEmpty)
@@ -171,22 +174,27 @@ case class GraphModelHelper(graphModel: GraphModel) {
     for (epoch <- 0 until upperHop) {
       val previousHopPaths = collectedHopPaths(epoch)
       val nextHopPaths = {
-        val nextHop = previousHopPaths
-          .flatMap(oneOfPreviousHopPaths => {
-            val thisPathRelationships = oneOfPreviousHopPaths.map(p => p.storedRelation)
-            val nextPaths = allPathTriples
-              .filter(pathTriple =>
-                pathTriple.startNode == oneOfPreviousHopPaths.last.endNode ||
-                  pathTriple.endNode == oneOfPreviousHopPaths.last.endNode
-              )
-              .filter(pathTriple => !thisPathRelationships.contains(pathTriple.storedRelation)) // circle check
-              .toSeq
+        val nextHop =
+          previousHopPaths
+            .flatMap(oneOfPreviousHopPaths => {
+              val relationshipsOfCurrentPath = oneOfPreviousHopPaths.map(p => p.storedRelation)
+              val lastNodeOfCurrentPaths = oneOfPreviousHopPaths.last.endNode
 
-            if (nextPaths.nonEmpty)
-              nextPaths.map(oneOfSinglePath => oneOfPreviousHopPaths ++ Seq(oneOfSinglePath))
-            else Seq.empty
-          })
-          .filter(pathTriples => pathTriples.nonEmpty)
+              val nextPaths = allPathTriples
+                .filter(pathTriple =>
+                  pathTriple.startNode == lastNodeOfCurrentPaths ||
+                    pathTriple.endNode == lastNodeOfCurrentPaths
+                )
+                .filter(pathTriple =>
+                  !relationshipsOfCurrentPath.contains(pathTriple.storedRelation)
+                ) // circle check
+                .toSeq
+
+              if (nextPaths.nonEmpty)
+                nextPaths.map(oneOfSinglePath => oneOfPreviousHopPaths ++ Seq(oneOfSinglePath))
+              else Seq.empty
+            })
+            .filter(pathTriples => pathTriples.nonEmpty)
 
         if (nextHop.isEmpty) return collectedHopPaths
         nextHop
