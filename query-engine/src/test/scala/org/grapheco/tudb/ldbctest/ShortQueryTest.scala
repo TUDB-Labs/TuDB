@@ -8,11 +8,6 @@ import org.junit.{After, AfterClass, Assert, Test}
 
 import java.io.File
 
-/**
-  *@author:John117
-  *@createDate:2022/7/4
-  *@description:
-  */
 object ShortQueryTest {
   val outputPath: String = s"${TestUtils.getModuleRootPath}/facadeTest"
   val file = new File(outputPath)
@@ -85,111 +80,111 @@ class ShortQueryTest {
       result.head("creationDate").asInstanceOf[LynxString].value
     )
   }
-  @Test
-  def Q2(): Unit = {
-    db.cypher("""
-        |create (AAA:Person {`id`:1,
-        |                firstName: "AAA",
-        |                lastName: "BBB",
-        |                birthday: "2022-07-03 00:00:00.000",
-        |                locationIP: "localhost",
-        |                browserUsed: "safari",
-        |                gender: "man",
-        |                creationDate: "2022-07-03 00:00:00.000"}
-        |        )
-        |create (CCC:Person {`id`:2,
-        |                firstName: "CCC",
-        |                lastName: "DDD",
-        |                birthday: "2022-07-03 00:00:00.000",
-        |                locationIP: "localhost",
-        |                browserUsed: "safari",
-        |                gender: "man",
-        |                creationDate: "2022-07-03 00:00:00.000"}
-        |        )
-        |create (EEE:Person {`id`:3,
-        |                firstName: "EEE",
-        |                lastName: "FFF",
-        |                birthday: "2022-07-03 00:00:00.000",
-        |                locationIP: "localhost",
-        |                browserUsed: "safari",
-        |                gender: "man",
-        |                creationDate: "2022-07-03 00:00:00.000"}
-        |        )
-        |create (GGG:Person {`id`:4,
-        |                firstName: "GGG",
-        |                lastName: "HHH",
-        |                birthday: "2022-07-03 00:00:00.000",
-        |                locationIP: "localhost",
-        |                browserUsed: "safari",
-        |                gender: "man",
-        |                creationDate: "2022-07-03 00:00:00.000"}
-        |        )
-        |create (message1:Message {`id`: 1,
-        |               creationDate: "2022-07-03 00:00:00.000",
-        |               content: "hello"}
-        |       )
-        |
-        |create (message2:Message {`id`: 2,
-        |               creationDate: "2022-07-04 00:00:00.000",
-        |               imageFile: "/a/b/d.img"}
-        |       )
-        |
-        |create (message3:Message {`id`: 3,
-        |               creationDate: "2022-07-04 00:00:00.000",
-        |               imageFile: "/a/b/d.img",
-        |               content: "world"}
-        |       )
-        |
-        |create (message1)-[:HAS_CREATOR]->(AAA),
-        |       (message2)-[:HAS_CREATOR]->(AAA),
-        |       (message3)-[:HAS_CREATOR]->(AAA),
-        |       (message1)-[:REPLY_OF]->(:Post {`id`:1})-[:HAS_CREATOR]->(CCC),
-        |       (message2)-[:REPLY_OF]->(:Post {`id`:2})-[:HAS_CREATOR]->(EEE),
-        |       (message3)-[:REPLY_OF]->(:Post {`id`:3})-[:HAS_CREATOR]->(GGG)
-        |""".stripMargin)
-
-    val resp = db
-      .cypher(
-        """
-        |MATCH (:Person {id: 1})<-[:HAS_CREATOR]-(message)
-        |   WITH
-        |    message,
-        |    message.id AS messageId,
-        |    message.creationDate AS messageCreationDate
-        |   ORDER BY messageCreationDate DESC, messageId ASC
-        |   LIMIT 10
-        |   MATCH (message)-[:REPLY_OF*0..]->(post:Post),
-        |         (post)-[r:HAS_CREATOR]->(person)
-        |   RETURN
-        |    messageId,
-        |    coalesce(message.imageFile,message.content) AS messageContent,
-        |    messageCreationDate,
-        |    post.id AS postId,
-        |    person.id AS personId,
-        |    person.firstName AS personFirstName,
-        |    person.lastName AS personLastName
-        |   ORDER BY messageCreationDate DESC, messageId ASC
-        |""".stripMargin
-      )
-      .records()
-      .toList
-
-    Assert.assertEquals(3, resp.size)
-
-    val result1 = resp(0)
-    val result2 = resp(1)
-    val result3 = resp(2)
-
-    Assert.assertEquals(2, result1("messageId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(2, result1("postId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(3, result1("personId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(3, result2("messageId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(3, result2("postId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(4, result2("personId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(1, result3("messageId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(1, result3("postId").asInstanceOf[LynxInteger].value)
-    Assert.assertEquals(2, result3("personId").asInstanceOf[LynxInteger].value)
-  }
+//  @Test
+//  def Q2(): Unit = {
+//    db.cypher("""
+//        |create (AAA:Person {`id`:1,
+//        |                firstName: "AAA",
+//        |                lastName: "BBB",
+//        |                birthday: "2022-07-03 00:00:00.000",
+//        |                locationIP: "localhost",
+//        |                browserUsed: "safari",
+//        |                gender: "man",
+//        |                creationDate: "2022-07-03 00:00:00.000"}
+//        |        )
+//        |create (CCC:Person {`id`:2,
+//        |                firstName: "CCC",
+//        |                lastName: "DDD",
+//        |                birthday: "2022-07-03 00:00:00.000",
+//        |                locationIP: "localhost",
+//        |                browserUsed: "safari",
+//        |                gender: "man",
+//        |                creationDate: "2022-07-03 00:00:00.000"}
+//        |        )
+//        |create (EEE:Person {`id`:3,
+//        |                firstName: "EEE",
+//        |                lastName: "FFF",
+//        |                birthday: "2022-07-03 00:00:00.000",
+//        |                locationIP: "localhost",
+//        |                browserUsed: "safari",
+//        |                gender: "man",
+//        |                creationDate: "2022-07-03 00:00:00.000"}
+//        |        )
+//        |create (GGG:Person {`id`:4,
+//        |                firstName: "GGG",
+//        |                lastName: "HHH",
+//        |                birthday: "2022-07-03 00:00:00.000",
+//        |                locationIP: "localhost",
+//        |                browserUsed: "safari",
+//        |                gender: "man",
+//        |                creationDate: "2022-07-03 00:00:00.000"}
+//        |        )
+//        |create (message1:Message {`id`: 1,
+//        |               creationDate: "2022-07-03 00:00:00.000",
+//        |               content: "hello"}
+//        |       )
+//        |
+//        |create (message2:Message {`id`: 2,
+//        |               creationDate: "2022-07-04 00:00:00.000",
+//        |               imageFile: "/a/b/d.img"}
+//        |       )
+//        |
+//        |create (message3:Message {`id`: 3,
+//        |               creationDate: "2022-07-04 00:00:00.000",
+//        |               imageFile: "/a/b/d.img",
+//        |               content: "world"}
+//        |       )
+//        |
+//        |create (message1)-[:HAS_CREATOR]->(AAA),
+//        |       (message2)-[:HAS_CREATOR]->(AAA),
+//        |       (message3)-[:HAS_CREATOR]->(AAA),
+//        |       (message1)-[:REPLY_OF]->(:Post {`id`:1})-[:HAS_CREATOR]->(CCC),
+//        |       (message2)-[:REPLY_OF]->(:Post {`id`:2})-[:HAS_CREATOR]->(EEE),
+//        |       (message3)-[:REPLY_OF]->(:Post {`id`:3})-[:HAS_CREATOR]->(GGG)
+//        |""".stripMargin)
+//
+//    val resp = db
+//      .cypher(
+//        """
+//        |MATCH (:Person {id: 1})<-[:HAS_CREATOR]-(message)
+//        |   WITH
+//        |    message,
+//        |    message.id AS messageId,
+//        |    message.creationDate AS messageCreationDate
+//        |   ORDER BY messageCreationDate DESC, messageId ASC
+//        |   LIMIT 10
+//        |   MATCH (message)-[:REPLY_OF*0..]->(post:Post),
+//        |         (post)-[r:HAS_CREATOR]->(person)
+//        |   RETURN
+//        |    messageId,
+//        |    coalesce(message.imageFile,message.content) AS messageContent,
+//        |    messageCreationDate,
+//        |    post.id AS postId,
+//        |    person.id AS personId,
+//        |    person.firstName AS personFirstName,
+//        |    person.lastName AS personLastName
+//        |   ORDER BY messageCreationDate DESC, messageId ASC
+//        |""".stripMargin
+//      )
+//      .records()
+//      .toList
+//
+//    Assert.assertEquals(3, resp.size)
+//
+//    val result1 = resp(0)
+//    val result2 = resp(1)
+//    val result3 = resp(2)
+//
+//    Assert.assertEquals(2, result1("messageId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(2, result1("postId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(3, result1("personId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(3, result2("messageId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(3, result2("postId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(4, result2("personId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(1, result3("messageId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(1, result3("postId").asInstanceOf[LynxInteger].value)
+//    Assert.assertEquals(2, result3("personId").asInstanceOf[LynxInteger].value)
+//  }
   @Test
   def Q3(): Unit = {
     db.cypher(
