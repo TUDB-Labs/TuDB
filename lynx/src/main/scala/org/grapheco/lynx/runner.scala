@@ -1,6 +1,7 @@
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
+import org.grapheco.lynx.execution.utils.OperatorUtils
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.logical.LogicalNode
 import org.grapheco.lynx.logical.plan.{DefaultLogicalPlanner, LogicalPlanner, LogicalPlannerContext}
@@ -89,9 +90,20 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     DomainObject.popLabel()
 
     val ctx = ExecutionContext(physicalPlannerContext, statement, param ++ param2)
+
+    DomainObject.pushLabel("execution plan")
+    DomainObject.recordLatency(null)
+    val executionPlanCreator = new ExecutionPlanCreator()
+    val executionPlan =
+      executionPlanCreator.translate(optimizedPhysicalPlan, physicalPlannerContext, ctx)
+    logger.debug(s"execution plan: \r\n${executionPlan.pretty}")
+    DomainObject.recordLatency(null)
+    DomainObject.popLabel()
+
     DomainObject.pushLabel("execute")
     DomainObject.recordLatency(null)
-    val df = optimizedPhysicalPlan.execute(ctx)
+    val result =
+      OperatorUtils.getOperatorAllOutputs(executionPlan).flatMap(inBatch => inBatch.batchData)
     graphModel.write.commit
     DomainObject.recordLatency(null)
     DomainObject.popLabel()
@@ -101,16 +113,16 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     DomainObject.printRecords(Set(query))
 
     new LynxResult() with PlanAware {
-      val schema = df.schema
+      val schema = executionPlan.outputSchema()
       val columnNames = schema.map(_._1)
 
       override def show(limit: Int): Unit =
-        FormatUtils.printTable(columnNames, df.records.take(limit).toSeq.map(_.map(_.value)))
+        FormatUtils.printTable(columnNames, result.take(limit))
 
       override def columns(): Seq[String] = columnNames
 
       override def records(): Iterator[Map[String, LynxValue]] =
-        df.records.map(columnNames.zip(_).toMap)
+        result.map(columnNames.zip(_).toMap).toIterator
 
       override def getASTStatement(): (Statement, Map[String, Any]) = (statement, param2)
 
@@ -122,11 +134,11 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
 
       override def cache(): LynxResult = {
         val source = this
-        val cached = df.records.toSeq
+        val cached = result.clone()
 
         new LynxResult {
           override def show(limit: Int): Unit =
-            FormatUtils.printTable(columnNames, cached.take(limit).toSeq.map(_.map(_.value)))
+            FormatUtils.printTable(columnNames, cached.take(limit))
 
           override def cache(): LynxResult = this
 
