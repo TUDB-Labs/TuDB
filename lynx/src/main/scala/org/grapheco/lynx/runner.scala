@@ -103,7 +103,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     DomainObject.pushLabel("execute")
     DomainObject.recordLatency(null)
     val result =
-      OperatorUtils.getOperatorAllOutputs(executionPlan).flatMap(inBatch => inBatch.batchData)
+      OperatorUtils.getOperatorAllOutputs(executionPlan).flatMap(inputBatch => inputBatch.batchData)
     graphModel.write.commit
     DomainObject.recordLatency(null)
     DomainObject.popLabel()
