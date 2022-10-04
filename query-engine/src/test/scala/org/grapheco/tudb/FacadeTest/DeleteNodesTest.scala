@@ -35,6 +35,14 @@ class DeleteNodesTest {
     db.cypher("match (n: Person) delete n")
     val res = db.cypher("match (n) return count(n) as count").records().next()("count").value
     Assert.assertEquals(0L, res)
+
+    db.cypher("create (n: Person{name:'A'})")
+    db.cypher("create (n: Person{name:'B'})")
+    db.cypher("match (n: Person{name:'A'}) delete n")
+    db.cypher("match (n: Person{name:'B'}) delete n")
+
+    val res2 = db.cypher("match (n) return count(n) as count").records().next()("count").value
+    Assert.assertEquals(0L, res2)
   }
 
   @Test(expected = classOf[ConstrainViolatedException])

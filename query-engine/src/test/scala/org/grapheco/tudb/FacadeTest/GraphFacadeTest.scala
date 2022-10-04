@@ -125,7 +125,7 @@ class GraphFacadeTest {
     db.cypher("create (n:person{nid: 7})")
     db.cypher("create (n:person{nid: 8})")
     db.cypher("create (n:person{nid: 9})")
-    db.cypher("create (n:person{nid: 1, name:'a'})")
+    db.cypher("create (n:person{nid: 10})")
     db.cypher("create (n:person{nid: 11})")
 
     db.cypher("""
@@ -165,11 +165,12 @@ class GraphFacadeTest {
                 |""".stripMargin)
 
     db.cypher("""
-                |match (n:person{nid: 1, name:'a'})
+                |match (n:person{nid: 10})
                 |match (m:person{nid:11})
                 |create (n)-[r:XXX]->(m)
                 |""".stripMargin)
   }
+
   @Test
   def testOutPath(): Unit = {
     initOutGoingExample()
