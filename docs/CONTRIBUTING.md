@@ -13,41 +13,16 @@ Please install the following before walking through the rest of this guide:
 
 ### Maven Configuration
 
-Modify your Maven configurations in `~/.m2/settings.xml` to add the private servers and mirrors that this project
-depends on (note that Aliyun Maven Central mirror is only necessary for developers in China):
+If you are a developer in China, please modify your Maven configurations in `~/.m2/settings.xml` to add the Aliyun Maven Central mirror:
 
 ```xml
 <settings>
-    <servers>
-        <server>
-            <id>maven-public</id>
-            <username>admin</username>
-            <password>qohpof-vigkag-5hastA</password>
-        </server>
-        <server>
-            <id>maven-snapshot</id>
-            <username>admin</username>
-            <password>qohpof-vigkag-5hastA</password>
-        </server>
-    </servers>
     <mirrors>
         <mirror>
             <id>alimaven</id>
             <mirrorOf>central</mirrorOf>
             <name>aliyun maven</name>
             <url>https://maven.aliyun.com/repository/public/</url>
-        </mirror>
-        <mirror>
-            <id>maven-public</id>
-            <mirrorOf>*</mirrorOf>
-            <name>pandadb public</name>
-            <url>http://123.57.165.135:30100/repository/maven-public</url>
-        </mirror>
-        <mirror>
-            <id>maven-snapshot</id>
-            <mirrorOf>*</mirrorOf>
-            <name>pandadb snapshot</name>
-            <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
         </mirror>
     </mirrors>
 </settings>
