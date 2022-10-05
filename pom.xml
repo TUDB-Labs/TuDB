@@ -270,16 +270,4 @@
             </plugins>
         </pluginManagement>
     </build>
-    <repositories>
-        <repository>
-            <id>maven-public</id>
-            <name>Tudb public</name>
-            <url>http://123.57.165.135:30100/repository/maven-public</url>
-        </repository>
-        <repository>
-            <id>maven-snapshot</id>
-            <name>Tudb snapshot</name>
-            <url>http://123.57.165.135:30100/repository/maven-snapshots</url>
-        </repository>
-    </repositories>
 </project>
