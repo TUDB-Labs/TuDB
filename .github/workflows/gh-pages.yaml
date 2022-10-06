@@ -30,6 +30,6 @@ jobs:
         with:
           node-version: "16"
       - run: |
-        python -m pip install mkdocs==1.2.4 mkdocs_material==8.1.9
-        mkdocs build
+          python -m pip install mkdocs==1.2.4 mkdocs_material==8.1.9
+          mkdocs build
       - run: git diff --exit-code
