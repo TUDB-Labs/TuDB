@@ -41,7 +41,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
   def estimateRelationship(relType: String): Long =
     this.graphModel.statistics.numRelationshipByType(LynxRelationshipType(relType))
 
-  def getPathWithLength(
+  def multipleHopSearch(
       leftNodeFilter: NodeFilter,
       relationshipFilter: RelationshipFilter,
       rightNodeFilter: NodeFilter,
@@ -50,22 +50,12 @@ case class GraphModelHelper(graphModel: GraphModel) {
       direction: SemanticDirection
     ): Iterator[Seq[PathTriple]] = {
     // naive implementation
-    val allPathTriples = direction match {
-      case SemanticDirection.INCOMING => {
-        graphModel
-          .relationships()
-          .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
-          .map(pathTriple => pathTriple.revert)
-          .toArray
-      }
-      case _ => {
-        graphModel
-          .relationships()
-          .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
-          .toArray
-      }
-    }
-    searchPathWithLength(
+    val allPathTriples = graphModel
+      .relationships()
+      .filter(pathTriple => relationshipFilter.matches(pathTriple.storedRelation))
+      .toArray
+
+    hopSearchHelper(
       leftNodeFilter,
       rightNodeFilter,
       allPathTriples,
@@ -74,7 +64,13 @@ case class GraphModelHelper(graphModel: GraphModel) {
       direction
     )
   }
-  private def searchPathWithLength(
+
+  /*
+      Calculate all the hops data from zero hop to upper hop, then slice the range of hops we need.
+      The difference of outgoing and incoming is the position of leftNodeFilter and rightNodeFilter.
+      Both direction need to check the pathTriple's left and right node.
+   */
+  private def hopSearchHelper(
       leftNodeFilter: NodeFilter,
       rightNodeFilter: NodeFilter,
       allPathTriples: Array[PathTriple],
@@ -85,18 +81,40 @@ case class GraphModelHelper(graphModel: GraphModel) {
     val collectedHopPaths = ArrayBuffer[Seq[Seq[PathTriple]]]()
 
     if (lowerHop == 0) {
-      val zeroPaths = graphModel
-        .nodes(leftNodeFilter)
-        .map(node => PathTriple(node, null, node))
-        .toSeq
+      val zeroPaths = {
+        direction match {
+          case SemanticDirection.INCOMING => {
+            graphModel
+              .nodes(rightNodeFilter)
+              .map(node => PathTriple(node, null, node))
+              .toSeq
+          }
+          case _ => {
+            graphModel
+              .nodes(leftNodeFilter)
+              .map(node => PathTriple(node, null, node))
+              .toSeq
+          }
+        }
+      }
       collectedHopPaths.append(zeroPaths.map(pathTriple => Seq(pathTriple)))
     } else {
-      val firstHopPaths = allPathTriples
-        .filter(pathTriple => leftNodeFilter.matches(pathTriple.startNode))
-        .map(pathTriple => Seq(pathTriple))
+      val firstHopPaths = {
+        direction match {
+          case SemanticDirection.INCOMING => {
+            allPathTriples
+              .filter(pathTriple => rightNodeFilter.matches(pathTriple.startNode))
+              .map(pathTriple => Seq(pathTriple))
+          }
+          case _ => {
+            allPathTriples
+              .filter(pathTriple => leftNodeFilter.matches(pathTriple.startNode))
+              .map(pathTriple => Seq(pathTriple))
+          }
+        }
+      }
       collectedHopPaths.append(firstHopPaths)
     }
-
     val filteredResult = ArrayBuffer[Seq[Seq[PathTriple]]]()
 
     direction match {
@@ -113,13 +131,22 @@ case class GraphModelHelper(graphModel: GraphModel) {
       case _ => {
         inAndOutDirectionHopSearchHelper(upperHop, collectedHopPaths, allPathTriples)
         collectedHopPaths.foreach(hopPaths => {
-          val filtered =
-            hopPaths.filter(oneOfPaths => rightNodeFilter.matches(oneOfPaths.last.endNode))
+          val filtered = {
+            direction match {
+              case SemanticDirection.INCOMING => {
+                hopPaths.filter(oneOfPaths => leftNodeFilter.matches(oneOfPaths.last.endNode))
+              }
+              case SemanticDirection.OUTGOING => {
+                hopPaths.filter(oneOfPaths => rightNodeFilter.matches(oneOfPaths.last.endNode))
+              }
+            }
+          }
           if (filtered.nonEmpty) filteredResult.append(filtered)
         })
       }
     }
 
+    // slice hops.
     if (lowerHop == 0) {
       filteredResult
         .slice(lowerHop, upperHop + 1)
@@ -132,6 +159,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
         .toIterator
     }
   }
+
   private def inAndOutDirectionHopSearchHelper(
       upperHop: Int,
       collectedHopPaths: ArrayBuffer[Seq[Seq[PathTriple]]],
@@ -165,6 +193,9 @@ case class GraphModelHelper(graphModel: GraphModel) {
     collectedHopPaths
   }
 
+  /*
+      Both need to check the pathTriple's left node and right node.
+   */
   private def bothDirectionHopSearchHelper(
       lowerHop: Int,
       upperHop: Int,
@@ -200,25 +231,20 @@ case class GraphModelHelper(graphModel: GraphModel) {
         nextHop
       }
 
+      // we should remove the repeated situation like 1 --> 3 --> 4 and 4 --> 3 --> 1.
       val noRepeatPaths: ArrayBuffer[Seq[PathTriple]] = ArrayBuffer.empty
       val pathRelIds: ArrayBuffer[Set[LynxId]] = ArrayBuffer.empty
-      if (lowerHop != 0) {
-        nextHopPaths.foreach(paths => {
-          val relIds = paths.map(p => p.storedRelation.id).toSet
-          if (!pathRelIds.contains(relIds)) {
-            noRepeatPaths.append(paths)
-            pathRelIds.append(relIds)
-          }
-        })
-      } else {
-        nextHopPaths.foreach(paths => {
-          val relIds = paths.drop(1).map(p => p.storedRelation.id).toSet
-          if (!pathRelIds.contains(relIds)) {
-            noRepeatPaths.append(paths)
-            pathRelIds.append(relIds)
-          }
-        })
-      }
+      nextHopPaths.foreach(paths => {
+        val relIds = {
+          if (lowerHop != 0) paths.map(p => p.storedRelation.id).toSet
+          // remove the zero path cause it hasn't relationship.
+          else paths.drop(1).map(p => p.storedRelation.id).toSet
+        }
+        if (!pathRelIds.contains(relIds)) {
+          noRepeatPaths.append(paths)
+          pathRelIds.append(relIds)
+        }
+      })
       collectedHopPaths.append(noRepeatPaths)
     }
     collectedHopPaths

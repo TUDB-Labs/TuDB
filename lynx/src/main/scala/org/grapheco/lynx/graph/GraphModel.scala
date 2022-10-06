@@ -209,7 +209,8 @@ trait GraphModel {
         }
         .map(Seq(_))
     } else {
-      GraphModelHelper(this).getPathWithLength(
+      // there has some risk of OOM, should override it.
+      GraphModelHelper(this).multipleHopSearch(
         startNodeFilter,
         relationshipFilter,
         endNodeFilter,
