@@ -4,7 +4,7 @@ import org.opencypher.v9_0.expressions.Expression
 import org.opencypher.v9_0.util.InputPosition
 
 /**
-  *@description: transfer openCypher's expression to our lynxExpression.
+  *@description: replace openCypher's expression with our lynxExpression. In the future, we will not extends Expression.
   */
 trait LynxExpression extends Expression {
   override def position: InputPosition = this.position
