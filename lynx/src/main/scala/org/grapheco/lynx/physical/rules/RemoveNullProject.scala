@@ -1,4 +1,4 @@
-package org.grapheco.lynx.rules
+package org.grapheco.lynx.physical.rules
 
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext

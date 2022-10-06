@@ -1,4 +1,4 @@
-package org.grapheco.lynx.rules
+package org.grapheco.lynx.physical.rules
 
 import org.grapheco.lynx.physical.{PhysicalFilter, PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan}
 import org.grapheco.lynx.procedure.ProcedureExpression
