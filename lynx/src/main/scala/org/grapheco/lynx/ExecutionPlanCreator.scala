@@ -26,6 +26,7 @@ class ExecutionPlanCreator {
     ): ExecutionOperator = {
     plan match {
       case PhysicalNodeScan(pattern) => {
+        // TODO: NodePattern should be converted to LynxNodePattern when the AST tree is converted to LogicalPlan
         val NodePattern(
           Some(nodeVariable: LogicalVariable),
           labels: Seq[LabelName],
