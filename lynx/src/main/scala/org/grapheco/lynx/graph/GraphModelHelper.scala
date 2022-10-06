@@ -68,7 +68,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
   /*
       Calculate all the hops data from zero hop to upper hop, then slice the range of hops we need.
       The difference of outgoing and incoming is the position of leftNodeFilter and rightNodeFilter.
-      Both direction need to check the pathTriple's left and right node.
+      Both direction need to check the expand pathTriple's left and right node.
    */
   private def hopSearchHelper(
       leftNodeFilter: NodeFilter,
@@ -231,7 +231,7 @@ case class GraphModelHelper(graphModel: GraphModel) {
         nextHop
       }
 
-      // we should remove the repeated situation like 1 --> 3 --> 4 and 4 --> 3 --> 1.
+      // we should remove the repeated situation like [1 --> 3 , 4 --> 3] and [4 --> 3, 1 --> 3].
       val noRepeatPaths: ArrayBuffer[Seq[PathTriple]] = ArrayBuffer.empty
       val pathRelIds: ArrayBuffer[Set[LynxId]] = ArrayBuffer.empty
       nextHopPaths.foreach(paths => {
