@@ -1,6 +1,8 @@
 package org.grapheco.lynx.execution
 
 import org.grapheco.lynx
+import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.pattern.LynxNodePattern
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
@@ -347,18 +349,13 @@ class BaseOperatorTest {
   }
 
   def prepareNodeScanOperator(
-      schemaName: String,
+      variable: LynxVariable,
       labelNames: Seq[String],
-      properties: Seq[(PropertyKeyName, Expression)]
+      properties: Seq[(LynxPropertyKey, LynxValue)]
     ): NodeScanOperator = {
-    val variable = Option(Variable(schemaName)(defaultPosition))
-    val labels = labelNames.map(name => LabelName(name)(defaultPosition))
-    val propertiesExpression = Option(
-      MapExpression(
-        properties
-      )(defaultPosition)
-    )
-    val pattern = NodePattern(variable, labels, propertiesExpression)(defaultPosition)
+    val labels = labelNames.map(name => LynxNodeLabel(name))
+
+    val pattern = LynxNodePattern(variable, labels, properties.toMap)
     val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
     operator
   }

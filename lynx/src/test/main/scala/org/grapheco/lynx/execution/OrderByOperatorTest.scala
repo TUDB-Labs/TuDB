@@ -1,5 +1,6 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -38,7 +39,7 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortDataWithDescAndAsc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
 
     val sortItems = Seq(
       DescSortItem(
@@ -68,7 +69,7 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortWithDesc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
 
     val sortItems = Seq(
       DescSortItem(
@@ -98,7 +99,7 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortWithAsc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
 
     val sortItems = Seq(
       AscSortItem(

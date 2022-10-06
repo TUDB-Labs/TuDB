@@ -1,8 +1,9 @@
 package org.grapheco.lynx.execution
 
 import org.grapheco.lynx.ConstrainViolatedException
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.LynxInteger
+import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
 import org.opencypher.v9_0.expressions.{MapExpression, NodePattern, PropertyKeyName, RelTypeName, RelationshipPattern, SemanticDirection, StringLiteral, Variable}
@@ -31,16 +32,11 @@ class DeleteOperatorTest extends BaseOperatorTest {
 
   @Test
   def testDeleteMultipleColumn(): Unit = {
-    val smallTable = prepareNodeScanOperator("animal", Seq("Animal"), Seq.empty)
+    val smallTable = prepareNodeScanOperator(LynxVariable("animal", 0), Seq("Animal"), Seq.empty)
     val largeTable = prepareNodeScanOperator(
-      "person",
+      LynxVariable("person", 0),
       Seq("Person"),
-      Seq(
-        (
-          PropertyKeyName("name")(InputPosition(0, 0, 0)),
-          StringLiteral("Alex")(InputPosition(0, 0, 0))
-        )
-      )
+      Seq((LynxPropertyKey("name"), LynxString("Alex")))
     )
     val joinOperator = JoinOperator(
       smallTable,
@@ -71,7 +67,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
 
   @Test
   def testDeleteNodeWithoutRelationship(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
       nodeScanOperator,
       Seq(("n", Option("n"))),
@@ -103,7 +99,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     )
     all_rels.append(r1)
 
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
       nodeScanOperator,
       Seq(("n", Option("n"))),
@@ -133,7 +129,7 @@ class DeleteOperatorTest extends BaseOperatorTest {
     )
     all_rels.append(r1)
 
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
     val selectOperator = SelectOperator(
       nodeScanOperator,
       Seq(("n", Option("n"))),

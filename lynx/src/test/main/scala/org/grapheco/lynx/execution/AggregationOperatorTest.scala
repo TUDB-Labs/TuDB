@@ -1,6 +1,7 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
@@ -41,7 +42,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
   all_nodes.append(node1, node2, node3, node4)
   @Test
   def testCountNode(): Unit = {
-    val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
 
     val groupExpr = Seq.empty
 
@@ -65,7 +66,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
 
   @Test
   def testCountByNode(): Unit = {
-    val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
 
     val groupExpr = Seq(
       AliasedReturnItem(Variable("n")(defaultPosition), Variable("n")(defaultPosition))(
@@ -106,7 +107,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
 
   @Test
   def testCountByProperty(): Unit = {
-    val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
 
     val groupExpr = Seq(
       AliasedReturnItem(
@@ -149,7 +150,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
   }
   @Test
   def testCountByMultiplePropertiesWithLynxNull(): Unit = {
-    val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val groupExpr = Seq.empty
     val aggregationExpr = Seq(
       AliasedReturnItem(

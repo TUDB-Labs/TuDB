@@ -2,6 +2,7 @@ package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -45,7 +46,7 @@ class FilterOperatorTest extends BaseOperatorTest {
       SignedDecimalIntegerLiteral("10")(defaultPosition)
     )(defaultPosition)
 
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
     val filterOperator =
       FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 
@@ -70,7 +71,7 @@ class FilterOperatorTest extends BaseOperatorTest {
       SignedDecimalIntegerLiteral("1000")(defaultPosition)
     )(defaultPosition)
 
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq("Person"), Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
     val filterOperator =
       FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 

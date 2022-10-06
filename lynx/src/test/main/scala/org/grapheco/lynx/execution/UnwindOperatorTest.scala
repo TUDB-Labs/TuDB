@@ -1,5 +1,6 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
 import org.grapheco.lynx.types.property.{LynxInteger, LynxNull}
@@ -164,7 +165,7 @@ class UnwindOperatorTest extends BaseOperatorTest {
         unwind n.lst as n.lst
         return n.lst
      */
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val projectColumn = Seq(
       (
         "n.lst",

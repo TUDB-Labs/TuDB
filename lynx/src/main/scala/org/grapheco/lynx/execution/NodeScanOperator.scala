@@ -1,11 +1,9 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.pattern.LynxNodePattern
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.physical.filters.NodeFilter
-import org.grapheco.lynx.types.composite.LynxMap
-import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
-import org.grapheco.lynx.{CypherRunnerContext, ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch, TreeNode}
-import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern}
+import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.util.symbols.CTNode
 
 /**
@@ -14,7 +12,7 @@ import org.opencypher.v9_0.util.symbols.CTNode
   *@description:
   */
 case class NodeScanOperator(
-    pattern: NodePattern,
+    pattern: LynxNodePattern,
     graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -26,34 +24,11 @@ case class NodeScanOperator(
 
   // prepare data
   override def openImpl(): Unit = {
-    val NodePattern(
-      Some(nodeVariable: LogicalVariable),
-      labels: Seq[LabelName],
-      properties: Option[Expression],
-      baseNode: Option[LogicalVariable]
-    ) = pattern
+    val LynxNodePattern(variable, nodeLabels, properties) = pattern
 
-    schema = Seq(nodeVariable.name -> CTNode)
-
-    val nodeLabels = {
-      if (labels.nonEmpty) labels.map(_.name).map(LynxNodeLabel)
-      else Seq.empty
-    }
+    schema = Seq(variable.name -> CTNode)
     dataSource = graphModel
-      .nodes(
-        NodeFilter(
-          nodeLabels,
-          properties
-            .map(prop =>
-              expressionEvaluator
-                .eval(prop)(expressionContext)
-                .asInstanceOf[LynxMap]
-                .value
-                .map(kv => (LynxPropertyKey(kv._1), kv._2))
-            )
-            .getOrElse(Map.empty)
-        )
-      )
+      .nodes(NodeFilter(nodeLabels, properties))
       .grouped(numRowsPerBatch)
       .map(node => Seq(node))
       .map(f => RowBatch(f))

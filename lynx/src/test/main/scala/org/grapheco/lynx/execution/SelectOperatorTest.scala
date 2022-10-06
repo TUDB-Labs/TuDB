@@ -2,6 +2,7 @@ package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -37,7 +38,7 @@ class SelectOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSelect(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator()
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val selectOperator = SelectOperator(
       nodeScanOperator,
       Seq(("n", Option("n"))),
@@ -61,18 +62,5 @@ class SelectOperatorTest extends BaseOperatorTest {
         result.flatMap(rowBatch => rowBatch.batchData.flatten).toList.asJava
       )
     )
-  }
-
-  def prepareNodeScanOperator(): NodeScanOperator = {
-    val variable = Option(Variable("n")(InputPosition(0, 0, 0)))
-    val labels = Seq(LabelName("Person")(InputPosition(0, 0, 0)))
-    val propertiesExpression = Option(
-      MapExpression(
-        Seq.empty
-      )(InputPosition(0, 0, 0))
-    )
-    val pattern = NodePattern(variable, labels, propertiesExpression)(InputPosition(0, 0, 0))
-    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
-    operator
   }
 }

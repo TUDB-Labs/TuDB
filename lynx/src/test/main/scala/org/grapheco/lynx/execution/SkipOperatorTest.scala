@@ -1,11 +1,13 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.{LynxInteger}
+import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
 import org.opencypher.v9_0.expressions.SignedDecimalIntegerLiteral
+
 import scala.collection.JavaConverters._
 
 class SkipOperatorTest extends BaseOperatorTest {
@@ -33,7 +35,7 @@ class SkipOperatorTest extends BaseOperatorTest {
   all_nodes.append(node1, node2, node3, node4)
   @Test
   def testSkipData(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val skipOperator =
       SkipOperator(nodeScanOperator, 2, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
@@ -49,7 +51,7 @@ class SkipOperatorTest extends BaseOperatorTest {
   }
   @Test
   def testSkipLargeThanDataSize(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val skipOperator =
       SkipOperator(nodeScanOperator, 20000, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava

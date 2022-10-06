@@ -2,6 +2,8 @@ package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
+import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.pattern.LynxNodePattern
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -36,7 +38,7 @@ class ProjectOperatorTest extends BaseOperatorTest {
 
   @Test
   def testProjectSingleProperty(): Unit = {
-    val inOperator = prepareNodeScanOperator()
+    val inOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val projectColumn = Seq(
       (
         "n.name",
@@ -68,7 +70,7 @@ class ProjectOperatorTest extends BaseOperatorTest {
 
   @Test
   def testProjectMultipleProperty(): Unit = {
-    val inOperator = prepareNodeScanOperator()
+    val inOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val projectColumn = Seq(
       (
         "n.name",
@@ -103,13 +105,5 @@ class ProjectOperatorTest extends BaseOperatorTest {
         result.flatMap(batch => batch.batchData.map(f => f.map(ff => ff.value).asJava)).asJava
       )
     )
-  }
-
-  def prepareNodeScanOperator(): NodeScanOperator = {
-    val pattern = NodePattern(Option(Variable("n")(defaultPosition)), Seq.empty, None)(
-      defaultPosition
-    )
-    val operator = NodeScanOperator(pattern, model, expressionEvaluator, ctx.expressionContext)
-    operator
   }
 }

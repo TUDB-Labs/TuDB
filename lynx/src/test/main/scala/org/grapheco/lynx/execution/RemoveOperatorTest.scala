@@ -1,5 +1,6 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
@@ -56,9 +57,9 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       )
     )
     val nodeScanOperator = prepareNodeScanOperator(
-      "a",
+      LynxVariable("n", 0),
       Seq.empty,
-      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Andy")(defaultPosition)))
+      Seq((LynxPropertyKey("name"), LynxString("Andy")))
     )
     val removeOperator = RemoveOperator(
       nodeScanOperator,
@@ -98,9 +99,9 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       )
     )
     val nodeScanOperator = prepareNodeScanOperator(
-      "n",
+      LynxVariable("n", 0),
       Seq.empty,
-      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
+      Seq((LynxPropertyKey("name"), LynxString("Peter")))
     )
     val removeOperator =
       RemoveOperator(
@@ -150,9 +151,9 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       )
     )
     val nodeScanOperator = prepareNodeScanOperator(
-      "n",
+      LynxVariable("n", 0),
       Seq.empty,
-      Seq((PropertyKeyName("name")(defaultPosition), StringLiteral("Peter")(defaultPosition)))
+      Seq((LynxPropertyKey("name"), LynxString("Peter")))
     )
     val removeOperator =
       RemoveOperator(

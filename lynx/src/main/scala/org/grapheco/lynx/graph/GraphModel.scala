@@ -209,7 +209,7 @@ trait GraphModel {
         }
         .map(Seq(_))
     } else {
-      // there has some risk of OOM, should override it.
+      // Risk of OOM, should override it.
       GraphModelHelper(this).multipleHopSearch(
         startNodeFilter,
         relationshipFilter,

@@ -1,6 +1,7 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
@@ -64,8 +65,8 @@ class JoinOperatorTest extends BaseOperatorTest {
 
   @Test
   def testCartesianProduct(): Unit = {
-    val smallTable = prepareNodeScanOperator("city", Seq("City"), Seq.empty)
-    val largeTable = prepareNodeScanOperator("person", Seq("Person"), Seq.empty)
+    val smallTable = prepareNodeScanOperator(LynxVariable("city", 0), Seq("City"), Seq.empty)
+    val largeTable = prepareNodeScanOperator(LynxVariable("person", 0), Seq("Person"), Seq.empty)
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
@@ -109,8 +110,8 @@ class JoinOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
-    val smallTable = prepareNodeScanOperator("city", Seq("City"), Seq.empty)
-    val largeTable = prepareNodeScanOperator("person", Seq("Person"), Seq.empty)
+    val smallTable = prepareNodeScanOperator(LynxVariable("city", 0), Seq("City"), Seq.empty)
+    val largeTable = prepareNodeScanOperator(LynxVariable("person", 0), Seq("Person"), Seq.empty)
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,

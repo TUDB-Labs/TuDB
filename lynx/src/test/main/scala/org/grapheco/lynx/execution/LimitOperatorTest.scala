@@ -1,6 +1,7 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -35,7 +36,7 @@ class LimitOperatorTest extends BaseOperatorTest {
 
   @Test
   def testLimitZeroData(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val skipOperator =
       LimitOperator(nodeScanOperator, 0, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
@@ -49,7 +50,7 @@ class LimitOperatorTest extends BaseOperatorTest {
 
   @Test
   def testLimitData(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val skipOperator =
       LimitOperator(nodeScanOperator, 2, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava
@@ -66,7 +67,7 @@ class LimitOperatorTest extends BaseOperatorTest {
 
   @Test
   def testLimitDataSizeBiggerThanDataSize(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq.empty, Seq.empty)
     val skipOperator =
       LimitOperator(nodeScanOperator, 20, expressionEvaluator, ctx.expressionContext)
     val result = getOperatorAllOutputs(skipOperator).flatMap(f => f.batchData.flatten).toList.asJava

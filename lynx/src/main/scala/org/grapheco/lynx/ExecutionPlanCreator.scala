@@ -1,12 +1,16 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.execution._
+import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.pattern.LynxNodePattern
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical._
+import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.property.LynxNumber
+import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
 import org.opencypher.v9_0.ast.AliasedReturnItem
-import org.opencypher.v9_0.expressions.Variable
+import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, NodePattern, Variable}
 import org.opencypher.v9_0.util.InputPosition
 
 /**
@@ -22,8 +26,28 @@ class ExecutionPlanCreator {
     ): ExecutionOperator = {
     plan match {
       case PhysicalNodeScan(pattern) => {
+        val NodePattern(
+          Some(nodeVariable: LogicalVariable),
+          labels: Seq[LabelName],
+          properties: Option[Expression],
+          baseNode: Option[LogicalVariable]
+        ) = pattern
+
+        val variable = LynxVariable(nodeVariable.name, 0)
+        val nodeLabels = labels.map(l => LynxNodeLabel(l.name))
+
+        val nodeProperties = properties
+          .map(prop =>
+            plannerContext.runnerContext.expressionEvaluator
+              .eval(prop)(executionContext.expressionContext)
+              .asInstanceOf[LynxMap]
+              .value
+              .map(kv => (LynxPropertyKey(kv._1), kv._2))
+          )
+          .getOrElse(Map.empty)
+
         NodeScanOperator(
-          pattern,
+          LynxNodePattern(variable, nodeLabels, nodeProperties),
           plannerContext.runnerContext.graphModel,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
