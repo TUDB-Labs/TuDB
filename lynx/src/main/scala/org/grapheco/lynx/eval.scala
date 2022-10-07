@@ -1,5 +1,6 @@
 package org.grapheco.lynx
 
+import org.grapheco.lynx.expression.{LynxListLiteral, LynxLiteral, LynxMapExpression}
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.procedure.{ProcedureExpression, ProcedureRegistry}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
@@ -317,6 +318,16 @@ class DefaultExpressionEvaluator(
       }
 
       case MapExpression(items) => LynxMap(items.map(it => it._1.name -> eval(it._2)).toMap)
+
+      // LynxExpression
+      case LynxMapExpression(items) => LynxMap(items.map(kv => kv._1.value -> eval(kv._2)).toMap)
+
+      case v: LynxLiteral =>
+        types.wrap(v.value)
+
+      case v: LynxListLiteral =>
+        LynxValue(v.expressions.map(eval(_)))
+
     }
   }
 

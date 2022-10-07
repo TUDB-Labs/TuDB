@@ -39,7 +39,8 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortDataWithDescAndAsc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
 
     val sortItems = Seq(
       DescSortItem(
@@ -69,7 +70,8 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortWithDesc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
 
     val sortItems = Seq(
       DescSortItem(
@@ -99,7 +101,8 @@ class OrderByOperatorTest extends BaseOperatorTest {
 
   @Test
   def testSortWithAsc(): Unit = {
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
 
     val sortItems = Seq(
       AscSortItem(

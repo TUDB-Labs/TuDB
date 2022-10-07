@@ -7,5 +7,4 @@ import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 case class LynxNodePattern(
     variable: LynxVariable,
     labels: Seq[LynxNodeLabel],
-    // TODO: properties should be lynxExpression
-    properties: Map[LynxPropertyKey, LynxValue]) {}
+    properties: Option[LynxExpression]) {}

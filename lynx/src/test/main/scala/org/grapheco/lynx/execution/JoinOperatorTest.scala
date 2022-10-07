@@ -65,8 +65,10 @@ class JoinOperatorTest extends BaseOperatorTest {
 
   @Test
   def testCartesianProduct(): Unit = {
-    val smallTable = prepareNodeScanOperator(LynxVariable("city", 0), Seq("City"), Seq.empty)
-    val largeTable = prepareNodeScanOperator(LynxVariable("person", 0), Seq("Person"), Seq.empty)
+    val smallTable =
+      prepareNodeScanOperator(LynxVariable("city", 0), Seq(LynxNodeLabel("City")), Seq.empty)
+    val largeTable =
+      prepareNodeScanOperator(LynxVariable("person", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,
@@ -110,8 +112,10 @@ class JoinOperatorTest extends BaseOperatorTest {
       )
     )(defaultPosition)
 
-    val smallTable = prepareNodeScanOperator(LynxVariable("city", 0), Seq("City"), Seq.empty)
-    val largeTable = prepareNodeScanOperator(LynxVariable("person", 0), Seq("Person"), Seq.empty)
+    val smallTable =
+      prepareNodeScanOperator(LynxVariable("city", 0), Seq(LynxNodeLabel("City")), Seq.empty)
+    val largeTable =
+      prepareNodeScanOperator(LynxVariable("person", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
     val joinOperator = JoinOperator(
       smallTable,
       largeTable,

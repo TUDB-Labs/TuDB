@@ -3,7 +3,7 @@ package org.grapheco.lynx.execution
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.RowBatch
 import org.grapheco.lynx.execution.utils.OperatorUtils
-import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.{LynxSignedDecimalIntegerLiteral, LynxStringLiteral, LynxVariable}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
@@ -63,7 +63,7 @@ class NodeScanOperatorTest extends BaseOperatorTest {
   @Test
   def testScanAllNodesFilteredByLabel(): Unit = {
     val variable = LynxVariable("n", 0)
-    val labels = Seq("Person1")
+    val labels = Seq(LynxNodeLabel("Person1"))
     val properties = Seq.empty
 
     val nodeScanOperator = prepareNodeScanOperator(variable, labels, properties)
@@ -77,7 +77,7 @@ class NodeScanOperatorTest extends BaseOperatorTest {
   def testScanAllNodesFilteredByProperty(): Unit = {
     val variable = LynxVariable("n", 0)
     val labels = Seq.empty
-    val properties = Seq((LynxPropertyKey("name"), LynxString("Cat")))
+    val properties = Seq((LynxPropertyKey("name"), LynxStringLiteral("Cat")))
 
     val nodeScanOperator = prepareNodeScanOperator(variable, labels, properties)
     val resultData = OperatorUtils.getOperatorAllOutputs(nodeScanOperator)
@@ -94,10 +94,10 @@ class NodeScanOperatorTest extends BaseOperatorTest {
   @Test
   def testScanAllNodeFilteredByLabelAndProperties(): Unit = {
     val variable = LynxVariable("n", 0)
-    val labels = Seq("Person3")
+    val labels = Seq(LynxNodeLabel("Person3"))
     val properties = Seq(
-      (LynxPropertyKey("name"), LynxString("Cat")),
-      (LynxPropertyKey("age"), LynxInteger(15))
+      (LynxPropertyKey("name"), LynxStringLiteral("Cat")),
+      (LynxPropertyKey("age"), LynxSignedDecimalIntegerLiteral("15"))
     )
 
     val nodeScanOperator = prepareNodeScanOperator(variable, labels, properties)

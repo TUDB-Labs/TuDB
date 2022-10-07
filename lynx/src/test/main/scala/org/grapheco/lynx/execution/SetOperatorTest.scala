@@ -1,6 +1,6 @@
 package org.grapheco.lynx.execution
 
-import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.{LynxStringLiteral, LynxVariable}
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
@@ -70,7 +70,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setItems = Seq(
       SetPropertyItem(
@@ -141,7 +141,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -204,7 +204,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -260,7 +260,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -305,7 +305,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -343,12 +343,12 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator1 = prepareNodeScanOperator(
       LynxVariable("at", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val nodeScanOperator2 = prepareNodeScanOperator(
       LynxVariable("pn", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Peter")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Peter")))
     )
     val joinOperator = JoinOperator(
       nodeScanOperator1,
@@ -442,7 +442,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("p", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Peter")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Peter")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -493,7 +493,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("p", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Peter")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Peter")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -549,7 +549,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("p", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Peter")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Peter")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -609,7 +609,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("p", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Peter")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Peter")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -661,7 +661,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Andy")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Andy")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -704,7 +704,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("Stefan")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("Stefan")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
@@ -756,7 +756,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val nodeScanOperator = prepareNodeScanOperator(
       LynxVariable("n", 0),
       Seq.empty,
-      Seq((LynxPropertyKey("name"), LynxString("George")))
+      Seq((LynxPropertyKey("name"), LynxStringLiteral("George")))
     )
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)

@@ -46,7 +46,8 @@ class FilterOperatorTest extends BaseOperatorTest {
       SignedDecimalIntegerLiteral("10")(defaultPosition)
     )(defaultPosition)
 
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
     val filterOperator =
       FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 
@@ -71,7 +72,8 @@ class FilterOperatorTest extends BaseOperatorTest {
       SignedDecimalIntegerLiteral("1000")(defaultPosition)
     )(defaultPosition)
 
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
     val filterOperator =
       FilterOperator(nodeScanOperator, filterExpr, expressionEvaluator, ctx.expressionContext)
 

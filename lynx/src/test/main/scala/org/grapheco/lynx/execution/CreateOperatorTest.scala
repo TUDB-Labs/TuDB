@@ -1,7 +1,7 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.{LynxMapExpression, LynxStringLiteral, LynxVariable}
 import org.grapheco.lynx.physical.{CreateNode, CreateRelationship}
 import org.grapheco.lynx.types.property.LynxString
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
@@ -105,7 +105,8 @@ class CreateOperatorTest extends BaseOperatorTest {
     )(defaultPosition)
     all_nodes.append(node1)
     _nodeId = 1
-    val nodeScanOperator = prepareNodeScanOperator(LynxVariable("n", 0), Seq("Person"), Seq.empty)
+    val nodeScanOperator =
+      prepareNodeScanOperator(LynxVariable("n", 0), Seq(LynxNodeLabel("Person")), Seq.empty)
     val createOperator = CreateOperator(
       Option(nodeScanOperator),
       Seq(("n2", CTNode)),
@@ -140,13 +141,17 @@ class CreateOperatorTest extends BaseOperatorTest {
      */
     val nodeScanOperator1 = prepareNodeScanOperator(
       LynxVariable("n", 0),
-      Seq("Person"),
-      Seq((LynxPropertyKey("name"), LynxString("AAA")))
+      Seq(LynxNodeLabel("Person")),
+      Seq(
+        (LynxPropertyKey("name"), LynxStringLiteral("AAA"))
+      )
     )
     val nodeScanOperator2 = prepareNodeScanOperator(
       LynxVariable("m", 0),
-      Seq("Person"),
-      Seq((LynxPropertyKey("name"), LynxString("AAA")))
+      Seq(LynxNodeLabel("Person")),
+      Seq(
+        (LynxPropertyKey("name"), LynxStringLiteral("AAA"))
+      )
     )
     val joinOperator = ""
     // TODO: After merge JoinOperator.

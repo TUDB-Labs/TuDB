@@ -3,6 +3,8 @@ package org.grapheco.lynx.execution
 import org.grapheco.lynx.expression.pattern.LynxNodePattern
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.physical.filters.NodeFilter
+import org.grapheco.lynx.types.composite.LynxMap
+import org.grapheco.lynx.types.structural.LynxPropertyKey
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.util.symbols.CTNode
 
@@ -25,10 +27,20 @@ case class NodeScanOperator(
   // prepare data
   override def openImpl(): Unit = {
     val LynxNodePattern(variable, nodeLabels, properties) = pattern
-
     schema = Seq(variable.name -> CTNode)
+
+    val nodeProperties = properties
+      .map(propExpr => {
+        expressionEvaluator
+          .eval(propExpr)(expressionContext)
+          .asInstanceOf[LynxMap]
+          .value
+          .map(kv => LynxPropertyKey(kv._1) -> kv._2)
+      })
+      .getOrElse(Map.empty)
+
     dataSource = graphModel
-      .nodes(NodeFilter(nodeLabels, properties))
+      .nodes(NodeFilter(nodeLabels, nodeProperties))
       .grouped(numRowsPerBatch)
       .map(node => Seq(node))
       .map(f => RowBatch(f))
