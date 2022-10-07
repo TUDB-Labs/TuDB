@@ -191,8 +191,8 @@ trait GraphModel {
       relationshipFilter: RelationshipFilter,
       endNodeFilter: NodeFilter,
       direction: SemanticDirection,
-      upperLimit: Option[Int],
-      lowerLimit: Option[Int]
+      lowerLimit: Option[Int],
+      upperLimit: Option[Int]
     ): Iterator[Seq[PathTriple]] = {
 
     val lowerHop = lowerLimit.getOrElse(1)

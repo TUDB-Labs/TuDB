@@ -27,7 +27,7 @@ class ExecutionPlanCreator {
     ): ExecutionOperator = {
     plan match {
       case PhysicalNodeScan(pattern) => {
-        // TODO: NodePattern should be converted to LynxNodePattern when the AST tree is converted to LogicalPlan
+        // TODO: Pattern should be converted to LynxPattern when the AST tree is converted to LogicalPlan, calculate offset.
         val lynxNodePattern = ConvertPatternToLynxPattern.convertNodePattern(pattern, 0)
 
         NodeScanOperator(
@@ -38,20 +38,32 @@ class ExecutionPlanCreator {
         )
       }
       case expandPath: PhysicalExpandPath => {
+        // TODO: Pattern should be converted to LynxPattern when the AST tree is converted to LogicalPlan, calculate offset.
+
+        val relPattern = ConvertPatternToLynxPattern.convertRelationshipPattern(expandPath.rel, 4)
+        val rightNodePattern =
+          ConvertPatternToLynxPattern.convertNodePattern(expandPath.rightNode, 5)
+
         ExpandOperator(
           translate(expandPath.children.head, plannerContext, executionContext),
-          expandPath.rel,
-          expandPath.rightNode,
+          relPattern,
+          rightNodePattern,
           plannerContext.runnerContext.graphModel,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
       }
       case PhysicalRelationshipScan(relPattern, leftPattern, rightPattern) => {
+        // TODO: Pattern should be converted to LynxPattern when the AST tree is converted to LogicalPlan, calculate offset.
+        val lynxLeftNodePattern = ConvertPatternToLynxPattern.convertNodePattern(leftPattern, 0)
+        val lynxRelationshipPattern =
+          ConvertPatternToLynxPattern.convertRelationshipPattern(relPattern, 1)
+        val lynxRightNodePattern = ConvertPatternToLynxPattern.convertNodePattern(rightPattern, 2)
+
         PathScanOperator(
-          relPattern,
-          leftPattern,
-          rightPattern,
+          lynxRelationshipPattern,
+          lynxLeftNodePattern,
+          lynxRightNodePattern,
           plannerContext.runnerContext.graphModel,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
@@ -92,10 +104,12 @@ class ExecutionPlanCreator {
         )
       }
       case expand: PhysicalExpandPath => {
+        val expandRelPattern = ConvertPatternToLynxPattern.convertRelationshipPattern(expand.rel, 3)
+        val expandRightPattern = ConvertPatternToLynxPattern.convertNodePattern(expand.rightNode, 4)
         ExpandOperator(
           translate(expand.children.head, plannerContext, executionContext),
-          expand.rel,
-          expand.rightNode,
+          expandRelPattern,
+          expandRightPattern,
           plannerContext.runnerContext.graphModel,
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext

@@ -1,22 +1,16 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
-import org.grapheco.lynx.RowBatch
+import org.grapheco.lynx.expression.{LynxMapExpression, LynxSignedDecimalIntegerLiteral, LynxStringLiteral, LynxVariable}
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, MapExpression, NodePattern, PropertyKeyName, Range, RelTypeName, RelationshipPattern, SemanticDirection, SignedDecimalIntegerLiteral, StringLiteral, UnsignedDecimalIntegerLiteral, Variable}
-import org.opencypher.v9_0.util.InputPosition
+import org.opencypher.v9_0.expressions.SemanticDirection
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
 
-/**
-  *@author:John117
-  *@createDate:2022/8/2
-  *@description:
-  */
 class PathScanOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
@@ -201,15 +195,16 @@ class PathScanOperatorTest extends BaseOperatorTest {
   }
   @Test
   def testRelationshipScan(): Unit = {
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val relPattern = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      None,
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      1,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator = PathScanOperator(
       relPattern,
@@ -238,24 +233,25 @@ class PathScanOperatorTest extends BaseOperatorTest {
 
   @Test
   def testRelationshipScanWithRelationFilter(): Unit = {
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val relPattern = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      None,
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      1,
       Option(
-        MapExpression(
+        LynxMapExpression(
           Seq(
             (
-              PropertyKeyName("year")(defaultPosition),
-              SignedDecimalIntegerLiteral("2021")(defaultPosition)
+              LynxPropertyKey("year"),
+              LynxSignedDecimalIntegerLiteral("2021")
             )
           )
-        )(defaultPosition)
+        )
       ),
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator = PathScanOperator(
       relPattern,
@@ -285,22 +281,16 @@ class PathScanOperatorTest extends BaseOperatorTest {
   @Test
   def testOutgoingHopSearch(): Unit = {
     prepareOutgoingHopsData()
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val relPattern1 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern1 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      2,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator = PathScanOperator(
       relPattern1,
@@ -318,20 +308,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 2 hop: 3
     Assert.assertEquals(8 + 6 + 3, resultData.length)
 
-    val relPattern2 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("1000")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern2 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      1000,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
     val relationshipScanOperator2 = PathScanOperator(
       relPattern2,
       leftPattern,
@@ -350,20 +334,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 3 hop: 1
     Assert.assertEquals(8 + 6 + 3 + 1, resultData2.length)
 
-    val relPattern3 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("3")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern3 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      2,
+      3,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
     val relationshipScanOperator3 = PathScanOperator(
       relPattern3,
       leftPattern,
@@ -383,22 +361,16 @@ class PathScanOperatorTest extends BaseOperatorTest {
   @Test
   def testIncomingHopSearch(): Unit = {
     prepareOutgoingHopsData()
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val relPattern1 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern1 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      2,
       None,
       SemanticDirection.INCOMING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator = PathScanOperator(
       relPattern1,
@@ -416,20 +388,15 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 2 hop: 3
     Assert.assertEquals(8 + 6 + 3, resultData.length)
 
-    val relPattern2 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("1000")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern2 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      1000,
       None,
       SemanticDirection.INCOMING
-    )(defaultPosition)
+    )
+
     val relationshipScanOperator2 = PathScanOperator(
       relPattern2,
       leftPattern,
@@ -448,20 +415,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 3 hop: 1
     Assert.assertEquals(8 + 6 + 3 + 1, resultData2.length)
 
-    val relPattern3 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("2")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("3")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern3 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      2,
+      3,
       None,
       SemanticDirection.INCOMING
-    )(defaultPosition)
+    )
     val relationshipScanOperator3 = PathScanOperator(
       relPattern3,
       leftPattern,
@@ -483,48 +444,40 @@ class PathScanOperatorTest extends BaseOperatorTest {
   def testOutgoingIncomingHopSearchWithSpecifiedNodes(): Unit = {
     prepareOutgoingHopsData()
 
-    val leftPattern = NodePattern(
-      None,
+    val leftPattern = LynxNodePattern(
+      LynxVariable("n", 0),
       Seq.empty,
       Option(
-        MapExpression(
+        LynxMapExpression(
           Seq(
-            (
-              PropertyKeyName("name")(InputPosition(0, 0, 0)),
-              StringLiteral("A")(InputPosition(0, 0, 0))
-            )
+            (LynxPropertyKey("name"), LynxStringLiteral("A"))
           )
-        )(InputPosition(0, 0, 0))
-      )
-    )(defaultPosition)
-    val rightPattern = NodePattern(
-      None,
-      Seq.empty,
-      Option(
-        MapExpression(
-          Seq(
-            (
-              PropertyKeyName("name")(InputPosition(0, 0, 0)),
-              StringLiteral("G")(InputPosition(0, 0, 0))
-            )
-          )
-        )(InputPosition(0, 0, 0))
-      )
-    )(defaultPosition)
-    val relPattern1 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("10")(defaultPosition))
-          )(defaultPosition)
         )
-      ),
+      )
+    )
+    val rightPattern = LynxNodePattern(
+      LynxVariable("m", 2),
+      Seq.empty,
+      Option(
+        LynxMapExpression(
+          Seq(
+            (
+              LynxPropertyKey("name"),
+              LynxStringLiteral("G")
+            )
+          )
+        )
+      )
+    )
+
+    val relPattern1 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      10,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator1 = PathScanOperator(
       relPattern1,
@@ -539,20 +492,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
 
     Assert.assertEquals(1, resultData.length)
 
-    val relPattern2 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("10")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern2 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      10,
       None,
       SemanticDirection.INCOMING
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator2 = PathScanOperator(
       relPattern2,
@@ -571,22 +518,16 @@ class PathScanOperatorTest extends BaseOperatorTest {
   @Test
   def testBothHopSearch(): Unit = {
     prepareBothHopsData()
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val relPattern = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("1")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("100")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      100,
       None,
       SemanticDirection.BOTH
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator = PathScanOperator(
       relPattern,
@@ -603,20 +544,14 @@ class PathScanOperatorTest extends BaseOperatorTest {
     // 2 hop: 1
     Assert.assertEquals(4, resultData.length)
 
-    val relPattern2 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      Option(
-        Option(
-          Range(
-            Option(UnsignedDecimalIntegerLiteral("0")(defaultPosition)),
-            Option(UnsignedDecimalIntegerLiteral("100")(defaultPosition))
-          )(defaultPosition)
-        )
-      ),
+    val relPattern2 = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      0,
+      100,
       None,
       SemanticDirection.BOTH
-    )(defaultPosition)
+    )
 
     val relationshipScanOperator2 = PathScanOperator(
       relPattern2,

@@ -1,5 +1,6 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.physical.filters.{NodeFilter, RelationshipFilter}
 import org.grapheco.lynx.types.LynxValue
@@ -16,8 +17,8 @@ import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship}
   */
 case class ExpandOperator(
     in: ExecutionOperator,
-    relPattern: RelationshipPattern,
-    rightNodePattern: NodePattern,
+    relPattern: LynxRelationshipPattern,
+    rightNodePattern: LynxNodePattern,
     graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -26,50 +27,23 @@ case class ExpandOperator(
 
   var schema: Seq[(String, LynxType)] = Seq.empty
 
-  var minLength: Int = _
-  var maxLength: Int = _
-
   override def openImpl(): Unit = {
     in.open()
 
     schema = {
-      val expandSchema = if (relPattern.length.isEmpty) {
+      val expandSchema = if (relPattern.lowerHop == 1 && relPattern.upperHop == 1) {
         Seq(
-          relPattern.variable
-            .map(_.name)
-            .getOrElse(s"__RELATIONSHIP_${relPattern.hashCode}") -> CTRelationship,
-          rightNodePattern.variable
-            .map(_.name)
-            .getOrElse(s"__NODE_${rightNodePattern.hashCode}") -> CTNode
+          relPattern.variable.name -> CTRelationship,
+          rightNodePattern.variable.name -> CTNode
         )
       } else {
         Seq(
-          relPattern.variable
-            .map(_.name)
-            .getOrElse(s"__RELATIONSHIP_LIST_${relPattern.hashCode}") -> CTList(
-            CTRelationship
-          ),
-          rightNodePattern.variable
-            .map(_.name)
-            .getOrElse(s"__NODE_${rightNodePattern.hashCode}") -> CTNode
+          relPattern.variable.name -> CTList(CTRelationship),
+          rightNodePattern.variable.name -> CTNode
         )
       }
       in.outputSchema() ++ expandSchema
     }
-
-    val (min, max) = relPattern.length match {
-      case None       => (1, 1)
-      case Some(None) => (1, Int.MaxValue)
-      case Some(Some(Range(a, b))) => {
-        (a, b) match {
-          case (_, None) => (a.get.value.toInt, Int.MaxValue)
-          case (None, _) => (1, b.get.value.toInt)
-          case _         => (a.get.value.toInt, b.get.value.toInt)
-        }
-      }
-    }
-    minLength = min
-    maxLength = max
   }
 
   override def getNextImpl(): RowBatch = {
@@ -93,7 +67,7 @@ case class ExpandOperator(
     val ctx = expressionContext.withVars(ctxMap)
 
     val relationshipFilter = RelationshipFilter(
-      relPattern.types.map(relTypeName => LynxRelationshipType(relTypeName.name)),
+      relPattern.types,
       relPattern.properties
         .map(expr =>
           expressionEvaluator
@@ -105,7 +79,7 @@ case class ExpandOperator(
         .getOrElse(Map.empty)
     )
     val rightNodeFilter = NodeFilter(
-      rightNodePattern.labels.map(labelName => LynxNodeLabel(labelName.name)),
+      rightNodePattern.labels,
       rightNodePattern.properties
         .map(expr =>
           expressionEvaluator
@@ -124,8 +98,8 @@ case class ExpandOperator(
         relationshipFilter,
         rightNodeFilter,
         relPattern.direction,
-        minLength,
-        maxLength
+        relPattern.lowerHop,
+        relPattern.upperHop
       )
       .map(expandPath =>
         expandPath

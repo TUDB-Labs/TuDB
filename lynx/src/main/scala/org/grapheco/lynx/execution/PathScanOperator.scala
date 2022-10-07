@@ -1,5 +1,6 @@
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.physical.filters.{NodeFilter, RelationshipFilter}
 import org.grapheco.lynx.types.composite.LynxMap
@@ -10,8 +11,6 @@ import org.opencypher.v9_0.expressions.{Expression, LabelName, LogicalVariable, 
 import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship, ListType}
 
 /**
-  *@author:John117
-  *@createDate:2022/8/1
   *@description: PathScanOperator is used to query path in DB,
   *               path has two kind of triple:
   *                  1. single relationship: [leftNode, relationship, rightNode]:
@@ -20,9 +19,9 @@ import org.opencypher.v9_0.util.symbols.{CTList, CTNode, CTRelationship, ListTyp
   *                        It means that rightNode can be reached via a multi-hop path from leftNode.
   */
 case class PathScanOperator(
-    rel: RelationshipPattern,
-    leftNode: NodePattern,
-    rightNode: NodePattern,
+    relPattern: LynxRelationshipPattern,
+    leftNodePattern: LynxNodePattern,
+    rightNodePattern: LynxNodePattern,
     graphModel: GraphModel,
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
@@ -31,63 +30,29 @@ case class PathScanOperator(
   var dataSource: Iterator[RowBatch] = Iterator.empty
 
   override def openImpl(): Unit = {
-    val RelationshipPattern(
-      relVariable: Option[LogicalVariable],
-      types: Seq[RelTypeName],
-      length: Option[Option[Range]],
-      relProps: Option[Expression],
-      direction: SemanticDirection,
-      legacyTypeSeparator: Boolean,
-      baseRel: Option[LogicalVariable]
-    ) = rel
-    val NodePattern(
-      leftNodeVariable,
-      leftNodeLabels: Seq[LabelName],
-      leftNodeProps: Option[Expression],
-      leftBaseNode: Option[LogicalVariable]
-    ) = leftNode
-    val NodePattern(
-      rightNodeVariable,
-      rightNodeLabels: Seq[LabelName],
-      rightNodeProps: Option[Expression],
-      rightBaseNode: Option[LogicalVariable]
-    ) = rightNode
-
     schema = {
-      if (length.isEmpty) {
+      if (relPattern.lowerHop == 1 && relPattern.upperHop == 1) {
         Seq(
-          leftNodeVariable.map(_.name).getOrElse(s"__NODE_${leftNode.hashCode}") -> CTNode,
-          relVariable.map(_.name).getOrElse(s"__RELATIONSHIP_${rel.hashCode}") -> CTRelationship,
-          rightNodeVariable.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+          leftNodePattern.variable.name -> CTNode,
+          relPattern.variable.name -> CTRelationship,
+          rightNodePattern.variable.name -> CTNode
         )
       } else {
         Seq(
-          leftNodeVariable.map(_.name).getOrElse(s"__NODE_${leftNode.hashCode}") -> CTNode,
-          relVariable.map(_.name).getOrElse(s"__RELATIONSHIP_LIST_${rel.hashCode}") -> CTList(
+          leftNodePattern.variable.name -> CTNode,
+          relPattern.variable.name -> CTList(
             CTRelationship
           ),
-          rightNodeVariable.map(_.name).getOrElse(s"__NODE_${rightNode.hashCode}") -> CTNode
+          rightNodePattern.variable.name -> CTNode
         )
-      }
-    }
-
-    val (minLength, maxLength) = length match {
-      case None       => (1, 1)
-      case Some(None) => (1, Int.MaxValue)
-      case Some(Some(Range(a, b))) => {
-        (a, b) match {
-          case (_, None) => (a.get.value.toInt, Int.MaxValue)
-          case (None, _) => (1, b.get.value.toInt)
-          case _         => (a.get.value.toInt, b.get.value.toInt)
-        }
       }
     }
 
     val data = graphModel
       .paths(
         NodeFilter(
-          leftNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
-          leftNodeProps
+          leftNodePattern.labels,
+          leftNodePattern.properties
             .map(expr =>
               expressionEvaluator
                 .eval(expr)(expressionContext)
@@ -98,8 +63,8 @@ case class PathScanOperator(
             .getOrElse(Map.empty)
         ),
         RelationshipFilter(
-          types.map(relTypeName => relTypeName.name).map(LynxRelationshipType),
-          relProps
+          relPattern.types,
+          relPattern.properties
             .map(expr =>
               expressionEvaluator
                 .eval(expr)(expressionContext)
@@ -110,8 +75,8 @@ case class PathScanOperator(
             .getOrElse(Map.empty)
         ),
         NodeFilter(
-          rightNodeLabels.map(labelName => labelName.name).map(LynxNodeLabel),
-          rightNodeProps
+          rightNodePattern.labels,
+          rightNodePattern.properties
             .map(expr =>
               expressionEvaluator
                 .eval(expr)(expressionContext)
@@ -121,9 +86,9 @@ case class PathScanOperator(
             )
             .getOrElse(Map.empty)
         ),
-        direction,
-        Option(maxLength),
-        Option(minLength)
+        relPattern.direction,
+        Option(relPattern.lowerHop),
+        Option(relPattern.upperHop)
       )
 
     val relCypherType = schema(1)._2 // get relationship's CT-Type: is CTRelationship or ListType(CTRelationship)

@@ -1,6 +1,8 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.{LynxMapExpression, LynxStringLiteral, LynxVariable}
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxInteger
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
@@ -59,37 +61,39 @@ class ExpandOperatorTest extends BaseOperatorTest {
   @Test
   def testExpand(): Unit = {
     val leftNodePropertiesExpression = Option(
-      MapExpression(
+      LynxMapExpression(
         Seq(
           (
-            PropertyKeyName("name")(defaultPosition),
-            StringLiteral("Alex")(defaultPosition)
+            LynxPropertyKey("name"),
+            LynxStringLiteral("Alex")
           )
         )
-      )(defaultPosition)
+      )
     )
     val rightNodePropertiesExpression = Option(
-      MapExpression(
+      LynxMapExpression(
         Seq(
           (
-            PropertyKeyName("name")(defaultPosition),
-            StringLiteral("Bob")(defaultPosition)
+            LynxPropertyKey("name"),
+            LynxStringLiteral("Bob")
           )
         )
-      )(defaultPosition)
+      )
     )
 
-    val leftPattern = NodePattern(None, Seq.empty, leftNodePropertiesExpression)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, rightNodePropertiesExpression)(defaultPosition)
-    val expandRightPattern = NodePattern(None, Seq.empty, Option.empty)(defaultPosition)
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, leftNodePropertiesExpression)
+    val rightPattern =
+      LynxNodePattern(LynxVariable("m", 2), Seq.empty, rightNodePropertiesExpression)
+    val expandRightPattern = LynxNodePattern(LynxVariable("q", 4), Seq.empty, Option.empty)
 
-    val relPattern = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      None,
+    val relPattern = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      1,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
 
     val pathScanOperator = PathScanOperator(
       relPattern,

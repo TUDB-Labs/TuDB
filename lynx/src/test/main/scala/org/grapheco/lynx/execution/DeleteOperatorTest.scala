@@ -1,6 +1,7 @@
 package org.grapheco.lynx.execution
 
 import org.grapheco.lynx.ConstrainViolatedException
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.expression.{LynxStringLiteral, LynxVariable}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
@@ -157,15 +158,16 @@ class DeleteOperatorTest extends BaseOperatorTest {
 
   @Test
   def testDeleteRelationship(): Unit = {
-    val rPattern = RelationshipPattern(
-      Option(Variable("r")(defaultPosition)),
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      None,
+    val rPattern = LynxRelationshipPattern(
+      LynxVariable("r", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      1,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
-    val leftPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
-    val rightPattern = NodePattern(None, Seq.empty, None)(defaultPosition)
+    )
+    val leftPattern = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
     val r1 = TestRelationship(
       TestId(1L),
       TestId(1L),

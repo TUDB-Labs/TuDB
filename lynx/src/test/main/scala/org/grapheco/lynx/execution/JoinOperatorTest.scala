@@ -2,6 +2,7 @@ package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
 import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.pattern.{LynxNodePattern, LynxRelationshipPattern}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
@@ -145,17 +146,16 @@ class JoinOperatorTest extends BaseOperatorTest {
         match (n)-[r2:KNOW]->(m)
         return m
      */
-    val leftPattern1 =
-      NodePattern(Option(Variable("n")(defaultPosition)), Seq.empty, None)(defaultPosition)
-    val rightPattern1 =
-      NodePattern(Option(Variable("c")(defaultPosition)), Seq.empty, None)(defaultPosition)
-    val relPattern1 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("LiveIn")(defaultPosition)),
-      None,
+    val leftPattern1 = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern1 = LynxNodePattern(LynxVariable("c", 2), Seq.empty, None)
+    val relPattern1 = LynxRelationshipPattern(
+      LynxVariable("r1", 1),
+      Seq(LynxRelationshipType("LiveIn")),
+      1,
+      1,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
     val relationshipScanOperator1 = PathScanOperator(
       relPattern1,
       leftPattern1,
@@ -165,17 +165,16 @@ class JoinOperatorTest extends BaseOperatorTest {
       ctx.expressionContext
     )
 
-    val leftPattern2 =
-      NodePattern(Option(Variable("n")(defaultPosition)), Seq.empty, None)(defaultPosition)
-    val rightPattern2 =
-      NodePattern(Option(Variable("m")(defaultPosition)), Seq.empty, None)(defaultPosition)
-    val relPattern2 = RelationshipPattern(
-      None,
-      Seq(RelTypeName("KNOW")(defaultPosition)),
-      None,
+    val leftPattern2 = LynxNodePattern(LynxVariable("n", 0), Seq.empty, None)
+    val rightPattern2 = LynxNodePattern(LynxVariable("m", 2), Seq.empty, None)
+    val relPattern2 = LynxRelationshipPattern(
+      LynxVariable("r2", 1),
+      Seq(LynxRelationshipType("KNOW")),
+      1,
+      1,
       None,
       SemanticDirection.OUTGOING
-    )(defaultPosition)
+    )
     val relationshipScanOperator2 = PathScanOperator(
       relPattern2,
       leftPattern2,
