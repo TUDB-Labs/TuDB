@@ -32,6 +32,7 @@ nav:
       - examples/basic.md
   - Developer Guide:
       - CONTRIBUTING.md
-      - protocol-services-interface-design.md
-      - performance-report.md
+  - Design Docs:
+      - designs/en/protocol-services-interface-design.md
+      - designs/en/decypher.md
   - Roadmap: roadmap.md
