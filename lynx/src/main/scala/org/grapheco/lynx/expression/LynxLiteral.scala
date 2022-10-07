@@ -48,7 +48,7 @@ sealed abstract class LynxHexIntegerLiteral(stringVal: String) extends LynxInteg
       java.lang.Long.parseLong(stringVal.substring(2), 16)
 }
 
-case class SignedHexIntegerLiteral(stringVal: String)
+case class LynxSignedHexIntegerLiteral(stringVal: String)
   extends LynxHexIntegerLiteral(stringVal)
   with LynxSignedIntegerLiteral
 
