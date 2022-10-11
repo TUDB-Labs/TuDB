@@ -1,5 +1,6 @@
 package org.grapheco.metrics
 
+import org.grapheco.tudb.common.utils.LogUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -32,13 +33,9 @@ class Domain(dID: String) {
   def printRecordByLabel(l: Label): Unit = {
     for (r <- records) {
       if (r.containLabel(l)) {
-        printRecord(r)
+        LogUtil.info(logger, "%s", r.toString())
       }
     }
-  }
-
-  def printRecord(r: Record): Unit = {
-    logger.info(r.toString())
   }
 
   def filterRecords(l: Label): Set[Record] = {

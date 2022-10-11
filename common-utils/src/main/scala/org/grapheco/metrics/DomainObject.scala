@@ -1,5 +1,7 @@
 package org.grapheco.metrics
 
+import org.slf4j.LoggerFactory
+
 import scala.collection.mutable.Stack
 
 object DomainObject {
