@@ -1,4 +1,6 @@
-package org.grapheco.lynx.expression
+package org.grapheco.lynx.expression.literal
+
+import org.grapheco.lynx.expression.LynxExpression
 
 /**
   *@description:

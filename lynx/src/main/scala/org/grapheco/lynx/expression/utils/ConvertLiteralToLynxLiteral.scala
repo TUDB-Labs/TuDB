@@ -1,6 +1,7 @@
 package org.grapheco.lynx.expression.utils
 
-import org.grapheco.lynx.expression.{LynxDecimalDoubleLiteral, LynxExpression, LynxFalse, LynxLiteral, LynxNullLiteral, LynxSignedDecimalIntegerLiteral, LynxSignedHexIntegerLiteral, LynxSignedOctalIntegerLiteral, LynxStringLiteral, LynxTrue, LynxUnsignedDecimalIntegerLiteral}
+import org.grapheco.lynx.expression.literal.{LynxDecimalDoubleLiteral, LynxFalse, LynxLiteral, LynxNullLiteral, LynxSignedDecimalIntegerLiteral, LynxSignedHexIntegerLiteral, LynxSignedOctalIntegerLiteral, LynxStringLiteral, LynxTrue, LynxUnsignedDecimalIntegerLiteral}
+import org.grapheco.lynx.expression.LynxExpression
 import org.opencypher.v9_0.expressions.{DecimalDoubleLiteral, False, Literal, Null, SignedDecimalIntegerLiteral, SignedHexIntegerLiteral, SignedOctalIntegerLiteral, StringLiteral, True, UnsignedDecimalIntegerLiteral}
 
 /**
