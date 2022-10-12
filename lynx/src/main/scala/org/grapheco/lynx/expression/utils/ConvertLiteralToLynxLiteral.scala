@@ -1,7 +1,7 @@
 package org.grapheco.lynx.expression.utils
 
-import org.grapheco.lynx.expression.{LynxDecimalDoubleLiteral, LynxExpression, LynxFalse, LynxLiteral, LynxNullLiteral, LynxSignedDecimalIntegerLiteral, LynxSignedHexIntegerLiteral, LynxSignedOctalIntegerLiteral, LynxStringLiteral, LynxTrue, LynxUnsignedDecimalIntegerLiteral}
-import org.opencypher.v9_0.expressions.{DecimalDoubleLiteral, False, Literal, Null, SignedDecimalIntegerLiteral, SignedHexIntegerLiteral, SignedOctalIntegerLiteral, StringLiteral, True, UnsignedDecimalIntegerLiteral}
+import org.grapheco.lynx.expression.{LynxDoubleLiteral, LynxFalse, LynxIntegerLiteral, LynxLiteral, LynxNullLiteral, LynxStringLiteral, LynxTrue}
+import org.opencypher.v9_0.expressions.{DoubleLiteral, False, IntegerLiteral, Literal, Null, StringLiteral, True}
 
 /**
   *@description:
@@ -9,15 +9,17 @@ import org.opencypher.v9_0.expressions.{DecimalDoubleLiteral, False, Literal, Nu
 object ConvertLiteralToLynxLiteral {
   def convert(literal: Literal): LynxLiteral = {
     literal match {
-      case SignedDecimalIntegerLiteral(stringVal)   => LynxSignedDecimalIntegerLiteral(stringVal)
-      case UnsignedDecimalIntegerLiteral(stringVal) => LynxUnsignedDecimalIntegerLiteral(stringVal)
-      case SignedOctalIntegerLiteral(stringVal)     => LynxSignedOctalIntegerLiteral(stringVal)
-      case SignedHexIntegerLiteral(stringVal)       => LynxSignedHexIntegerLiteral(stringVal)
-      case DecimalDoubleLiteral(stringVal)          => LynxDecimalDoubleLiteral(stringVal)
-      case StringLiteral(value)                     => LynxStringLiteral(value)
-      case Null()                                   => LynxNullLiteral()
-      case True()                                   => LynxTrue()
-      case False()                                  => LynxFalse()
+      case i: IntegerLiteral => LynxIntegerLiteral(i.value)
+
+      case d: DoubleLiteral => LynxDoubleLiteral(d.value)
+
+      case s: StringLiteral => LynxStringLiteral(s.value)
+
+      case Null() => LynxNullLiteral()
+
+      case True() => LynxTrue()
+
+      case False() => LynxFalse()
     }
   }
 }
