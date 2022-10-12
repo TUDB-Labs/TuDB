@@ -1,4 +1,4 @@
-package org.grapheco.lynx.rules
+package org.grapheco.lynx.physical.rules
 
 import org.grapheco.lynx.physical.{PhysicalExpandFromNode, PhysicalJoin, PhysicalNode, PhysicalNodeScan, PhysicalRelationshipScan, PhysicalSelect, PhysicalUnwind}
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
