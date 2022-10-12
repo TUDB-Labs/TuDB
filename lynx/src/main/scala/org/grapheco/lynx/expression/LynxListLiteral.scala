@@ -1,6 +1,5 @@
-package org.grapheco.lynx.expression.list
+package org.grapheco.lynx.expression
 
-import org.grapheco.lynx.expression.LynxExpression
 import org.opencypher.v9_0.expressions.Expression
 
 /**
