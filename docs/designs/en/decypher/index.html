@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Decypher - TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Decypher";
+        var mkdocs_page_input_path = "designs/en/decypher.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../..">
+          <img src="../../../assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING/">Contributing Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design Docs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../protocol-services-interface-design/">Protocol, Services, and Interfaces Design</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Decypher</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#problem">Problem</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#solution">Solution</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementation-plan">Implementation plan</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../roadmap/">Roadmap</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Design Docs &raquo;</li>
+      <li>Decypher</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/designs/en/decypher.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="de-cypher">De-Cypher<a class="headerlink" href="#de-cypher" title="Permanent link">&para;</a></h2>
+<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
+<p>Lynx relies on openCypher for parsing queries. However, Cypher constructs penetrates almost all layers of Lynx besides parsing, including logical plan, physical plan and execution plan. Take projection as example: LogicalProject has Cypher ReturnItemsDef; PhysicalProject has its too; ProjectOperator doesn’t have it, but still has Cypher Expression. The same pattern appears in most operators.</p>
+<p>This poses several problems. 
+* Cypher concepts don’t always map to Lynx concepts. For example, Cypher ReturnItemsDef represents a list of items in RETURN clause, which can be simple projection or complex aggregation. After being converted to logical/physical plan, it can be vastly different operators. 
+* (As a result of item 1) Cypher constructs have information that’s unnecessary for different stages of query processing. For example, for physical Project, we only need a list of Expressions for projection, but Cypher ReturnItemsDef much more than that. As a result, when we need to build an Expression, we have to set many unnecessary parameters. For example, all Cypher expressions require a <code>position</code> parameter (because Cypher needs to report where parsing error happens), but this is totally unnecessary for query planning/execution.
+* (As a result of item 1) We cannot easily change Cypher for our convenience. For example, if we want to fixate intermediate row schema to certain offsets, there is no easy way to attach offsets  Cypher Variables. Also, there is no type info in Cypher Expression and we cannot easily add it, which makes type-specific (for example, null or non-null) optimizations impossible.
+Incompatible Cypher changes can break relevant parts in Lynx.</p>
+<h3 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">&para;</a></h3>
+<p>We should only use openCypher for parsing. During logical planning, we should convert Cypher constructs to our own representation and keep using it for the rest of query processing.</p>
+<p>The gap between current state and the desired state includes three parts:
+* Logical nodes. Existing logical nodes are mostly wrappers of relevant Cypher constructs. We should extract useful info from Cypher constructs and add them as fields of logical node. For example, LogicalProject should only get the list of projection expression and output column names.
+* Physical nodes. Same as logical node.
+* Expressions. This requires our own Expression representation. It will be similar to Cypher Expression. But we can trim/add fields according to our need. There are two main changes we need for now: 
+    * Add offset in Variable expression. This will allow us to get variable value by offset instead of name lookup during evaluation.
+    * Add type info in each expression. Leaf nodes of Expression tree like Literal or Variable should have given type. Intermediate node like FunctionCall should be able to deduct the output type.</p>
+<h3 id="implementation-plan">Implementation plan<a class="headerlink" href="#implementation-plan" title="Permanent link">&para;</a></h3>
+<p>Since expression library is the cornerstone, we will start with adding our own version. Instead of adding the entire expression library and  changing all layers in one shot, we can actually do it incrementally. </p>
+<p>First we can add base class LynxExpress and make it extend Cypher Expression. Then we add a conversion util for converting Cypher Expressions that are supported by our expression library to our own version. In each logical translation, when we see any Cypher Expression, we call this util to rewrite the expression tree. Notice this rewrite can happen at any level of expression tree, for example, in Add(VariableA, VariableB), we might support Variable before Add. And the tree after rewrite can have both Cypher Expression and Lynx Expression.</p>
+<p>Then we can add concrete expression one by one without breaking existing code. Each concrete Expression is a subclass of base LynxExpression. After adding each one, we should also update the expression evaluator to correctly process it and update the conversion util to do the rewrite.</p>
+<p>Given there is dependency from execution operator to physical node and from physical node to logical node, we should implement the change from execution layer first and then physical planning and logical planning. </p>
+<p>Eventually, after all changes are done, we can stop making LynxExpression extend Cypher Expression and this will be the final cut between Lynx expression and Cypher expression.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../protocol-services-interface-design/" class="btn btn-neutral float-left" title="Protocol, Services, and Interfaces Design"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../../roadmap/" class="btn btn-neutral float-right" title="Roadmap">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../protocol-services-interface-design/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../../roadmap/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme_extra.js" defer></script>
+    <script src="../../../js/theme.js" defer></script>
+      <script src="../../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

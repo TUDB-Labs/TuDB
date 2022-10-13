@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Protocol, Services, and Interfaces Design - TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Protocol, Services, and Interfaces Design";
+        var mkdocs_page_input_path = "designs/en/protocol-services-interface-design.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../..">
+          <img src="../../../assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING/">Contributing Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design Docs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Protocol, Services, and Interfaces Design</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#protocol-design">Protocol Design</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#object-definitions">Object Definitions</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#generic-query">Generic Query</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#object-specific-services">Object-specific Services</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#interfaces">Interfaces</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#rest-apis">REST APIs</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#openapi-spec">OpenAPI Spec</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#sdks">SDKs</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cli">CLI</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementation-plan">Implementation Plan</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#references">References</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../decypher/">Decypher</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../roadmap/">Roadmap</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Design Docs &raquo;</li>
+      <li>Protocol, Services, and Interfaces Design</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/designs/en/protocol-services-interface-design.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="protocol-services-and-interfaces-design">Protocol, Services, and Interfaces Design<a class="headerlink" href="#protocol-services-and-interfaces-design" title="Permanent link">&para;</a></h1>
+<h2 id="protocol-design">Protocol Design<a class="headerlink" href="#protocol-design" title="Permanent link">&para;</a></h2>
+<h3 id="object-definitions">Object Definitions<a class="headerlink" href="#object-definitions" title="Permanent link">&para;</a></h3>
+<p>Below are the main objects in the protocols. Our services are built on these objects.</p>
+<div class="codehilite"><pre><span></span><code><span class="o">//</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">basic</span><span class="w"> </span><span class="n">structure</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">both</span><span class="w"> </span><span class="n">Node</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">Relationship</span><span class="o">.</span><span class="w"> </span><span class="n">It</span><span class="s1">&#39;s ID must be unique to its associated Node or Relationship.</span>
+<span class="o">//</span><span class="w"> </span><span class="n">An</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">maintains</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">collection</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">Properties</span><span class="o">.</span><span class="w"> </span><span class="n">An</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">must</span><span class="w"> </span><span class="n">belong</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">graph</span><span class="o">.</span><span class="w"></span>
+<span class="n">message</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">graph</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">associated</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="n">element</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">graph_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">Property</span><span class="w"> </span><span class="n">properties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">Property</span><span class="w"> </span><span class="n">holds</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">key</span><span class="o">-</span><span class="n">value</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="n">that</span><span class="s1">&#39;s associated with an element.</span>
+<span class="n">message</span><span class="w"> </span><span class="n">Property</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">associated</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="n">property</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">element_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">google</span><span class="o">.</span><span class="n">protobuf</span><span class="o">.</span><span class="n">Any</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">Graph</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">collection</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">nodes</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">relationships</span><span class="o">.</span><span class="w"></span>
+<span class="n">message</span><span class="w"> </span><span class="n">Graph</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">Node</span><span class="w"> </span><span class="n">nodes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">Relationship</span><span class="w"> </span><span class="n">relationships</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">Node</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">connects</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">relationships</span><span class="o">.</span><span class="w"></span>
+<span class="n">message</span><span class="w"> </span><span class="n">Node</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">fields</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">inherited</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">we</span><span class="w"> </span><span class="n">write</span><span class="w"> </span><span class="n">them</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="n">explictly</span><span class="w"> </span><span class="n">since</span><span class="w"> </span><span class="n">proto3</span><span class="w"> </span><span class="n">does</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">support</span><span class="w"> </span><span class="n">inheritance</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">graph_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">graph</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">associated</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="n">node</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">Property</span><span class="w"> </span><span class="n">properties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="n">labels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">Relationship</span><span class="w"> </span><span class="n">in_relation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">Relationship</span><span class="w"> </span><span class="n">out_relation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">Relationship</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">connects</span><span class="w"> </span><span class="n">two</span><span class="w"> </span><span class="n">nodes</span><span class="o">.</span><span class="w"></span>
+<span class="n">message</span><span class="w"> </span><span class="n">Relationship</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">fields</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">inherited</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">Element</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">we</span><span class="w"> </span><span class="n">write</span><span class="w"> </span><span class="n">them</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="n">explictly</span><span class="w"> </span><span class="n">since</span><span class="w"> </span><span class="n">proto3</span><span class="w"> </span><span class="n">does</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">support</span><span class="w"> </span><span class="n">inheritance</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">int32</span><span class="w"> </span><span class="n">graph_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">graph</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">associated</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="n">relationship</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">repeated</span><span class="w"> </span><span class="n">Property</span><span class="w"> </span><span class="n">properties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">Node</span><span class="w"> </span><span class="n">start_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="n">Node</span><span class="w"> </span><span class="n">end_node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="o">//</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">relationship</span><span class="w"> </span><span class="n">between</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">two</span><span class="w"> </span><span class="n">connected</span><span class="w"> </span><span class="n">nodes</span><span class="o">.</span><span class="w"></span>
+<span class="w">  </span><span class="n">string</span><span class="w"> </span><span class="n">relationType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h3 id="generic-query">Generic Query<a class="headerlink" href="#generic-query" title="Permanent link">&para;</a></h3>
+<p>We support generic query for advanced users to send query directly to the database:</p>
+<p>The request only contains statement:</p>
+<div class="codehilite"><pre><span></span><code>message GenericQueryRequest {
+  string statement = 1;
+}
+</code></pre></div>
+
+<p>The response contains results (e.g. graph objects), message, and exit code:</p>
+<div class="codehilite"><pre><span></span><code>message GenericResponseStatus {
+  string message = 2;
+  int32 exit_code = 3;
+}
+
+message GenericQueryResponse {
+  repeated map&lt;string, google.protobuf.Any&gt; results = 1;
+  GenericResponseStatus status = 2;
+}
+</code></pre></div>
+
+<p>The service definition is as follows:</p>
+<div class="codehilite"><pre><span></span><code>service QueryService {
+  rpc Query(GenericQueryRequest) returns (stream GenericQueryResponse) {}
+}
+</code></pre></div>
+
+<h3 id="object-specific-services">Object-specific Services<a class="headerlink" href="#object-specific-services" title="Permanent link">&para;</a></h3>
+<p>We support object-specific services such as create/get/delete graphs to provide easy-to-use endpoints to our REST client
+and high-level SDKs.</p>
+<p>Let's use graph service as an example:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">message</span><span class="w"> </span><span class="nt">GraphCreateRequest</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">Graph</span><span class="w"> </span><span class="err">graph</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphCreateResponse</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">Graph</span><span class="w"> </span><span class="err">graph</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="err">GenericResponseStatus</span><span class="w"> </span><span class="err">status</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">2</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphGetRequest</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">string</span><span class="w"> </span><span class="err">name</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphGetResponse</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">Graph</span><span class="w"> </span><span class="err">graph</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="err">GenericResponseStatus</span><span class="w"> </span><span class="err">status</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">2</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphListRequest</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">//</span><span class="w"> </span><span class="n">TODO</span><span class="p">:</span><span class="w"> </span><span class="n">Some</span><span class="w"> </span><span class="n">filtering</span><span class="w"> </span><span class="n">options</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphListResponse</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">repeated</span><span class="w"> </span><span class="err">Graph</span><span class="w"> </span><span class="err">graphs</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="err">GenericResponseStatus</span><span class="w"> </span><span class="err">status</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">2</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphDeleteRequest</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">string</span><span class="w"> </span><span class="err">name</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">message</span><span class="w"> </span><span class="nt">GraphDeleteResponse</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">GenericResponseStatus</span><span class="w"> </span><span class="err">status</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">1</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="o">;</span><span class="w"></span>
+
+<span class="nt">service</span><span class="w"> </span><span class="nt">GraphService</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="err">rpc</span><span class="w"> </span><span class="err">CreateGraph(GraphCreateRequest)</span><span class="w"> </span><span class="err">returns</span><span class="w"> </span><span class="err">GraphCreateResponse</span><span class="w"> </span><span class="err">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">option</span><span class="w"> </span><span class="err">(google.api.http)</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">post</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/v1/graphs/{graph_name}&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="n">body</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;*&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="o">;</span><span class="w"></span>
+<span class="w">  </span><span class="err">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="nt">rpc</span><span class="w"> </span><span class="nt">GetGraph</span><span class="o">(</span><span class="nt">GraphGetRequest</span><span class="o">)</span><span class="w"> </span><span class="nt">returns</span><span class="w"> </span><span class="nt">GraphGetResponse</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="err">option</span><span class="w"> </span><span class="err">(google.api.http).get</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="err">&quot;/api/v1/graphs/{name</span><span class="p">}</span><span class="s2">&quot;;</span>
+<span class="s2">  }</span>
+
+<span class="s2">  rpc ListGraphs(GraphListRequest) returns GraphListResponse {</span>
+<span class="s2">    option (google.api.http).get = &quot;</span><span class="o">/</span><span class="nt">api</span><span class="o">/</span><span class="nt">v1</span><span class="o">/</span><span class="nt">graphs</span><span class="s2">&quot;;</span>
+<span class="s2">  }</span>
+
+<span class="s2">  rpc DeleteGraph(GraphDeleteRequest) returns GraphDeleteResponse {</span>
+<span class="s2">    option (google.api.http).get = &quot;</span><span class="o">/</span><span class="nt">api</span><span class="o">/</span><span class="nt">v1</span><span class="o">/</span><span class="nt">graphs</span><span class="o">/</span><span class="p">{</span><span class="err">name</span><span class="p">}</span><span class="err">&quot;</span><span class="o">;</span><span class="w"></span>
+<span class="w">  </span><span class="err">}</span><span class="w"></span>
+<span class="err">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>Services for other objects are similar.</p>
+<h2 id="interfaces">Interfaces<a class="headerlink" href="#interfaces" title="Permanent link">&para;</a></h2>
+<h3 id="rest-apis">REST APIs<a class="headerlink" href="#rest-apis" title="Permanent link">&para;</a></h3>
+<p>We provide three types of methods:</p>
+<ol>
+<li>GET: Obtain data from the database;</li>
+<li>POST: Send/modify data to the database; </li>
+<li>DELETE: Delete data from the database.</li>
+</ol>
+<p>These three methods are available for the all the core objects in the graph database.</p>
+<p><strong>Note that all following endpoints will be prefixed by <code>/api/v1</code> so that this document is more concise.</strong></p>
+<p>For example, the following endpoints are available for graphs:</p>
+<ol>
+<li><code>GET /graphs</code>: obtain a list of graphs;</li>
+<li><code>GET /graphs/&lt;graph_name&gt;</code>: obtain a particular graph;</li>
+<li><code>POST /graphs/&lt;graph_name&gt;</code>: create a new graph in the database;</li>
+<li><code>DELETE /graphs/&lt;graph_name&gt;</code>: delete an existing graph.</li>
+</ol>
+<p>The following endpoints are available for nodes:
+1. <code>GET /graphs/&lt;graph_name&gt;/nodes</code>: obtain a list of nodes in a particular graph;
+2. <code>GET /graphs/&lt;graph_name&gt;/nodes/labels</code>: obtain a list of nodes in a particular graph by labels;
+3. <code>GET /graphs/&lt;graph_name&gt;/nodes/&lt;node_name&gt;</code>: get a particular node from a graph;
+4. <code>POST /graphs/&lt;graph_name&gt;/nodes/&lt;node_name&gt;</code>: create a new node in the graph;
+5. <code>DELETE /graphs/&lt;graph_name&gt;/nodes/&lt;node_name&gt;</code>: delete an existing node;
+6. <code>DELETE /graphs/&lt;graph_name&gt;/nodes</code>: delete all nodes in the graph;
+7. <code>DELETE /graphs/&lt;graph_name&gt;/nodes/labels</code>: delete all nodes in the graph by labels.</p>
+<p>The endpoints are available for relationships are similar.</p>
+<p>Each endpoint also allows specifying query parameters, e.g. <code>GET /graphs/&lt;graph_name&gt;/?&lt;query_params&gt;</code>.</p>
+<p>The returned object looks like the following:</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;version&quot;: {
+    &quot;api&quot;: &quot;v2&quot;,
+    &quot;schema&quot;: 0
+  },
+  &quot;exitCode&quot;: 0,
+  &quot;message&quot;: &quot;successfully retrieved&quot;,
+  &quot;results&quot;: [
+    {
+      &quot;id&quot;: &quot;0&quot;,
+      &quot;nodes&quot;: [...]
+    },
+    ...
+  ]
+}
+</code></pre></div>
+
+<h4 id="openapi-spec">OpenAPI Spec<a class="headerlink" href="#openapi-spec" title="Permanent link">&para;</a></h4>
+<p>REST APIs can be generated via <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>. We can <a href="https://bbengfort.github.io/2021/01/grpc-openapi-docs/">automatically generate OpenAPI spec</a> as well.</p>
+<h3 id="sdks">SDKs<a class="headerlink" href="#sdks" title="Permanent link">&para;</a></h3>
+<p>We also provide SDKs such as Python SDK to our users.</p>
+<p>First, initialize the client:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">tudb</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="n">xxx</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+</code></pre></div>
+
+<p>We can then get the graphs and nodes similar to REST APIs:</p>
+<div class="codehilite"><pre><span></span><code><span class="o">//</span> <span class="n">Get</span> <span class="n">the</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">graphs</span>
+<span class="n">client</span><span class="o">.</span><span class="n">list_graphs</span><span class="p">()</span>
+<span class="o">//</span> <span class="n">Get</span> <span class="n">a</span> <span class="n">particular</span> <span class="n">graph</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_graph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">Create</span> <span class="n">a</span> <span class="n">new</span> <span class="n">graph</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_graph</span><span class="p">(</span><span class="n">Graph</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+<span class="o">//</span> <span class="n">Delete</span> <span class="n">a</span> <span class="n">graph</span>
+<span class="n">client</span><span class="o">.</span><span class="n">delete_graph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+
+<span class="o">//</span> <span class="n">Get</span> <span class="n">the</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">the</span> <span class="n">nodes</span> <span class="n">associated</span> <span class="k">with</span> <span class="n">the</span> <span class="n">graph</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">list_nodes</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">Get</span> <span class="n">a</span> <span class="n">particular</span> <span class="n">node</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">Create</span> <span class="n">a</span> <span class="n">node</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">create_node</span><span class="p">(</span><span class="n">Node</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+<span class="o">//</span> <span class="n">Delete</span> <span class="n">a</span> <span class="n">node</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">delete_node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+
+<span class="o">//</span> <span class="n">Get</span> <span class="n">the</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">relationships</span> <span class="n">associated</span> <span class="k">with</span> <span class="n">the</span> <span class="n">graph</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">list_relationships</span><span class="p">()</span>
+<span class="o">//</span> <span class="n">Get</span> <span class="n">a</span> <span class="n">particular</span> <span class="n">relationship</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">get_relationship</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">Create</span> <span class="n">a</span> <span class="n">relationship</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">create_relationship</span><span class="p">(</span><span class="n">Relationship</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+<span class="o">//</span> <span class="n">Delete</span> <span class="n">a</span> <span class="n">relationship</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">delete_relationship</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">xxx</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h3>
+<p>Our CLI provides the following commands where <code>object_type</code> can be one of the following: graph, node, and relationship.</p>
+<ol>
+<li><code>tudb list &lt;object_type&gt;</code>: get a list of objects of this type.</li>
+<li><code>tudb get &lt;object_type&gt; &lt;object_name&gt;</code>: get a single object of this type.</li>
+<li><code>tudb create &lt;object_type&gt; -f &lt;path_to_graph_definition&gt;</code>: create an object of this type based on the specified definition.</li>
+<li><code>tudb delete &lt;object_type&gt; &lt;object_name&gt;</code>: delete a single object of this type.</li>
+<li><code>tudb delete &lt;object_type&gt; --all</code>: delete all objects of this type.</li>
+</ol>
+<p>For nodes, there are also additional flags:
+1. <code>--labels</code>: retrieving nodes that have this list of labels.</p>
+<p>For both nodes and relationships, we also need to provide <code>--graph &lt;graph_name&gt;</code> to associate with a graph when running the queries.</p>
+<h2 id="implementation-plan">Implementation Plan<a class="headerlink" href="#implementation-plan" title="Permanent link">&para;</a></h2>
+<p>Some decisions after discussions:</p>
+<ol>
+<li>The current protobuf definition for core objects are unnecessarily complex and designed to support Gremlin in the future. However,
+   we'd like to simplify the implementation of the service so that those definitions (e.g. Node and Relationship) are as close to
+   the current storage API as possible. For example, Element and Property are unnecessary and can be removed for the initial implementation.
+   We can revisit them later once we re-evaluate whether/how to support Gremlin.</li>
+<li><code>GraphService</code>, <code>NodeService</code>, and <code>RelationshipService</code> focus on providing simple get/create/list methods that can be used for REST/CLI/Python clients.
+   They will be implemented based on storage APIs. However, if users want to perform complex queries, the existing <code>TuDBServer</code> will be leveraged instead.</li>
+</ol>
+<p>The implementation plan for the Scala gRPC services consists of the following tasks:</p>
+<ol>
+<li>Add get/create/list methods in <code>GraphService</code>, <code>NodeService</code>, and <code>RelationshipService</code> that implement <code>GraphServiceGrpc.GraphServiceImplBase</code> (without integration with storage yet).</li>
+<li>Implement <code>NodeService</code> that uses <code>NodeStoreAPI</code>. For each node, we will include a <code>graph_id</code> in <code>StoredNodeWithProperty</code>'s properties so that later
+   we can use it to look up nodes that belong to a graph in <code>GraphService</code>.</li>
+<li>Implement <code>RelationshipService</code> that uses <code>RelationshipStoreAPI</code>. Similarly, we will include a reference to the graph it belongs to in <code>StoredRelationshipWithProperty</code>'s properties.</li>
+<li>Implement <code>GraphService</code> that constructs a graph object with the list of nodes and relationships. Since the graph can get extremely large, we will support parameters
+   like <code>nodeCount</code> and <code>relationshipCount</code> similar to Neo4j's <a href="https://neo4j.com/docs/graph-data-science/current/graph-list/"><code>graph.list()</code></a> method to allow getting a subset of the nodes
+   and relationships.</li>
+</ol>
+<p>The next phase of the development will be building the RESTful, CLI and Python interfaces based on the gRPC services implemented above.
+1. RESTful APIs can be generated via <a href="https://github.com/grpc-ecosystem/grpc-gateway">grpc-gateway</a>. We can <a href="https://bbengfort.github.io/2021/01/grpc-openapi-docs/">automatically generate OpenAPI spec</a> as well.
+2. CLI will be built in Scala that invokes the gRPC services.
+3. Python interface will be implemented in Python via gRPC calls to the running Scala gRPC services.</p>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/apache/tinkerpop/tree/master/gremlin-core/src/main/java/org/apache/tinkerpop/gremlin/structure">Gremlin structure APIs</a></li>
+<li><a href="https://github.com/apache/tinkerpop/tree/master/neo4j-gremlin/src/main/java/org/apache/tinkerpop/gremlin/neo4j/structure">Neo4j Gremlin structure APIs</a></li>
+<li><a href="https://docs.tigergraph.com.cn/dev/restpp-api/introduction">TigerGraph REST APIs</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../../CONTRIBUTING/" class="btn btn-neutral float-left" title="Contributing Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../decypher/" class="btn btn-neutral float-right" title="Decypher">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../../../CONTRIBUTING/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../decypher/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme_extra.js" defer></script>
+    <script src="../../../js/theme.js" defer></script>
+      <script src="../../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>针对性能调优的查询引擎执行层重构 - TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\u9488\u5bf9\u6027\u80fd\u8c03\u4f18\u7684\u67e5\u8be2\u5f15\u64ce\u6267\u884c\u5c42\u91cd\u6784";
+        var mkdocs_page_input_path = "designs/cn/performance-based-refactoring.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../..">
+          <img src="../../../assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING/">Contributing Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design Docs</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../en/protocol-services-interface-design/">Protocol, Services, and Interfaces Design</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../en/decypher/">Decypher</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../roadmap/">Roadmap</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>针对性能调优的查询引擎执行层重构</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/designs/cn/performance-based-refactoring.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="_1">针对性能调优的查询引擎执行层重构<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<h2 id="_2">问题<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>目前TuDB的查询引擎Lynx虽然实现了基本功能，但是代码结构不够清晰，实现不够高效，执行层问题尤为明显，甚至会阻碍性能分析。我们希望通过对其重构，让性能分析变得可能，优化一些显而易见的低效实现，同时提高其代码质量，使其更容易让人理解和修改。</p>
+<h2 id="_3">分析<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>目前Lynx把一个查询转换为物理计划后，表面上执行发生在各个物理节点对PPTNode::execute()的具体实现，其结果为一个DataFrame对象；实际的执行方式记录在DataFrame对象的records Iterator里，以匿名函数的形式存在（参见DefaultDataFrameOperator），并在用户真正使用这个Iterator提取结果时触发执行（目前在QueryService生成json结果时调用）。表面上我们在“执行”物理计划，实际上是生成了一个执行计划树。树的节点是各个运算符如filter/project/join，执行时节点之间传递的是带有特定格式的单行数据，具体表示为Seq[LynxValue]。
+这样有如下几个问题：
+* 运算符按行传递数据，近似于解释执行，CPU开销很高（并非当前瓶颈，解决方案不在此设计范围内）；而且导致无法记录每个算子用了多长时间，每行记录一次不准确而且开销大。
+* 查询执行阶段的性能分析多依赖于Profiling：profiling工具收集各个时间点的stacktrace，而后通过stack frame中出现的类/函数名来估算它们占用的时间，结果多为火焰图。运算符均为匿名函数时，profiling无法有效指出每个运算符使用的时间。
+* 运算符没有任何的单元测试，也由于全都是DefaultDataFrameOperator里的匿名函数，也不好单元测试。
+* 所有的运算符均放在DefaultDataFrameOperator里，导致其过于臃肿。运算符调用并非显式函数调用，而是使用隐式类型转换(Scala implicit def)直接在DataFrame对象上调用，不够直观也不易寻找。</p>
+<h2 id="_4">方案<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>我们可以把执行计划树做成一个显式的结构。各个运算符划分成单独的类（同时添加单元测试），并统一继承一个类似Iterator的父类：</p>
+<div class="codehilite"><pre><span></span><code> trait ExecutionOperator extends TreeNode {
+   // Input operators
+   val children: Seq[ExecutionOperator]
+
+   // Prepare for processing.
+   def Open() = {
+       ...common logic...
+       OpenImpl()
+   }
+
+   // To be implemented by concrete operators.
+   def OpenSelf();
+
+   // Fills output_batch. Empty RowBatch means the end of output.
+   def GetNext(output_batch: RowBatch)  = {
+     ...common logic...
+     // Example way of collecting per-operator metrics.
+     ScopedTimer timer;
+     return GetNextImpl(output_batch);
+   }
+
+   // Interface for child class to override
+   def GetNextImpl(output_batch: RowBatch); 
+
+   // Ends processing.
+   def Close() = {
+       ...common logic...
+       CloseImpl()
+   }
+
+   // To be implemented by concrete operators.
+   def CloseImpl();
+
+   // Schema of output rows.
+   def OutputSchema()
+ }
+
+ // Example concrete operator.
+ class FilterOperator extends ExecutionOperator {
+   override def OpenImpl() = {
+     children[0].Open()
+   }
+
+   override def GetNextImpl(output_batch: RowBatch): Unit = {
+     while (!output_batch.full()) {
+       RowBatch input_batch;
+       children[0].GetNext(input_batch)
+       if (input_batch.empty()) break;
+       RunFilter(input_batch, output_batch)
+     }
+   } 
+
+   override def CloseImpl() = {
+     children[0].Close()
+   }
+ }
+</code></pre></div>
+
+<p>运算符的整个周期是Open-&gt;GetNext-&gt;Close，其中GetNext可以反复调用直到不能再返回更多结果。父类ExecutionOperator中对这三个接口有统一的基本实现，用来做一些所有操作符都通用的事情，比如收集metrics，各操作符独自的逻辑在对于的Impl方法里实现。在执行计划生成后，只需像对Iterator一样从根节点获取输出，各节点内部会层级调用各自子结点的Open/GetNext/Close。</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">ExecutionOperator</span> <span class="nv">execution_plan</span> <span class="o">=</span> <span class="nv">GenerateExecutionPlan</span><span class="ss">(</span><span class="nv">physical_plan</span><span class="ss">)</span>
+
+<span class="nv">execution_plan</span>.<span class="nv">Open</span><span class="ss">()</span>
+<span class="k">while</span> <span class="ss">(</span><span class="nv">true</span><span class="ss">)</span> {
+    <span class="nv">RowBatch</span> <span class="nv">output_batch</span><span class="c1">;</span>
+    <span class="nv">execution_plan</span>.<span class="nv">GetNext</span><span class="ss">(</span><span class="nv">output_batch</span><span class="ss">)</span><span class="c1">;</span>
+    <span class="k">if</span> <span class="ss">(</span><span class="nv">output_batch</span>.<span class="nv">empty</span><span class="ss">())</span> <span class="k">break</span><span class="c1">;</span>
+    <span class="o">//</span> <span class="nv">consume</span> <span class="nv">output</span> <span class="nv">here</span>
+}
+<span class="nv">execution_plan</span>.<span class="nv">Close</span><span class="ss">()</span>
+</code></pre></div>
+
+<p>运算符之间传递的单元为RowBatch，包含多个输出行。具体行数可以先用固定值比如256。将来有内存管理后需要按照实际占用内存大小决定行数。</p>
+<div class="codehilite"><pre><span></span><code>class RowBatch {
+  val rows: Seq[Seq[LynxValue]]
+}
+</code></pre></div>
+
+<p>从物理计划到执行计划的转换方式可以参照逻辑计划到物理计划的转换。</p>
+<h2 id="_5">实施<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ul>
+<li>添加ExecutionOperator和RowBatch基本类别</li>
+<li>针对每种运算，添加一个继承ExecutionOperator运算符，逻辑可以照抄相应的物理计划节点的execute方法及DataFrameOperator中的运算方法（如select/join)，然后添加单元测试。单元测试中，对单个运算符执行完整的Open/GetNext/Close周期，然后检查结果是否正确。为了方便测试，增加一个可定制输出数据FakeOperator，用做被测运算符的输入运算符。</li>
+<li>所有运算符添加完毕后，添加ExecutionPlanGenerator，用于将物理计划转为执行计划。</li>
+<li>将ExecutionPlanGenerator应用在CypherRunner中，取代physicalPlan.execute()。处理输出时，可以写一个Iterator将最终的RowBatch stream转为LynxResult.records要求的stream，这样可避免使用LynxResult的其他部件。</li>
+<li>清理DataFrame/DataFrameOperator/DataFrameOps及所有的PPTNode子类的execute方法</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme_extra.js" defer></script>
+    <script src="../../../js/theme.js" defer></script>
+      <script src="../../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

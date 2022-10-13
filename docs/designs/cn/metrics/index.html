@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Metrics - TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Metrics";
+        var mkdocs_page_input_path = "designs/cn/metrics.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../..">
+          <img src="../../../assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING/">Contributing Guide</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Design Docs</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../en/protocol-services-interface-design/">Protocol, Services, and Interfaces Design</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../en/decypher/">Decypher</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../../roadmap/">Roadmap</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Metrics</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/designs/cn/metrics.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <p>Metrics Expose Design</p>
+<ol>
+<li>设计目标
+系统metrics用于监控图数据库系统运行的情况。主要包含以下方面：
+特定操作需要的时间。例如，单个查询的耗时。
+自定义关键参数。例如，对于不同的operator，可能需要输出不同的信息。例如读写操作时，读写的数据大小。
+系统资源参数。例如，CPU和内存利用率。</li>
+</ol>
+<p>我们将metrics expose分成两个阶段完成。</p>
+<p>1.1 第一阶段
+第一阶段主要收集单个query的性能信息：
+单个query的耗时
+这个query里面，每个operator的耗时
+每个operator相关的信息。这些信息每个operator是不同的</p>
+<p>1.2 第二阶段
+这一阶段主要完成系统整体性能的监控：
+所有query性能相关参数的聚合。例如95% query的耗时。
+系统级别的性能和资源参数。例如吞吐和资源利用率。</p>
+<p>现阶段我们主要专注于第一阶段的实现。</p>
+<ol>
+<li>Metrics设计</li>
+</ol>
+<p>这里我们提出一个metrics domain的设计。每个domian里面只包含这个domain相关的日志。我们可以对一个domian的日志进行聚合，分解并通过不同的view展示。但不同domian的日志不能进行聚合展示。</p>
+<p>日志事例：</p>
+<p>DomainID: 日志所属的domian的id。输出任何日志前，必须先创建一个日志domian。Domain id可以自定义。如果用户没有定义，系统会自动生成一个独特的id。
+Labels：完全由用户自定义，一条日志可有有多个labels（用;隔开），也可以为空。
+Timestamp：记录日志的时间。
+Type：日志的数据格式。例如，string, int, float等。
+Log: 日志。</p>
+<p>下面我们用具体的例子来解释metrics的使用。</p>
+<p>假设我们需要追踪一个query的性能。Domain id就是一个query的id。</p>
+<p>如果我们需要记录这个query的latency：</p>
+<p>如果我们需要记录某个operator的latency：</p>
+<p>同理，如果我们需要记录某个operator的其他参数：</p>
+<p>在进行展示的时候，我们可以对有相同label的日志数据进行聚合。例如，我们希望了解每个operator latency的占比，就可以对Query1的日志中，过滤出有OperatorLog和Latency两个label的日志进行聚合。如果我们希望查看operator1的相关信息，只需要过滤出有OperatorLog和Operator1两个label的日志。</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+  </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme_extra.js" defer></script>
+    <script src="../../../js/theme.js" defer></script>
+      <script src="../../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
