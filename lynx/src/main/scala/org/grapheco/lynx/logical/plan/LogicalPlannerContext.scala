@@ -11,7 +11,7 @@
 
 package org.grapheco.lynx.logical.plan
 
-import org.grapheco.lynx.{CypherRunnerContext, LynxType}
+import org.grapheco.lynx.{QueryRunnerContext, LynxType}
 
 /**
   *@description:
@@ -19,7 +19,7 @@ import org.grapheco.lynx.{CypherRunnerContext, LynxType}
 object LogicalPlannerContext {
   def apply(
       queryParameters: Map[String, Any],
-      runnerContext: CypherRunnerContext
+      runnerContext: QueryRunnerContext
     ): LogicalPlannerContext =
     new LogicalPlannerContext(
       queryParameters.mapValues(runnerContext.typeSystem.wrap).mapValues(_.lynxType).toSeq,
@@ -29,4 +29,4 @@ object LogicalPlannerContext {
 
 case class LogicalPlannerContext(
     parameterTypes: Seq[(String, LynxType)],
-    runnerContext: CypherRunnerContext)
+    runnerContext: QueryRunnerContext)

@@ -11,7 +11,7 @@
 
 package org.grapheco.lynx.physical.plan
 
-import org.grapheco.lynx.{CypherRunnerContext, LynxType}
+import org.grapheco.lynx.{QueryRunnerContext, LynxType}
 
 import scala.collection.mutable
 
@@ -21,7 +21,7 @@ import scala.collection.mutable
 object PhysicalPlannerContext {
   def apply(
       queryParameters: Map[String, Any],
-      runnerContext: CypherRunnerContext
+      runnerContext: QueryRunnerContext
     ): PhysicalPlannerContext =
     new PhysicalPlannerContext(
       queryParameters.mapValues(runnerContext.typeSystem.wrap).mapValues(_.lynxType).toSeq,
@@ -30,6 +30,6 @@ object PhysicalPlannerContext {
 }
 
 case class PhysicalPlannerContext(
-    parameterTypes: Seq[(String, LynxType)],
-    runnerContext: CypherRunnerContext,
-    var pptContext: mutable.Map[String, Any] = mutable.Map.empty) {}
+                                   parameterTypes: Seq[(String, LynxType)],
+                                   runnerContext: QueryRunnerContext,
+                                   var pptContext: mutable.Map[String, Any] = mutable.Map.empty) {}

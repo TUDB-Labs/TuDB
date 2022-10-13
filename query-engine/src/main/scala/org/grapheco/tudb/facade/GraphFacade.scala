@@ -12,7 +12,7 @@
 package org.grapheco.tudb.facade
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.lynx.{ConstrainViolatedException, CypherRunner}
+import org.grapheco.lynx.{ConstrainViolatedException, QueryRunner}
 import org.grapheco.lynx.graph.{GraphModel, PathTriple, WriteTask}
 import org.grapheco.lynx.physical.filters.{NodeFilter, RelationshipFilter}
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
@@ -547,7 +547,7 @@ class GraphFacade(tuDBStatistics: TuDBStatistics, onClose: => Unit)
     }
   }
 
-  private val runner: CypherRunner = new CypherRunner(this)
+  private val runner: QueryRunner = new QueryRunner(this)
 
   def cypher(query: String, param: Map[String, Any] = Map.empty[String, Any]): LynxResult =
     runner.run(query, param)

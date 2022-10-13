@@ -15,7 +15,7 @@ import org.grapheco.lynx
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, RowBatch}
+import org.grapheco.lynx.{CachedQueryParser, QueryRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, RowBatch}
 import org.grapheco.lynx.graph.{GraphModel, Index, IndexManager, PathTriple, Statistics, WriteTask}
 import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
@@ -53,7 +53,7 @@ class BaseOperatorTest {
     new DefaultExpressionEvaluator(model, typeSystem, procedure)
 
   val runnerContext =
-    CypherRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
+    QueryRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
 
   val ctx = lynx.ExecutionContext(null, null, Map.empty)
 

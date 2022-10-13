@@ -39,7 +39,7 @@ class CachedQueryParser(parser: QueryParser) extends QueryParser {
     cache.getOrElseUpdate(query, parser.parse(query))
 }
 
-class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser {
+class DefaultQueryParser(runnerContext: QueryRunnerContext) extends QueryParser {
   val context = new BaseContext() {
     override def tracer: CompilationPhaseTracer = CompilationPhaseTracer.NO_TRACING
 
@@ -86,7 +86,7 @@ class DefaultQueryParser(runnerContext: CypherRunnerContext) extends QueryParser
       LateAstRewriting andThen
       FunctionMapper(runnerContext)
 
-  case class FunctionMapper(runnerContext: CypherRunnerContext)
+  case class FunctionMapper(runnerContext: QueryRunnerContext)
     extends Phase[BaseContext, BaseState, BaseState] {
     override def phase: CompilationPhase = AST_REWRITE
 
