@@ -1,3 +1,14 @@
+// Copyright 2022 The TuDB Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package org.grapheco.lynx
 
 import com.typesafe.scalalogging.LazyLogging
@@ -15,14 +26,16 @@ import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.SemanticState
 import org.grapheco.metrics.DomainObject
 
-case class CypherRunnerContext(
+import java.time.LocalDateTime
+
+case class QueryRunnerContext(
     typeSystem: TypeSystem,
     procedureRegistry: ProcedureRegistry,
     dataFrameOperator: DataFrameOperator,
     expressionEvaluator: ExpressionEvaluator,
     graphModel: GraphModel)
 
-class CypherRunner(graphModel: GraphModel) extends LazyLogging {
+class QueryRunner(graphModel: GraphModel) extends LazyLogging {
   protected lazy val types: TypeSystem = new DefaultTypeSystem()
   protected lazy val procedures: DefaultProcedureRegistry = new DefaultProcedureRegistry(
     types,
@@ -42,7 +55,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     expressionEvaluator
   )
   private implicit lazy val runnerContext =
-    CypherRunnerContext(types, procedures, dataFrameOperator, expressionEvaluator, graphModel)
+    QueryRunnerContext(types, procedures, dataFrameOperator, expressionEvaluator, graphModel)
   protected lazy val logicalPlanner: LogicalPlanner = new DefaultLogicalPlanner(runnerContext)
   protected lazy val physicalPlanner: PhysicalPlanner = new DefaultPhysicalPlanner(runnerContext)
   protected lazy val physicalPlanOptimizer: PhysicalPlanOptimizer =

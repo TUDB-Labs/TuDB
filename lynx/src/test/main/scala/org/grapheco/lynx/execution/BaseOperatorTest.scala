@@ -1,10 +1,21 @@
+// Copyright 2022 The TuDB Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package org.grapheco.lynx.execution
 
 import org.grapheco.lynx
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.procedure.DefaultProcedureRegistry
 import org.grapheco.lynx.procedure.functions.{AggregatingFunctions, ListFunctions, LogarithmicFunctions, NumericFunctions, PredicateFunctions, ScalarFunctions, StringFunctions, TimeFunctions, TrigonometricFunctions}
-import org.grapheco.lynx.{CachedQueryParser, CypherRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, RowBatch}
+import org.grapheco.lynx.{CachedQueryParser, QueryRunnerContext, DataFrameOperator, DefaultDataFrameOperator, DefaultExpressionEvaluator, DefaultQueryParser, ExecutionContext, ExecutionOperator, ExpressionEvaluator, RowBatch}
 import org.grapheco.lynx.graph.{GraphModel, Index, IndexManager, PathTriple, Statistics, WriteTask}
 import org.grapheco.lynx.physical.filters.NodeFilter
 import org.grapheco.lynx.types.{DefaultTypeSystem, LynxValue}
@@ -42,7 +53,7 @@ class BaseOperatorTest {
     new DefaultExpressionEvaluator(model, typeSystem, procedure)
 
   val runnerContext =
-    CypherRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
+    QueryRunnerContext(typeSystem, procedure, null, expressionEvaluator, model)
 
   val ctx = lynx.ExecutionContext(null, null, Map.empty)
 
