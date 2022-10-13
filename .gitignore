@@ -102,6 +102,3 @@ testSpace
 
 # Client tests
 client/testOutput/
-
-# Website
-site/

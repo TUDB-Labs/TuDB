@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Contributing Guide - TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Contributing Guide";
+        var mkdocs_page_input_path = "CONTRIBUTING.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Contributing Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#local-setup">Local Setup</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#maven-configuration">Maven Configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#pre-commit-checks">Pre-commit Checks</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#submit-changes">Submit Changes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#code-style">Code Style</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../protocol-services-interface-design/">Protocol, Services, and Interfaces Design</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../performance-report/">Performance Report</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../roadmap/">Roadmap</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../faq.md">FAQ</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Developer Guide &raquo;</li>
+      <li>Contributing Guide</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/CONTRIBUTING.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="contributing-guide">Contributing Guide<a class="headerlink" href="#contributing-guide" title="Permanent link">&para;</a></h1>
+<p>Welcome to TuDB's contributing guide!</p>
+<h2 id="local-setup">Local Setup<a class="headerlink" href="#local-setup" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<p>Please install the following before walking through the rest of this guide:</p>
+<ul>
+<li>Java 8</li>
+<li>Maven</li>
+</ul>
+<h3 id="maven-configuration">Maven Configuration<a class="headerlink" href="#maven-configuration" title="Permanent link">&para;</a></h3>
+<p>If you are a developer in China, please modify your Maven configurations in <code>~/.m2/settings.xml</code> to add the Aliyun Maven Central mirror:</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">&lt;settings&gt;</span>
+    <span class="nt">&lt;mirrors&gt;</span>
+        <span class="nt">&lt;mirror&gt;</span>
+            <span class="nt">&lt;id&gt;</span>alimaven<span class="nt">&lt;/id&gt;</span>
+            <span class="nt">&lt;mirrorOf&gt;</span>central<span class="nt">&lt;/mirrorOf&gt;</span>
+            <span class="nt">&lt;name&gt;</span>aliyun maven<span class="nt">&lt;/name&gt;</span>
+            <span class="nt">&lt;url&gt;</span>https://maven.aliyun.com/repository/public/<span class="nt">&lt;/url&gt;</span>
+        <span class="nt">&lt;/mirror&gt;</span>
+    <span class="nt">&lt;/mirrors&gt;</span>
+<span class="nt">&lt;/settings&gt;</span>
+</code></pre></div>
+
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<p>Run the following command to run the test suite: <code>mvn -B clean install test --file pom.xml</code>.</p>
+<h3 id="pre-commit-checks">Pre-commit Checks<a class="headerlink" href="#pre-commit-checks" title="Permanent link">&para;</a></h3>
+<p>We run several checks before every commit automatically with <code>pre-commit</code>. Install <a href="https://pre-commit.com/">pre-commit</a> to run
+the required checks when you commit your changes.</p>
+<p>Once it's installed, run <code>pre-commit install</code> to install the hooks that will be run automatically when you <code>git commit</code>
+your changes. You can also run it via <code>pre-commit run</code> on your changes or <code>pre-commit run --all</code> to run the checks on
+all files.</p>
+<p>If you'd like to uninstall the pre-commit hooks, run <code>pre-commit uninstall</code>.</p>
+<h2 id="submit-changes">Submit Changes<a class="headerlink" href="#submit-changes" title="Permanent link">&para;</a></h2>
+<p>To submit a change, please follow the following steps:
+1. Create a <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks">fork</a> and push changes to a branch in your fork.
+1. Create a <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork">pull request from the branch in your fork</a>.</p>
+<h2 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h2>
+<ol>
+<li>For Python code, We follows <a href="http://legacy.python.org/dev/peps/pep-0008/">PEP 8</a> with one exception: lines can be up to 100 characters in length, not 79.</li>
+<li>For Java code, We follows <a href="http://www.oracle.com/technetwork/java/codeconvtoc-136057.html">Oracle’s Java code</a> conventions and Scala guidelines below. The latter is preferred.</li>
+<li>For Scala code, We follows the official <a href="http://docs.scala-lang.org/style/">Scala style guide</a> and <a href="https://github.com/databricks/scala-style-guide">Databricks Scala guide</a>. The latter is preferred. To format Scala code, run ./dev/scalafmt prior to submitting a PR.</li>
+</ol>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../examples/basic/" class="btn btn-neutral float-left" title="Basic Examples"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../protocol-services-interface-design/" class="btn btn-neutral float-right" title="Protocol, Services, and Interfaces Design">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../examples/basic/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../protocol-services-interface-design/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

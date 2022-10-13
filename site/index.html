@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>TuDB - A Distributed Graph Database System</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Home";
+        var mkdocs_page_input_path = "README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".">
+          <img src="assets/logo.jpg" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-tudb">What is TuDB?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#development">Development</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="examples/basic/">Basic Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Developer Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING/">Contributing Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="protocol-services-interface-design/">Protocol, Services, and Interfaces Design</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="performance-report/">Performance Report</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="roadmap/">Roadmap</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="faq.md">FAQ</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">TuDB - A Distributed Graph Database System</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/TUDB-Labs/TuDB/edit/master/docs/README.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="tudb">TuDB<a class="headerlink" href="#tudb" title="Permanent link">&para;</a></h1>
+<h2 id="what-is-tudb">What is TuDB?<a class="headerlink" href="#what-is-tudb" title="Permanent link">&para;</a></h2>
+<p>TuDB is a cloud native graph database. TuDB aims to support Hybrid Transactional and Analytical Processing (HTAP)
+workloads. It is compatible with Cypher and features horizontal scalability, strong consistency, and high availability.
+TuDB aims to provide a unified graph process interface for constructing and managing graphs on different key-value
+storage engines, such as RocksDB, HBase, and TiKV.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
+<p>You can install TuDB by following these steps:</p>
+<ol>
+<li>Download or clone the repo locally.</li>
+<li><a href="https://maven.apache.org/install.html">Install Maven</a>.</li>
+<li>Run the following to build TuDB binary:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>mvn clean compile install
+</code></pre></div>
+
+<h3 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h3>
+<p>Below is an example to start the server and client locally and interact with the database
+via Cypher queries. For more examples, please check out the <a href="../examples">examples folder</a>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span> <span class="nn">org</span><span class="p">.</span><span class="nn">apache</span><span class="p">.</span><span class="nn">commons</span><span class="p">.</span><span class="nn">io</span><span class="p">.</span><span class="nc">FileUtils</span>
+<span class="k">import</span> <span class="nn">org</span><span class="p">.</span><span class="nn">grapheco</span><span class="p">.</span><span class="nn">lynx</span><span class="p">.</span><span class="nn">types</span><span class="p">.</span><span class="nn">structural</span><span class="p">.{</span><span class="nc">LynxNode</span><span class="p">,</span> <span class="nc">LynxRelationship</span><span class="p">}</span>
+<span class="k">import</span> <span class="nn">org</span><span class="p">.</span><span class="nn">grapheco</span><span class="p">.</span><span class="nn">tudb</span><span class="p">.{</span><span class="nc">TuDBServer</span><span class="p">,</span> <span class="nc">TuDBServerContext</span><span class="p">}</span>
+<span class="k">import</span> <span class="nn">org</span><span class="p">.</span><span class="nn">grapheco</span><span class="p">.</span><span class="nn">tudb</span><span class="p">.</span><span class="nn">client</span><span class="p">.</span><span class="nc">TuDBClient</span>
+<span class="k">import</span> <span class="nn">org</span><span class="p">.</span><span class="nn">grapheco</span><span class="p">.</span><span class="nn">tudb</span><span class="p">.</span><span class="nn">test</span><span class="p">.</span><span class="nc">TestUtils</span>
+<span class="k">import</span> <span class="nn">java</span><span class="p">.</span><span class="nn">io</span><span class="p">.</span><span class="nc">File</span>
+
+<span class="k">object</span> <span class="nc">CypherExample</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="n">port</span> <span class="o">=</span> <span class="mi">7600</span>
+  <span class="kd">var</span> <span class="n">server</span><span class="p">:</span> <span class="nc">TuDBServer</span> <span class="o">=</span> <span class="n">_</span>
+  <span class="kd">var</span> <span class="n">client</span><span class="p">:</span> <span class="nc">TuDBClient</span> <span class="o">=</span> <span class="n">_</span>
+  <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">[</span><span class="nc">String</span><span class="p">]):</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="n">dbPath</span><span class="p">:</span> <span class="nc">String</span> <span class="o">=</span> <span class="s">s&quot;</span><span class="si">${</span><span class="nc">TestUtils</span><span class="p">.</span><span class="n">getModuleRootPath</span><span class="si">}</span><span class="s">/testSpace/testBase&quot;</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">startServer</span><span class="p">(</span><span class="n">dbPath</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="n">startClient</span><span class="p">()</span>
+
+    <span class="n">createNode</span><span class="p">()</span>
+    <span class="n">queryNode</span><span class="p">()</span>
+    <span class="n">createRelation</span><span class="p">()</span>
+    <span class="n">queryRelation</span><span class="p">()</span>
+
+    <span class="n">stopClient</span><span class="p">()</span>
+    <span class="n">shutdownServer</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nf">startServer</span><span class="p">(</span>
+      <span class="n">dbPath</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span>
+      <span class="n">port</span><span class="p">:</span> <span class="nc">Int</span><span class="p">,</span>
+      <span class="n">indexUrl</span><span class="p">:</span> <span class="nc">String</span> <span class="o">=</span> <span class="s">&quot;tudb://index?type=dummy&quot;</span>
+    <span class="p">):</span> <span class="nc">TuDBServer</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nc">FileUtils</span><span class="p">.</span><span class="n">deleteDirectory</span><span class="p">(</span><span class="k">new</span> <span class="nc">File</span><span class="p">(</span><span class="n">dbPath</span><span class="p">))</span>
+    <span class="kd">val</span> <span class="n">serverContext</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TuDBServerContext</span><span class="p">()</span>
+    <span class="n">serverContext</span><span class="p">.</span><span class="n">setPort</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+    <span class="n">serverContext</span><span class="p">.</span><span class="n">setDataPath</span><span class="p">(</span><span class="n">dbPath</span><span class="p">)</span>
+    <span class="n">serverContext</span><span class="p">.</span><span class="n">setIndexUri</span><span class="p">(</span><span class="n">indexUrl</span><span class="p">)</span>
+    <span class="kd">val</span> <span class="n">server</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TuDBServer</span><span class="p">(</span><span class="n">serverContext</span><span class="p">)</span>
+    <span class="k">new</span> <span class="nc">Thread</span><span class="p">(</span><span class="k">new</span> <span class="nc">Runnable</span> <span class="p">{</span>
+      <span class="k">override</span> <span class="k">def</span> <span class="nf">run</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="n">server</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="p">}).</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">server</span>
+  <span class="p">}</span>
+  <span class="k">def</span> <span class="nf">shutdownServer</span><span class="p">()</span> <span class="o">=</span> <span class="n">server</span><span class="p">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+  <span class="k">def</span> <span class="nf">startClient</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">TuDBClient</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="k">def</span> <span class="nf">stopClient</span><span class="p">()</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+  <span class="k">def</span> <span class="nf">createNode</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;create (n:DataBase{name:&#39;TuDB&#39;})&quot;</span><span class="p">)</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;create (n: Company{name:&#39;TUDB&#39;})&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="k">def</span> <span class="nf">queryNode</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;match (n) return n&quot;</span><span class="p">)</span>
+    <span class="n">println</span><span class="p">()</span>
+    <span class="n">println</span><span class="p">(</span><span class="s">&quot;Query Node result: &quot;</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+    <span class="n">println</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nf">createRelation</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">        |match (n:DataBase{name:&#39;TuDB&#39;})</span>
+<span class="s">        |match (c: Company{name:&#39;TUDB&#39;})</span>
+<span class="s">        |create (n)-[r: belongTo{year: 2022}]-&gt;(c)</span>
+<span class="s">        |&quot;&quot;&quot;</span><span class="p">.</span><span class="n">stripMargin</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="k">def</span> <span class="nf">queryRelation</span><span class="p">():</span> <span class="nc">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s">&quot;match (n)-[r: belongTo]-&gt;(m) return n,r,m&quot;</span><span class="p">)</span>
+    <span class="n">println</span><span class="p">()</span>
+    <span class="n">println</span><span class="p">(</span><span class="s">&quot;Query Relation Result: &quot;</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
+<p>You can run all the tests via the following:</p>
+<div class="codehilite"><pre><span></span><code>mvn clean install <span class="nb">test</span>
+</code></pre></div>
+
+<p>You can start a database instance locally via <code>./bin/start</code>
+or start an interactive shell via <code>./bin/cypher</code>.</p>
+<p>For more details on how to contribute, please check out our <a href="CONTRIBUTING/">contributing guide</a>.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="examples/basic/" class="btn btn-neutral float-right" title="Basic Examples">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TUDB-Labs/TuDB" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+    
+      <span><a href="examples/basic/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme_extra.js" defer></script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.3.1
+Build Date UTC : 2022-10-06 01:04:12.831585+00:00
+-->
