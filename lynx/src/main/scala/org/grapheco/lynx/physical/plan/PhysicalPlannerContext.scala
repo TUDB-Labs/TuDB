@@ -30,6 +30,6 @@ object PhysicalPlannerContext {
 }
 
 case class PhysicalPlannerContext(
-                                   parameterTypes: Seq[(String, LynxType)],
-                                   runnerContext: QueryRunnerContext,
-                                   var pptContext: mutable.Map[String, Any] = mutable.Map.empty) {}
+    parameterTypes: Seq[(String, LynxType)],
+    runnerContext: QueryRunnerContext,
+    var pptContext: mutable.Map[String, Any] = mutable.Map.empty) {}
