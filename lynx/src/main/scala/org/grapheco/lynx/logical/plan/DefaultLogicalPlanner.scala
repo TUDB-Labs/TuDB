@@ -13,7 +13,7 @@ package org.grapheco.lynx.logical.plan
 
 import org.grapheco.lynx.logical.translator.LogicalQueryPartTranslator
 import org.grapheco.lynx.logical.{LogicalCreateIndex, LogicalNode}
-import org.grapheco.lynx.{CypherRunnerContext, UnknownASTNodeException}
+import org.grapheco.lynx.{QueryRunnerContext, UnknownASTNodeException}
 import org.opencypher.v9_0.ast._
 import org.opencypher.v9_0.expressions.{LabelName, Property, PropertyKeyName, Variable}
 import org.opencypher.v9_0.util.ASTNode
@@ -21,7 +21,7 @@ import org.opencypher.v9_0.util.ASTNode
 /**
   *@description:
   */
-class DefaultLogicalPlanner(runnerContext: CypherRunnerContext) extends LogicalPlanner {
+class DefaultLogicalPlanner(runnerContext: QueryRunnerContext) extends LogicalPlanner {
   private def translate(node: ASTNode)(implicit lpc: LogicalPlannerContext): LogicalNode = {
     node match {
       case Query(periodicCommitHint: Option[PeriodicCommitHint], part: QueryPart) =>

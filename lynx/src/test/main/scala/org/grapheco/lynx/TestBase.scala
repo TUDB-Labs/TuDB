@@ -288,7 +288,7 @@ class TestBase extends LazyLogging {
 
   }
 
-  val runner: CypherRunner = new CypherRunner(model) {
+  val runner: QueryRunner = new QueryRunner(model) {
 
     procedures.register(
       "test.authors",

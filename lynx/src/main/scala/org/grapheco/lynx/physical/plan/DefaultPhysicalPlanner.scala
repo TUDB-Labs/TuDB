@@ -11,7 +11,7 @@
 
 package org.grapheco.lynx.physical.plan
 
-import org.grapheco.lynx.CypherRunnerContext
+import org.grapheco.lynx.QueryRunnerContext
 import org.grapheco.lynx.logical._
 import org.grapheco.lynx.physical.translator._
 import org.grapheco.lynx.physical._
@@ -21,12 +21,12 @@ import org.opencypher.v9_0.expressions._
 /**
   *@description:
   */
-class DefaultPhysicalPlanner(runnerContext: CypherRunnerContext) extends PhysicalPlanner {
+class DefaultPhysicalPlanner(runnerContext: QueryRunnerContext) extends PhysicalPlanner {
   override def plan(
       logicalPlan: LogicalNode
     )(implicit plannerContext: PhysicalPlannerContext
     ): PhysicalNode = {
-    implicit val runnerContext: CypherRunnerContext = plannerContext.runnerContext
+    implicit val runnerContext: QueryRunnerContext = plannerContext.runnerContext
     logicalPlan match {
       case LogicalProcedureCall(
           procedureNamespace: Namespace,

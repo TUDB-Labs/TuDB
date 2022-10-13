@@ -28,14 +28,14 @@ import org.grapheco.metrics.DomainObject
 
 import java.time.LocalDateTime
 
-case class CypherRunnerContext(
+case class QueryRunnerContext(
     typeSystem: TypeSystem,
     procedureRegistry: ProcedureRegistry,
     dataFrameOperator: DataFrameOperator,
     expressionEvaluator: ExpressionEvaluator,
     graphModel: GraphModel)
 
-class CypherRunner(graphModel: GraphModel) extends LazyLogging {
+class QueryRunner(graphModel: GraphModel) extends LazyLogging {
   protected lazy val types: TypeSystem = new DefaultTypeSystem()
   protected lazy val procedures: DefaultProcedureRegistry = new DefaultProcedureRegistry(
     types,
@@ -55,7 +55,7 @@ class CypherRunner(graphModel: GraphModel) extends LazyLogging {
     expressionEvaluator
   )
   private implicit lazy val runnerContext =
-    CypherRunnerContext(types, procedures, dataFrameOperator, expressionEvaluator, graphModel)
+    QueryRunnerContext(types, procedures, dataFrameOperator, expressionEvaluator, graphModel)
   protected lazy val logicalPlanner: LogicalPlanner = new DefaultLogicalPlanner(runnerContext)
   protected lazy val physicalPlanner: PhysicalPlanner = new DefaultPhysicalPlanner(runnerContext)
   protected lazy val physicalPlanOptimizer: PhysicalPlanOptimizer =

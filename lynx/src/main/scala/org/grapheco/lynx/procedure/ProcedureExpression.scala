@@ -12,7 +12,7 @@
 package org.grapheco.lynx.procedure
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.lynx.{CypherRunnerContext, ProcedureUnregisteredException}
+import org.grapheco.lynx.{QueryRunnerContext, ProcedureUnregisteredException}
 import org.opencypher.v9_0.expressions.{Expression, FunctionInvocation}
 import org.opencypher.v9_0.util.InputPosition
 
@@ -24,7 +24,7 @@ import org.opencypher.v9_0.util.InputPosition
   */
 case class ProcedureExpression(
     val funcInov: FunctionInvocation
-  )(implicit runnerContext: CypherRunnerContext)
+  )(implicit runnerContext: QueryRunnerContext)
   extends Expression
   with LazyLogging {
   val procedure: CallableProcedure = runnerContext.procedureRegistry
