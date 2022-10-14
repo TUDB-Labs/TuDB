@@ -36,7 +36,7 @@ class CypherJoinTest extends TestBase {
     RETURN count(a)""".stripMargin
     val rs = runOnDemoGraph(q).records().toSeq.head
     val a = rs.get("count(a)").get.asInstanceOf[LynxInteger]
-    Assert.assertEquals(2, a.value)
+    Assert.assertEquals(4, a.value)
   }
 
   @Test
