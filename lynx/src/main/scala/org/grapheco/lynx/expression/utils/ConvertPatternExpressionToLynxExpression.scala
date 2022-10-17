@@ -1,7 +1,7 @@
 package org.grapheco.lynx.expression.utils
 
 import org.grapheco.lynx.expression.LynxVariable
-import org.opencypher.v9_0.expressions.{NodePattern, RelationshipPattern}
+import org.opencypher.v9_0.expressions.{NodePattern, RelationshipChain, RelationshipPattern}
 
 /**
   *@description:
@@ -15,6 +15,7 @@ object ConvertPatternExpressionToLynxExpression {
       nodePattern.baseNode
     )(nodePattern.position)
   }
+
   def convertRelationshipPattern(relationship: RelationshipPattern): RelationshipPattern = {
     RelationshipPattern(
       relationship.variable.map(logicalVariable => LynxVariable(logicalVariable.name, 0)),
@@ -25,5 +26,15 @@ object ConvertPatternExpressionToLynxExpression {
       relationship.legacyTypeSeparator,
       relationship.baseRel
     )(relationship.position)
+  }
+
+  def convertRelationshipChain(rChain: RelationshipChain): RelationshipChain = {
+    val newElement = rChain.element match {
+      case n: NodePattern           => convertNodePattern(n)
+      case chain: RelationshipChain => convertRelationshipChain(chain)
+    }
+    val newRelationship = convertRelationshipPattern(rChain.relationship)
+    val newRightNode = convertNodePattern(rChain.rightNode)
+    RelationshipChain(newElement, newRelationship, newRightNode)(rChain.position)
   }
 }
