@@ -243,7 +243,7 @@ trait GraphModel {
         relationships()
           .flatMap(item => Seq(item, item.revert))
           .filter(r => r.startNode.id == node.id || r.endNode.id == node.id)
-      case INCOMING => relationships().map(_.revert).filter(_.endNode.id == node.id)
+      case INCOMING => relationships().map(_.revert).filter(_.startNode.id == node.id)
       case OUTGOING => relationships().filter(_.startNode.id == node.id)
     }
   }
@@ -283,6 +283,7 @@ trait GraphModel {
               )
         }
       }
+      .filter(p => p.endNode != node)
       .map(Seq(_))
   }
 
