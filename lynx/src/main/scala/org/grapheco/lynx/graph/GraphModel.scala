@@ -280,10 +280,10 @@ trait GraphModel {
                 endNodeFilter.matches(pathTriple.startNode) || endNodeFilter.matches(
                   pathTriple.endNode
                 )
-              )
+              ) &&
+              pathTriple.endNode != node
         }
       }
-      .filter(p => p.endNode != node)
       .map(Seq(_))
   }
 
