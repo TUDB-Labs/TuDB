@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.{LynxProperty, LynxVariable}
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
@@ -121,6 +122,11 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         expressionEvaluator,
         ctx.expressionContext
       )
+
+    val namespace = List.empty
+    val funcName = "labels"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+
     val projectColumn = Seq(
       (
         "n.name",
@@ -132,13 +138,13 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       (
         "labels",
         ProcedureExpression(
-          FunctionInvocation(
-            Namespace()(defaultPosition),
-            FunctionName("labels")(defaultPosition),
-            false,
-            IndexedSeq(Variable("n")(defaultPosition))
-          )(defaultPosition)
-        )(runnerContext)
+          procedure,
+          IndexedSeq(LynxVariable("n", 0)),
+          false,
+          funcName,
+          null,
+          false
+        )
       )
     )
     val projectOperator =
@@ -173,6 +179,11 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         expressionEvaluator,
         ctx.expressionContext
       )
+
+    val namespace = List.empty
+    val funcName = "labels"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+
     val projectColumn = Seq(
       (
         "n.name",
@@ -184,13 +195,13 @@ class RemoveOperatorTest() extends BaseOperatorTest {
       (
         "labels",
         ProcedureExpression(
-          FunctionInvocation(
-            Namespace()(defaultPosition),
-            FunctionName("labels")(defaultPosition),
-            false,
-            IndexedSeq(Variable("n")(defaultPosition))
-          )(defaultPosition)
-        )(runnerContext)
+          procedure,
+          IndexedSeq(LynxVariable("n", 0)),
+          false,
+          funcName,
+          null,
+          false
+        )
       )
     )
     val projectOperator =
