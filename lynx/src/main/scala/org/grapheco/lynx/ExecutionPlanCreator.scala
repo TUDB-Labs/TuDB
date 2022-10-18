@@ -206,10 +206,11 @@ class ExecutionPlanCreator {
             Variable(nameAndType._1)(defaultPosition)
           )(defaultPosition)
         )
+
         AggregationOperator(
           translate(distinct.children.head, plannerContext, executionContext),
           Seq.empty,
-          groupExpr,
+          groupExpr.map(f => f.name -> f.expression),
           plannerContext.runnerContext.expressionEvaluator,
           executionContext.expressionContext
         )
