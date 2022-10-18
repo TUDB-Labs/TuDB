@@ -69,7 +69,7 @@ class ExecutionPlanCreator {
         )
       }
       case project: PhysicalProject => {
-        val columnExpr = project.ri.items.map(x => x.name -> x.expression)
+        val columnExpr = project.projectItems
         ProjectOperator(
           translate(project.children.head, plannerContext, executionContext),
           columnExpr,
