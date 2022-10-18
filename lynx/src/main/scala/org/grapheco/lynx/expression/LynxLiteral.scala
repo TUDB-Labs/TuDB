@@ -19,12 +19,4 @@ case class LynxNullLiteral() extends LynxLiteral {
   val value = null
 }
 
-sealed trait LynxBooleanLiteral extends LynxLiteral
-
-case class LynxTrue() extends LynxBooleanLiteral {
-  val value: java.lang.Boolean = true
-}
-
-case class LynxFalse() extends LynxBooleanLiteral {
-  val value: java.lang.Boolean = false
-}
+case class LynxBooleanLiteral(value: java.lang.Boolean) extends LynxLiteral

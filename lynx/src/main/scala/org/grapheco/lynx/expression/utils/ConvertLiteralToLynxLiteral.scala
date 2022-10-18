@@ -1,6 +1,6 @@
 package org.grapheco.lynx.expression.utils
 
-import org.grapheco.lynx.expression.{LynxDoubleLiteral, LynxFalse, LynxIntegerLiteral, LynxLiteral, LynxNullLiteral, LynxStringLiteral, LynxTrue}
+import org.grapheco.lynx.expression.{LynxBooleanLiteral, LynxDoubleLiteral, LynxIntegerLiteral, LynxLiteral, LynxNullLiteral, LynxStringLiteral}
 import org.opencypher.v9_0.expressions.{DoubleLiteral, False, IntegerLiteral, Literal, Null, StringLiteral, True}
 
 /**
@@ -17,9 +17,9 @@ object ConvertLiteralToLynxLiteral {
 
       case Null() => LynxNullLiteral()
 
-      case True() => LynxTrue()
+      case True() => LynxBooleanLiteral(true)
 
-      case False() => LynxFalse()
+      case False() => LynxBooleanLiteral(false)
     }
   }
 }
