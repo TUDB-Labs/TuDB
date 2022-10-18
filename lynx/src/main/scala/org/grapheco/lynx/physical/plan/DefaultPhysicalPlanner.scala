@@ -61,12 +61,12 @@ class DefaultPhysicalPlanner(runnerContext: QueryRunnerContext) extends Physical
         PhysicalPatternMatchTranslator(patternMatch)(plannerContext).translate(None)
       case li @ LogicalCreateIndex(labelName: LabelName, properties: List[PropertyKeyName]) =>
         PhysicalCreateIndex(labelName, properties)(plannerContext)
-      case sc @ LogicalSetClause(d) =>
-        PhysicalSetClauseTranslator(d.items).translate(sc.in.map(plan(_)))(plannerContext)
-      case lr @ LogicalRemove(r) =>
-        PhysicalRemoveTranslator(r.items).translate(lr.in.map(plan(_)))(plannerContext)
-      case lu @ LogicalUnwind(u) =>
-        PhysicalUnwindTranslator(u.expression, u.variable)
+      case sc @ LogicalSetClause(setItems) =>
+        PhysicalSetClauseTranslator(setItems).translate(sc.in.map(plan(_)))(plannerContext)
+      case lr @ LogicalRemove(removeItems) =>
+        PhysicalRemoveTranslator(removeItems).translate(lr.in.map(plan(_)))(plannerContext)
+      case lu @ LogicalUnwind(variable, expression) =>
+        PhysicalUnwindTranslator(variable, expression)
           .translate(lu.in.map(plan(_)))(plannerContext)
     }
   }

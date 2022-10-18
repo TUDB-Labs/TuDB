@@ -23,5 +23,5 @@ case class LogicalRemoveTranslator(r: Remove) extends LogicalNodeTranslator {
       in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
     ): LogicalNode =
-    LogicalRemove(r)(in)
+    LogicalRemove(r.items)(in)
 }

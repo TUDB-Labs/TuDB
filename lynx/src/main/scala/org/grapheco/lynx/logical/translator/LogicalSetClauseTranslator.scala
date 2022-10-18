@@ -11,9 +11,11 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.LynxVariable
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalNode, LogicalSetClause}
-import org.opencypher.v9_0.ast.SetClause
+import org.opencypher.v9_0.ast.{SetClause, SetExactPropertiesFromMapItem, SetIncludingPropertiesFromMapItem, SetPropertyItem}
 
 /**
   *@description:
@@ -22,6 +24,25 @@ case class LogicalSetClauseTranslator(s: SetClause) extends LogicalNodeTranslato
   override def translate(
       in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LogicalNode =
-    LogicalSetClause(s)(in)
+    ): LogicalNode = {
+    val lynxItems = s.items.map {
+      case s @ SetPropertyItem(property, expression) =>
+        SetPropertyItem(property, ConvertExpressionToLynxExpression.convert(expression))(s.position)
+
+      // TODO: Convert setClause
+      case s @ SetExactPropertiesFromMapItem(variable, expression) =>
+        SetExactPropertiesFromMapItem(
+          variable,
+          ConvertExpressionToLynxExpression.convert(expression)
+        )(s.position)
+
+      case s @ SetIncludingPropertiesFromMapItem(variable, expression) =>
+        SetIncludingPropertiesFromMapItem(
+          variable,
+          ConvertExpressionToLynxExpression.convert(expression)
+        )(s.position)
+    }
+
+    LogicalSetClause(lynxItems)(in)
+  }
 }

@@ -11,11 +11,12 @@
 
 package org.grapheco.lynx.logical
 
-import org.opencypher.v9_0.ast.Remove
+import org.opencypher.v9_0.ast.RemoveItem
 
 /**
   *@description:
   */
-case class LogicalRemove(r: Remove)(val in: Option[LogicalNode]) extends LogicalNode {
+case class LogicalRemove(removeItems: Seq[RemoveItem])(val in: Option[LogicalNode])
+  extends LogicalNode {
   override val children: Seq[LogicalNode] = in.toSeq
 }
