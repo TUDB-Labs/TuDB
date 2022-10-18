@@ -44,7 +44,8 @@ class DefaultPhysicalPlanner(runnerContext: QueryRunnerContext) extends Physical
         PhysicalMergeTranslator(m).translate(lm.in.map(plan(_)))(plannerContext)
       case lm @ LogicalMergeAction(m: Seq[MergeAction]) =>
         PhysicalMergeAction(m)(plan(lm.in.get), plannerContext)
-      case ld @ LogicalDelete(d: Delete) => PhysicalDelete(d)(plan(ld.in), plannerContext)
+      case ld @ LogicalDelete(deleteExpr: Seq[Expression], forceToDelete: Boolean) =>
+        PhysicalDelete(deleteExpr, forceToDelete)(plan(ld.in), plannerContext)
       case ls @ LogicalSelect(columns: Seq[(String, Option[String])]) =>
         PhysicalSelect(columns)(plan(ls.in), plannerContext)
       case lp @ LogicalProject(ri)       => PhysicalProject(ri)(plan(lp.in), plannerContext)
