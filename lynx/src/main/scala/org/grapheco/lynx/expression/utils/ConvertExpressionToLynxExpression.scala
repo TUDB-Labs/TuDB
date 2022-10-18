@@ -15,23 +15,15 @@ object ConvertExpressionToLynxExpression {
       case Variable(name) => LynxVariable(name, 0)
 
       case HasLabels(expression, labels) =>
-        LynxHasLabels(
-          ConvertExpressionToLynxExpression.convert(expression),
-          labels.map(l => LynxNodeLabel(l.name))
-        )
+        LynxHasLabels(convert(expression), labels.map(l => LynxNodeLabel(l.name)))
 
       case CountStar() => LynxCountStar()
 
       case CaseExpression(expression, alternatives, default) =>
         LynxCaseExpression(
-          expression.map(expr => ConvertExpressionToLynxExpression.convert(expr)),
-          alternatives.map(exprs =>
-            (
-              ConvertExpressionToLynxExpression.convert(exprs._1),
-              ConvertExpressionToLynxExpression.convert(exprs._2)
-            )
-          ),
-          default.map(expr => ConvertExpressionToLynxExpression.convert(expr))
+          expression.map(expr => convert(expr)),
+          alternatives.map(exprs => (convert(exprs._1), convert(exprs._2))),
+          default.map(expr => convert(expr))
         )
 
       case Property(map, propertyKey) =>
@@ -42,9 +34,7 @@ object ConvertExpressionToLynxExpression {
       case literal: Literal => ConvertLiteralToLynxLiteral.convert(literal)
 
       case lstLiteral: ListLiteral =>
-        LynxListLiteral(
-          lstLiteral.expressions.map(expr => ConvertExpressionToLynxExpression.convert(expr))
-        )
+        LynxListLiteral(lstLiteral.expressions.map(expr => convert(expr)))
 
       case opExpression: OperatorExpression =>
         ConvertPredicateExpressionToLynxExpression.convert(opExpression)
@@ -52,11 +42,7 @@ object ConvertExpressionToLynxExpression {
       case Parameter(name, parameterType) => LynxParameter(name, parameterType)
 
       case MapExpression(items) =>
-        LynxMapExpression(
-          items.map(kv =>
-            (LynxPropertyKey(kv._1.name), ConvertExpressionToLynxExpression.convert(kv._2))
-          )
-        )
+        LynxMapExpression(items.map(kv => (LynxPropertyKey(kv._1.name), convert(kv._2))))
 
       case expression: LynxExpression => expression
     }
