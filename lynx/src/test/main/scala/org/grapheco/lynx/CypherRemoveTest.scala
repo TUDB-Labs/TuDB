@@ -13,12 +13,6 @@ package org.grapheco.lynx
 
 import org.junit.{Assert, Test}
 
-/**
-  * @program: lynx
-  * @description:
-  * @author: LiamGao
-  * @create: 2022-02-09 13:55
-  */
 class CypherRemoveTest extends TestBase {
   @Test
   def removeNodeProperty(): Unit = {
