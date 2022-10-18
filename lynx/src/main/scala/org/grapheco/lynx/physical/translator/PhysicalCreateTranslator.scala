@@ -15,8 +15,7 @@ import org.grapheco.lynx.physical.{CreateElement, CreateNode, CreateRelationship
 import org.grapheco.lynx.LynxType
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.tudb.exception.{TuDBError, TuDBException}
-import org.opencypher.v9_0.ast.Create
-import org.opencypher.v9_0.expressions.{EveryPath, Expression, LabelName, LogicalVariable, NodePattern, Range, RelTypeName, RelationshipChain, RelationshipPattern, SemanticDirection}
+import org.opencypher.v9_0.expressions.{EveryPath, Expression, LabelName, LogicalVariable, NodePattern, PatternPart, Range, RelTypeName, RelationshipChain, RelationshipPattern, SemanticDirection}
 import org.opencypher.v9_0.util.symbols.{CTNode, CTRelationship}
 
 import scala.collection.mutable.ArrayBuffer
@@ -24,14 +23,15 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@description:
   */
-case class PhysicalCreateTranslator(c: Create) extends PhysicalNodeTranslator {
+case class PhysicalCreateTranslator(patternParts: Seq[PatternPart]) extends PhysicalNodeTranslator {
   def translate(
       in: Option[PhysicalNode]
     )(implicit plannerContext: PhysicalPlannerContext
     ): PhysicalNode = {
     val definedVars = in.map(_.schema.map(_._1)).getOrElse(Seq.empty).toSet
+
     val (schemaLocal, ops) =
-      c.pattern.patternParts.foldLeft((Seq.empty[(String, LynxType)], Seq.empty[CreateElement])) {
+      patternParts.foldLeft((Seq.empty[(String, LynxType)], Seq.empty[CreateElement])) {
         (result, part) =>
           val (schema1, ops1) = result
           part match {

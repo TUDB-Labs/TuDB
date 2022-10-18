@@ -11,11 +11,12 @@
 
 package org.grapheco.lynx.logical
 
-import org.opencypher.v9_0.ast.Create
+import org.opencypher.v9_0.expressions.PatternPart
 
 /**
   *@description:
   */
-case class LogicalCreate(c: Create)(val in: Option[LogicalNode]) extends LogicalNode {
+case class LogicalCreate(patternParts: Seq[PatternPart])(val in: Option[LogicalNode])
+  extends LogicalNode {
   override val children: Seq[LogicalNode] = in.toSeq
 }

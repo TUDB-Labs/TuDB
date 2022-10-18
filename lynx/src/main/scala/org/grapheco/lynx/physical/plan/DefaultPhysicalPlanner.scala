@@ -38,8 +38,8 @@ class DefaultPhysicalPlanner(runnerContext: QueryRunnerContext) extends Physical
           procedureName: ProcedureName,
           declaredArguments: Option[Seq[Expression]]
         )
-      case lc @ LogicalCreate(c: Create) =>
-        PhysicalCreateTranslator(c).translate(lc.in.map(plan(_)))(plannerContext)
+      case lc @ LogicalCreate(patternParts: Seq[PatternPart]) =>
+        PhysicalCreateTranslator(patternParts).translate(lc.in.map(plan(_)))(plannerContext)
       case lm @ LogicalMerge(m: Merge) =>
         PhysicalMergeTranslator(m).translate(lm.in.map(plan(_)))(plannerContext)
       case lm @ LogicalMergeAction(m: Seq[MergeAction]) =>
