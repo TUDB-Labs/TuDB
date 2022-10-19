@@ -26,14 +26,14 @@ case class LogicalProcedureCallTranslator(c: UnresolvedCall) extends LogicalNode
     )(implicit plannerContext: LogicalPlannerContext
     ): LogicalNode = {
     val UnresolvedCall(
-      ns @ Namespace(parts: List[String]),
-      pn @ ProcedureName(name: String),
+      namespace @ Namespace(parts: List[String]),
+      procedureName @ ProcedureName(name: String),
       declaredArguments: Option[Seq[Expression]],
       declaredResult: Option[ProcedureResult]
     ) = c
     val call = LogicalProcedureCall(
-      ns,
-      pn,
+      namespace,
+      procedureName,
       declaredArguments.map(exprs =>
         exprs.map(expr => ConvertExpressionToLynxExpression.convert(expr))
       )

@@ -16,6 +16,7 @@ import org.grapheco.lynx.expression.LynxExpression
 import org.opencypher.v9_0.expressions.{Expression}
 import org.opencypher.v9_0.expressions.functions.{Function => CypherFunction}
 
+// TODO: Make args,aggregating,funcName,functionType,distinct as attributes of CallableProcedure.
 case class ProcedureExpression(
     procedure: CallableProcedure,
     args: Seq[Expression],

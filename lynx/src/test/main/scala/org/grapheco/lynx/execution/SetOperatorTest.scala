@@ -252,7 +252,7 @@ class SetOperatorTest extends BaseOperatorTest {
     val namespace = List.empty
     val funcName = "toString"
     val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
-    val args = IndexedSeq(LynxProperty(LynxVariable("n", 0), LynxPropertyKey("age")))
+    val args = IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("age")))
 
     val setItems = Seq(
       SetPropertyItem(
@@ -730,7 +730,7 @@ class SetOperatorTest extends BaseOperatorTest {
         "labels",
         ProcedureExpression(
           procedure,
-          IndexedSeq(LynxVariable("n", 0)),
+          IndexedSeq(LynxVariable("n")),
           false,
           funcName,
           null,
@@ -786,7 +786,7 @@ class SetOperatorTest extends BaseOperatorTest {
         "labels",
         ProcedureExpression(
           procedure,
-          IndexedSeq(LynxVariable("n", 0)),
+          IndexedSeq(LynxVariable("n")),
           false,
           funcName,
           null,

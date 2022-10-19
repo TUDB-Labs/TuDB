@@ -202,7 +202,7 @@ class ExecutionPlanCreator {
       }
       case distinct: PhysicalDistinct => {
         val groupExpr =
-          distinct.schema.map(nameAndType => nameAndType._1 -> LynxVariable(nameAndType._1, 0))
+          distinct.schema.map(nameAndType => nameAndType._1 -> LynxVariable(nameAndType._1))
 
         AggregationOperator(
           translate(distinct.children.head, plannerContext, executionContext),

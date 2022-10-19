@@ -139,7 +139,7 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         "labels",
         ProcedureExpression(
           procedure,
-          IndexedSeq(LynxVariable("n", 0)),
+          IndexedSeq(LynxVariable("n")),
           false,
           funcName,
           null,
@@ -196,7 +196,7 @@ class RemoveOperatorTest() extends BaseOperatorTest {
         "labels",
         ProcedureExpression(
           procedure,
-          IndexedSeq(LynxVariable("n", 0)),
+          IndexedSeq(LynxVariable("n")),
           false,
           funcName,
           null,

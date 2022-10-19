@@ -9,7 +9,7 @@ import org.opencypher.v9_0.expressions.{NodePattern, RelationshipChain, Relation
 object ConvertPatternExpressionToLynxExpression {
   def convertNodePattern(nodePattern: NodePattern): NodePattern = {
     NodePattern(
-      nodePattern.variable.map(logicalVariable => LynxVariable(logicalVariable.name, 0)),
+      nodePattern.variable.map(logicalVariable => LynxVariable(logicalVariable.name)),
       nodePattern.labels,
       nodePattern.properties.map(expr => ConvertExpressionToLynxExpression.convert(expr)),
       nodePattern.baseNode
@@ -18,7 +18,7 @@ object ConvertPatternExpressionToLynxExpression {
 
   def convertRelationshipPattern(relationship: RelationshipPattern): RelationshipPattern = {
     RelationshipPattern(
-      relationship.variable.map(logicalVariable => LynxVariable(logicalVariable.name, 0)),
+      relationship.variable.map(logicalVariable => LynxVariable(logicalVariable.name)),
       relationship.types,
       relationship.length,
       relationship.properties.map(expr => ConvertExpressionToLynxExpression.convert(expr)),

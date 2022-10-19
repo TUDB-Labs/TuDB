@@ -68,7 +68,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
   def testCountByNode(): Unit = {
     val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
 
-    val groupExpr = Seq("n" -> LynxVariable("n", 0))
+    val groupExpr = Seq("n" -> LynxVariable("n"))
     val aggregationExpr = Seq("count(*)" -> LynxCountStar())
 
     val groupByOperator = AggregationOperator(
@@ -101,7 +101,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
   def testCountByProperty(): Unit = {
     val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
 
-    val groupExpr = Seq("n.name" -> LynxProperty(LynxVariable("n", 0), LynxPropertyKey("name")))
+    val groupExpr = Seq("n.name" -> LynxProperty(LynxVariable("n"), LynxPropertyKey("name")))
     val aggregationExpr = Seq("count(*)" -> LynxCountStar())
 
     val groupByOperator = AggregationOperator(
@@ -139,7 +139,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
     val aggregationExpr = Seq(
       "count(n.name)" -> ProcedureExpression(
         procedure,
-        IndexedSeq(LynxProperty(LynxVariable("n", 0), LynxPropertyKey("name"))),
+        IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("name"))),
         false,
         funcName,
         null,
@@ -147,7 +147,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
       ),
       "count(n.age)" -> ProcedureExpression(
         procedure,
-        IndexedSeq(LynxProperty(LynxVariable("n", 0), LynxPropertyKey("age"))),
+        IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("age"))),
         false,
         funcName,
         null,
