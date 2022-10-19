@@ -11,18 +11,49 @@
 
 package org.grapheco.metrics
 
+import org.grapheco.tudb.common.utils.LogUtil
 import org.slf4j.LoggerFactory
 
+import java.time.LocalDateTime
 import scala.collection.mutable.Stack
+import scala.util.control.Breaks._
 
 object DomainObject {
-  val domainID = "query"
+  val domainID = "Query-Performance"
   var stackedLabels = Stack[String]()
 
   var domain: Domain = new Domain(domainID)
+  val logger = LoggerFactory.getLogger("DomainObject")
 
   def addRecord(r: Record): Unit = {
     domain.addRecord(r)
+  }
+
+  def generateQueryID(query: String): String = {
+    if (query.isEmpty) {
+      return ""
+    }
+    val lines = query.trim.split(" ")
+
+    var queryID = ""
+    var nAddedLine = 0
+    breakable {
+      for (line <- lines) {
+        val trimLine = line.trim
+        if (!trimLine.isEmpty) {
+          if (queryID.isEmpty) {
+            queryID = trimLine
+          } else {
+            queryID = queryID + "-" + trimLine
+          }
+          nAddedLine = nAddedLine + 1
+        }
+        if (nAddedLine >= 3) {
+          break
+        }
+      }
+    }
+    LocalDateTime.now().toString + "-" + queryID
   }
 
   def recordLatency(labels: Set[String]): Unit = {
@@ -38,6 +69,14 @@ object DomainObject {
     }
     val r = new Record(new Label(completeLabels), new Value(0))
     domain.recordLatency(r)
+  }
+
+  def recordQuery(query: String): Unit = {
+    val queryID = generateQueryID(query)
+    if (queryID.isEmpty) {
+      return
+    }
+    pushLabel(queryID)
   }
 
   def pushLabel(l: String): Unit = {
@@ -61,12 +100,15 @@ object DomainObject {
     domain.records = Vector()
   }
 
-  def printRecords(inputLabelSet: Set[String]): Unit = {
-    var labelSet = inputLabelSet
-    if (labelSet == null) {
-      labelSet = Set[String]()
+  def printRecords(labels: Option[Set[String]]): Unit = {
+    var newLabels: Set[String] = Set()
+    if (labels.isEmpty) {
+      for (l <- stackedLabels) {
+        newLabels += l
+      }
+    } else {
+      newLabels = labels.get
     }
-    val label = new Label(labelSet)
-    domain.printRecordByLabel(label)
+    domain.printRecordByLabel(new Label(newLabels))
   }
 }

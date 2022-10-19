@@ -68,7 +68,7 @@ class QueryRunner(graphModel: GraphModel) extends LazyLogging {
     queryParser.parse(query)
 
   def run(query: String, param: Map[String, Any]): LynxResult = {
-    DomainObject.pushLabel(query)
+    DomainObject.recordQuery(query)
 
     DomainObject.recordLatency(null)
 
@@ -123,7 +123,7 @@ class QueryRunner(graphModel: GraphModel) extends LazyLogging {
 
     DomainObject.recordLatency(null)
 
-    DomainObject.printRecords(Set(query))
+    DomainObject.printRecords(Option(null))
 
     new LynxResult() with PlanAware {
       val schema = executionPlan.outputSchema()
