@@ -10,6 +10,7 @@ Please install the following before walking through the rest of this guide:
 
 * Java 8
 * Maven
+* Python (required by pre-commit checks)
 
 ### Maven Configuration
 
@@ -34,7 +35,8 @@ Run the following command to run the test suite: `mvn -B clean install test --fi
 
 ### Pre-commit Checks
 
-We run several checks before every commit automatically with `pre-commit`. Install [pre-commit](https://pre-commit.com/) to run
+We run several checks before every commit automatically with `pre-commit`. Please install Python (required by `pre-commit`)
+if it's not pre-installed by your operating system. Then install [pre-commit](https://pre-commit.com/) to run
 the required checks when you commit your changes.
 
 Once it's installed, run `pre-commit install` to install the hooks that will be run automatically when you `git commit`
