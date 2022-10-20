@@ -19,7 +19,7 @@ object ConvertPathStepToLynxPathStep {
         LynxSingleRelationshipPathStep(
           ConvertExpressionToLynxExpression.convert(r.rel),
           r.direction,
-          r.toNode.map(logicalVariable => LynxVariable(logicalVariable.name, 0)),
+          r.toNode.map(logicalVariable => LynxVariable(logicalVariable.name)),
           convert(r.next)
         )
 
@@ -27,7 +27,7 @@ object ConvertPathStepToLynxPathStep {
         LynxMultiRelationshipPathStep(
           ConvertExpressionToLynxExpression.convert(mr.rel),
           mr.direction,
-          mr.toNode.map(logicalVariable => LynxVariable(logicalVariable.name, 0)),
+          mr.toNode.map(logicalVariable => LynxVariable(logicalVariable.name)),
           convert(mr.next)
         )
 
