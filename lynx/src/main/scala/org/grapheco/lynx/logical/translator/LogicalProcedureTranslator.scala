@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalNode, LogicalProcedureCall}
 import org.opencypher.v9_0.ast.{ProcedureResult, ProcedureResultItem, UnresolvedCall, Where}
@@ -25,12 +26,18 @@ case class LogicalProcedureCallTranslator(c: UnresolvedCall) extends LogicalNode
     )(implicit plannerContext: LogicalPlannerContext
     ): LogicalNode = {
     val UnresolvedCall(
-      ns @ Namespace(parts: List[String]),
-      pn @ ProcedureName(name: String),
+      namespace @ Namespace(parts: List[String]),
+      procedureName @ ProcedureName(name: String),
       declaredArguments: Option[Seq[Expression]],
       declaredResult: Option[ProcedureResult]
     ) = c
-    val call = LogicalProcedureCall(ns, pn, declaredArguments)
+    val call = LogicalProcedureCall(
+      namespace,
+      procedureName,
+      declaredArguments.map(exprs =>
+        exprs.map(expr => ConvertExpressionToLynxExpression.convert(expr))
+      )
+    )
 
     declaredResult match {
       case Some(ProcedureResult(items: IndexedSeq[ProcedureResultItem], where: Option[Where])) =>

@@ -12,41 +12,25 @@
 package org.grapheco.lynx.procedure
 
 import com.typesafe.scalalogging.LazyLogging
-import org.grapheco.lynx.{QueryRunnerContext, ProcedureUnregisteredException}
-import org.opencypher.v9_0.expressions.{Expression, FunctionInvocation}
-import org.opencypher.v9_0.util.InputPosition
+import org.grapheco.lynx.expression.LynxExpression
+import org.opencypher.v9_0.expressions.{Expression}
+import org.opencypher.v9_0.expressions.functions.{Function => CypherFunction}
 
-/** @ClassName ProcedureExpression
-  * @Description TODO
-  * @Author huchuan
-  * @Date 2022/4/20
-  * @Version 0.1
-  */
+// TODO: Make args,aggregating,funcName,functionType,distinct as attributes of CallableProcedure.
 case class ProcedureExpression(
-    val funcInov: FunctionInvocation
-  )(implicit runnerContext: QueryRunnerContext)
-  extends Expression
+    procedure: CallableProcedure,
+    args: Seq[Expression],
+    aggregating: Boolean,
+    funcName: String,
+    functionType: CypherFunction,
+    distinct: Boolean)
+  extends LynxExpression
   with LazyLogging {
-  val procedure: CallableProcedure = runnerContext.procedureRegistry
-    .getProcedure(funcInov.namespace.parts, funcInov.functionName.name)
-    .getOrElse(throw ProcedureUnregisteredException(funcInov.name))
-  val args: Seq[Expression] = funcInov.args
-  val aggregating: Boolean = funcInov.containsAggregate
+
+  // when convert AST plan to logical plan, this method determines convert to aggregation or project
+  override def containsAggregate: Boolean = aggregating
 
   logger.debug(
-    s"binding FunctionInvocation ${funcInov.name} to procedure ${procedure}, containsAggregate: ${aggregating}"
+    s"binding FunctionInvocation ${funcName} to procedure ${procedure}, containsAggregate: ${aggregating}"
   )
-
-  override def position: InputPosition = funcInov.position
-
-  override def productElement(n: Int): Any = funcInov.productElement(n)
-
-  override def productArity: Int = funcInov.productArity
-
-  override def canEqual(that: Any): Boolean = funcInov.canEqual(that)
-
-  override def containsAggregate: Boolean = funcInov.containsAggregate
-
-  override def findAggregate: Option[Expression] = funcInov.findAggregate
-
 }

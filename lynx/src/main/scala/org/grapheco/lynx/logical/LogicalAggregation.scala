@@ -11,14 +11,14 @@
 
 package org.grapheco.lynx.logical
 
-import org.opencypher.v9_0.ast.ReturnItem
+import org.opencypher.v9_0.expressions.Expression
 
 /**
   *@description:
   */
 case class LogicalAggregation(
-    aggregations: Seq[ReturnItem],
-    groupings: Seq[ReturnItem]
+    aggregations: Seq[(String, Expression)],
+    groupings: Seq[(String, Expression)]
   )(val in: LogicalNode)
   extends LogicalNode {
   override val children: Seq[LogicalNode] = Seq(in)

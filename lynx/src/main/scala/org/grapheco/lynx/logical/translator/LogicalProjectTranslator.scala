@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalAggregation, LogicalCreateUnit, LogicalNode, LogicalProject}
 import org.opencypher.v9_0.ast.ReturnItemsDef
@@ -27,9 +28,20 @@ case class LogicalProjectTranslator(ri: ReturnItemsDef) extends LogicalNodeTrans
     if (ri.containsAggregate) {
       val (aggregatingItems, groupingItems) =
         ri.items.partition(i => i.expression.containsAggregate)
-      LogicalAggregation(aggregatingItems, groupingItems)(newIn)
+
+      val lynxAggregatingItems = aggregatingItems.map(item =>
+        item.name -> ConvertExpressionToLynxExpression.convert(item.expression)
+      )
+      val lynxGroupingItems = groupingItems.map(item =>
+        item.name -> ConvertExpressionToLynxExpression.convert(item.expression)
+      )
+
+      LogicalAggregation(lynxAggregatingItems, lynxGroupingItems)(newIn)
     } else {
-      LogicalProject(ri)(newIn)
+      val projectItems =
+        ri.items.map(f => f.name -> ConvertExpressionToLynxExpression.convert(f.expression))
+
+      LogicalProject(projectItems)(newIn)
     }
   }
 }
