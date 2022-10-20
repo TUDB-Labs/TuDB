@@ -11,11 +11,16 @@
 
 package org.grapheco.lynx.logical
 
-import org.opencypher.v9_0.ast.Unwind
+import org.grapheco.lynx.expression.LynxVariable
+import org.opencypher.v9_0.expressions.Expression
 
 /**
   *@description:
   */
-case class LogicalUnwind(u: Unwind)(val in: Option[LogicalNode]) extends LogicalNode {
+case class LogicalUnwind(
+    variable: LynxVariable,
+    expression: Expression
+  )(val in: Option[LogicalNode])
+  extends LogicalNode {
   override val children: Seq[LogicalNode] = in.toSeq
 }

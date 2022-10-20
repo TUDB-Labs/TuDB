@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.physical
 
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.{DataFrame, ExecutionContext, LynxType}
 import org.grapheco.lynx.types.LynxValue
@@ -22,8 +23,8 @@ import org.opencypher.v9_0.util.symbols.CTAny
   *@description:
   */
 case class PhysicalUnwind(
-    expression: Expression,
-    variable: Variable
+    variable: LynxVariable,
+    expression: Expression
   )(implicit val in: Option[PhysicalNode],
     val plannerContext: PhysicalPlannerContext)
   extends AbstractPhysicalNode {
@@ -66,5 +67,5 @@ case class PhysicalUnwind(
     }
 
   override def withChildren(children0: Seq[PhysicalNode]): PhysicalUnwind =
-    PhysicalUnwind(expression, variable)(children0.headOption, plannerContext)
+    PhysicalUnwind(variable, expression)(children0.headOption, plannerContext)
 }
