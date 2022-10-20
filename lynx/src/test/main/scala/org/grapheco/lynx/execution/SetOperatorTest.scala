@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.execution
 
+import org.grapheco.lynx.expression.{LynxProperty, LynxVariable}
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxList
@@ -248,23 +249,17 @@ class SetOperatorTest extends BaseOperatorTest {
       SET n.age = toString(n.age)
       RETURN n.name, n.age
      */
+    val namespace = List.empty
+    val funcName = "toString"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+    val args = IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("age")))
+
     val setItems = Seq(
       SetPropertyItem(
         Property(Variable("n")(defaultPosition), PropertyKeyName("age")(defaultPosition))(
           defaultPosition
         ),
-        ProcedureExpression(
-          FunctionInvocation(
-            Namespace(List())(defaultPosition),
-            FunctionName("toString")(defaultPosition),
-            false,
-            IndexedSeq(
-              Property(Variable("n")(defaultPosition), PropertyKeyName("age")(defaultPosition))(
-                defaultPosition
-              )
-            )
-          )(defaultPosition)
-        )(runnerContext)
+        ProcedureExpression(procedure, args, false, funcName, null, false)
       )(defaultPosition)
     )
     val nodeScanOperator = prepareNodeScanOperator(
@@ -719,6 +714,10 @@ class SetOperatorTest extends BaseOperatorTest {
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
 
+    val namespace = List.empty
+    val funcName = "labels"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+
     val projectColumn = Seq(
       (
         "n.name",
@@ -730,13 +729,13 @@ class SetOperatorTest extends BaseOperatorTest {
       (
         "labels",
         ProcedureExpression(
-          FunctionInvocation(
-            Namespace()(defaultPosition),
-            FunctionName("labels")(defaultPosition),
-            false,
-            IndexedSeq(Variable("n")(defaultPosition))
-          )(defaultPosition)
-        )(runnerContext)
+          procedure,
+          IndexedSeq(LynxVariable("n")),
+          false,
+          funcName,
+          null,
+          false
+        )
       )
     )
     val projectOperator =
@@ -771,6 +770,10 @@ class SetOperatorTest extends BaseOperatorTest {
     val setOperator =
       SetOperator(nodeScanOperator, setItems, model, expressionEvaluator, ctx.expressionContext)
 
+    val namespace = List.empty
+    val funcName = "labels"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+
     val projectColumn = Seq(
       (
         "n.name",
@@ -782,13 +785,13 @@ class SetOperatorTest extends BaseOperatorTest {
       (
         "labels",
         ProcedureExpression(
-          FunctionInvocation(
-            Namespace()(defaultPosition),
-            FunctionName("labels")(defaultPosition),
-            false,
-            IndexedSeq(Variable("n")(defaultPosition))
-          )(defaultPosition)
-        )(runnerContext)
+          procedure,
+          IndexedSeq(LynxVariable("n")),
+          false,
+          funcName,
+          null,
+          false
+        )
       )
     )
     val projectOperator =
