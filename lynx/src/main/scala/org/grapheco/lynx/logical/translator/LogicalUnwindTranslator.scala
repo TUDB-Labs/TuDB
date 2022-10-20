@@ -31,7 +31,7 @@ case class LogicalUnwindTranslator(u: Unwind) extends LogicalNodeTranslator {
     //    }
 
     LogicalUnwind(
-      LynxVariable(u.variable.name, 0),
+      LynxVariable(u.variable.name),
       ConvertExpressionToLynxExpression.convert(u.expression)
     )(in)
   }
