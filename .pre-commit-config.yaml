@@ -9,5 +9,5 @@ repos:
       - id: copyright_checker
         name: copyright_checker
         entry: python ./hack/gen-copyright.py
-        language: system
+        language: python
         files: \.(java|py|sh|scala)$
