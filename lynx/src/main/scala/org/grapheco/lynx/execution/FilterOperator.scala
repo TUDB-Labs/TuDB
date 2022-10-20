@@ -12,15 +12,13 @@
 package org.grapheco.lynx.execution
 
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull, LynxString}
+import org.grapheco.lynx.types.property.{LynxBoolean, LynxNull}
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
 import org.opencypher.v9_0.expressions.Expression
 
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  *@author:John117
-  *@createDate:2022/8/1
   *@description: Filter operator is used to get data that contains a specific pattern.
   */
 case class FilterOperator(

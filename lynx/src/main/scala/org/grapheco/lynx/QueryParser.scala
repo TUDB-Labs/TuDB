@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx
 
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.opencypher.v9_0.ast.Statement
 import org.opencypher.v9_0.ast.semantics.{SemanticErrorDef, SemanticFeature, SemanticState}
@@ -95,7 +96,13 @@ class DefaultQueryParser(runnerContext: QueryRunnerContext) extends QueryParser 
     override def process(from: BaseState, ignored: BaseContext): BaseState = {
       val rewriter = inSequence(bottomUp(Rewriter.lift {
         case func: FunctionInvocation =>
-          ProcedureExpression(func)(runnerContext)
+          val args = func.args.map(expr => ConvertExpressionToLynxExpression.convert(expr))
+          val aggregating = func.containsAggregate
+          val funcName = func.name
+          val procedure = runnerContext.procedureRegistry
+            .getProcedure(func.namespace.parts, funcName)
+            .getOrElse(throw ProcedureUnregisteredException(funcName))
+          ProcedureExpression(procedure, args, aggregating, funcName, func.function, func.distinct)
       }))
       val newStatement = from.statement().endoRewrite(rewriter)
       from.withStatement(newStatement)

@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx
 
+import org.grapheco.lynx.expression.{LynxCountStar, LynxExpression}
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.procedure.{ProcedureExpression, ProcedureRegistry}
 import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
@@ -50,6 +51,8 @@ class DefaultExpressionEvaluator(
     types: TypeSystem,
     procedures: ProcedureRegistry)
   extends ExpressionEvaluator {
+  val lynxEval = new LynxEval(types, procedures, this)
+
   override def typeOf(expr: Expression, definedVarTypes: Map[String, LynxType]): LynxType = {
     expr match {
       case Parameter(name, parameterType) => parameterType
@@ -60,9 +63,9 @@ class DefaultExpressionEvaluator(
       case _: IntegerLiteral => CTInteger
       case _: DoubleLiteral  => CTFloat
       case CountStar()       => CTInteger
-      case ProcedureExpression(funcInov) =>
-        funcInov.function match {
-          case Collect => CTList(typeOf(funcInov.args.head, definedVarTypes))
+      case ProcedureExpression(procedure, args, aggregating, funcName, function, distinct) =>
+        function match {
+          case Collect => CTList(typeOf(args.head, definedVarTypes))
           case Id      => CTInteger
           case _       => CTAny
         }
@@ -104,6 +107,8 @@ class DefaultExpressionEvaluator(
 
   override def eval(expr: Expression)(implicit ec: ExpressionContext): LynxValue = {
     expr match {
+      case lynxExpr: LynxExpression => lynxEval.eval(expr)(ec)
+
       case HasLabels(expression, labels) =>
         eval(expression) match {
           case node: LynxNode =>
@@ -125,11 +130,6 @@ class DefaultExpressionEvaluator(
 //          case (lm: LynxMap, index: LynxInteger) => lm.value.values.toList.lift(index.value.toInt)
           }
         }.getOrElse(LynxNull)
-      }
-
-      case fe: ProcedureExpression => { //TODO move aggregating to other place
-        if (fe.aggregating) LynxValue(fe.args.map(eval(_)))
-        else fe.procedure.call(fe.args.map(eval(_)))
       }
 
       case Add(lhs, rhs) =>
@@ -338,13 +338,15 @@ class DefaultExpressionEvaluator(
           val argsList = {
             ecs.map(eval(fe.args.head)(_)).toList //todo: ".head": any multi-args situation?
           }
-          if (fe.funcInov.distinct) fe.procedure.call(Seq(LynxList(argsList.distinct)))
+          if (fe.distinct) fe.procedure.call(Seq(LynxList(argsList.distinct)))
           else fe.procedure.call(Seq(LynxList(argsList)))
         } else {
           throw LynxProcedureException("aggregate by nonAggregating procedure.")
         }
+
       case CountStar() => LynxInteger(ecs.length)
 
+      case LynxCountStar() => LynxInteger(ecs.length)
     }
 
   }

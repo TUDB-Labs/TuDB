@@ -12,9 +12,9 @@
 package org.grapheco.lynx.physical.rules
 
 import org.grapheco.lynx.PhysicalPlanOptimizerRule
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical.{PhysicalNode, PhysicalProject}
-import org.opencypher.v9_0.ast.AliasedReturnItem
 
 /**
   *@description:
@@ -25,8 +25,14 @@ object RemoveNullProject extends PhysicalPlanOptimizerRule {
       plan, {
         case pnode: PhysicalNode =>
           pnode.children match {
-            case Seq(p @ PhysicalProject(ri)) if ri.items.forall {
-                  case AliasedReturnItem(expression, variable) => expression == variable
+            case Seq(p @ PhysicalProject(projectItems)) if projectItems.forall {
+                  case (name, expression) => {
+                    expression match {
+                      case variable: LynxVariable => name == variable.name
+
+                      case _ => false
+                    }
+                  }
                 } =>
               pnode.withChildren(pnode.children.filterNot(_ eq p) ++ p.children)
 

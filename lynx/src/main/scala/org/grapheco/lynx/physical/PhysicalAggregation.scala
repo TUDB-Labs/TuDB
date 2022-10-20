@@ -13,14 +13,14 @@ package org.grapheco.lynx.physical
 
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.{DataFrame, ExecutionContext, LynxType}
-import org.opencypher.v9_0.ast.ReturnItem
+import org.opencypher.v9_0.expressions.Expression
 
 /**
   *@description:
   */
 case class PhysicalAggregation(
-    aggregations: Seq[ReturnItem],
-    groupings: Seq[ReturnItem]
+    aggregations: Seq[(String, Expression)],
+    groupings: Seq[(String, Expression)]
   )(implicit val in: PhysicalNode,
     val plannerContext: PhysicalPlannerContext)
   extends AbstractPhysicalNode {
@@ -30,15 +30,12 @@ case class PhysicalAggregation(
     PhysicalAggregation(aggregations, groupings)(children0.head, plannerContext)
 
   override val schema: Seq[(String, LynxType)] =
-    (groupings ++ aggregations).map(x => x.name -> x.expression).map { col =>
+    (groupings ++ aggregations).map { col =>
       col._1 -> typeOf(col._2, in.schema.toMap)
     }
 
   override def execute(implicit ctx: ExecutionContext): DataFrame = {
     val df = in.execute(ctx)
-    df.groupBy(
-      groupings.map(x => x.name -> x.expression),
-      aggregations.map(x => x.name -> x.expression)
-    )(ctx.expressionContext)
+    df.groupBy(groupings, aggregations)(ctx.expressionContext)
   }
 }

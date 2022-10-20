@@ -12,21 +12,15 @@
 package org.grapheco.lynx.execution
 
 import org.apache.commons.collections4.CollectionUtils
+import org.grapheco.lynx.expression.{LynxCountStar, LynxProperty, LynxVariable}
 import org.grapheco.lynx.procedure.ProcedureExpression
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey}
 import org.junit.{Assert, Test}
-import org.opencypher.v9_0.ast.AliasedReturnItem
-import org.opencypher.v9_0.expressions.{CountStar, FunctionInvocation, FunctionName, Namespace, Property, PropertyKeyName, Variable}
 
 import scala.collection.JavaConverters._
 
-/**
-  *@author:John117
-  *@createDate:2022/8/9
-  *@description:
-  */
 class AggregationOperatorTest extends BaseOperatorTest {
   val node1 = TestNode(
     TestId(1L),
@@ -56,11 +50,7 @@ class AggregationOperatorTest extends BaseOperatorTest {
 
     val groupExpr = Seq.empty
 
-    val aggregationExpr = Seq(
-      AliasedReturnItem(CountStar()(defaultPosition), Variable("count(*)")(defaultPosition))(
-        defaultPosition
-      )
-    )
+    val aggregationExpr = Seq("count(*)" -> LynxCountStar())
 
     val groupByOperator = AggregationOperator(
       nodeOperator,
@@ -78,16 +68,8 @@ class AggregationOperatorTest extends BaseOperatorTest {
   def testCountByNode(): Unit = {
     val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
 
-    val groupExpr = Seq(
-      AliasedReturnItem(Variable("n")(defaultPosition), Variable("n")(defaultPosition))(
-        defaultPosition
-      )
-    )
-    val aggregationExpr = Seq(
-      AliasedReturnItem(CountStar()(defaultPosition), Variable("count(*)")(defaultPosition))(
-        defaultPosition
-      )
-    )
+    val groupExpr = Seq("n" -> LynxVariable("n"))
+    val aggregationExpr = Seq("count(*)" -> LynxCountStar())
 
     val groupByOperator = AggregationOperator(
       nodeOperator,
@@ -119,21 +101,8 @@ class AggregationOperatorTest extends BaseOperatorTest {
   def testCountByProperty(): Unit = {
     val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
 
-    val groupExpr = Seq(
-      AliasedReturnItem(
-        Property(Variable("n")(defaultPosition), PropertyKeyName("name")(defaultPosition))(
-          defaultPosition
-        ),
-        Variable("n.name")(defaultPosition)
-      )(
-        defaultPosition
-      )
-    )
-    val aggregationExpr = Seq(
-      AliasedReturnItem(CountStar()(defaultPosition), Variable("count(*)")(defaultPosition))(
-        defaultPosition
-      )
-    )
+    val groupExpr = Seq("n.name" -> LynxProperty(LynxVariable("n"), LynxPropertyKey("name")))
+    val aggregationExpr = Seq("count(*)" -> LynxCountStar())
 
     val groupByOperator = AggregationOperator(
       nodeOperator,
@@ -161,38 +130,29 @@ class AggregationOperatorTest extends BaseOperatorTest {
   @Test
   def testCountByMultiplePropertiesWithLynxNull(): Unit = {
     val nodeOperator = prepareNodeScanOperator("n", Seq.empty, Seq.empty)
+
+    val namespace = List.empty
+    val funcName = "count"
+    val procedure = runnerContext.procedureRegistry.getProcedure(namespace, funcName).get
+
     val groupExpr = Seq.empty
     val aggregationExpr = Seq(
-      AliasedReturnItem(
-        ProcedureExpression(
-          FunctionInvocation(
-            Namespace(List.empty)(defaultPosition),
-            FunctionName("count")(defaultPosition),
-            false,
-            IndexedSeq(
-              Property(Variable("n")(defaultPosition), PropertyKeyName("name")(defaultPosition))(
-                defaultPosition
-              )
-            )
-          )(defaultPosition)
-        )(runnerContext),
-        Variable("count(n.name)")(defaultPosition)
-      )(defaultPosition),
-      AliasedReturnItem(
-        ProcedureExpression(
-          FunctionInvocation(
-            Namespace(List.empty)(defaultPosition),
-            FunctionName("count")(defaultPosition),
-            false,
-            IndexedSeq(
-              Property(Variable("n")(defaultPosition), PropertyKeyName("age")(defaultPosition))(
-                defaultPosition
-              )
-            )
-          )(defaultPosition)
-        )(runnerContext),
-        Variable("count(n.age)")(defaultPosition)
-      )(defaultPosition)
+      "count(n.name)" -> ProcedureExpression(
+        procedure,
+        IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("name"))),
+        false,
+        funcName,
+        null,
+        false
+      ),
+      "count(n.age)" -> ProcedureExpression(
+        procedure,
+        IndexedSeq(LynxProperty(LynxVariable("n"), LynxPropertyKey("age"))),
+        false,
+        funcName,
+        null,
+        false
+      )
     )
 
     val groupByOperator = AggregationOperator(

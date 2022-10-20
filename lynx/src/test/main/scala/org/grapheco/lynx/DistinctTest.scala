@@ -13,11 +13,6 @@ package org.grapheco.lynx
 
 import org.junit.{Assert, Test}
 
-/**
-  *@author:John117
-  *@createDate:2022/7/18
-  *@description:
-  */
 class DistinctTest extends TestBase {
   @Test
   def testDistinctRelationship(): Unit = {

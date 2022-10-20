@@ -102,7 +102,7 @@ object ExtractJoinReferenceRule extends PhysicalPlanOptimizerRule {
             }
           }
           case (
-              ProcedureExpression(FunctionInvocation(namespace, functionName, distinct, args)),
+              ProcedureExpression(procedure, args, aggregating, funcName, function, distinct),
               Variable(name)
               ) => {
             // FixMe: maybe args have other type.
