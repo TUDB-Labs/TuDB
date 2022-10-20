@@ -11,8 +11,7 @@ import org.opencypher.v9_0.expressions.{CaseExpression, CountStar, Expression, F
 object ConvertExpressionToLynxExpression {
   def convert(expr: Expression): LynxExpression = {
     expr match {
-      // TODO: calculate columnOffset
-      case Variable(name) => LynxVariable(name, 0)
+      case Variable(name) => LynxVariable(name)
 
       case HasLabels(expression, labels) =>
         LynxHasLabels(convert(expression), labels.map(l => LynxNodeLabel(l.name)))

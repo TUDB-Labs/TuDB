@@ -12,6 +12,7 @@
 package org.grapheco.lynx
 
 import org.grapheco.lynx.execution._
+import org.grapheco.lynx.expression.LynxVariable
 import org.grapheco.lynx.physical.plan.PhysicalPlannerContext
 import org.grapheco.lynx.physical._
 import org.grapheco.lynx.types.property.LynxNumber
@@ -69,7 +70,7 @@ class ExecutionPlanCreator {
         )
       }
       case project: PhysicalProject => {
-        val columnExpr = project.ri.items.map(x => x.name -> x.expression)
+        val columnExpr = project.projectItems
         ProjectOperator(
           translate(project.children.head, plannerContext, executionContext),
           columnExpr,
@@ -200,12 +201,9 @@ class ExecutionPlanCreator {
         )
       }
       case distinct: PhysicalDistinct => {
-        val groupExpr = distinct.schema.map(nameAndType =>
-          AliasedReturnItem(
-            Variable(nameAndType._1)(defaultPosition),
-            Variable(nameAndType._1)(defaultPosition)
-          )(defaultPosition)
-        )
+        val groupExpr =
+          distinct.schema.map(nameAndType => nameAndType._1 -> LynxVariable(nameAndType._1))
+
         AggregationOperator(
           translate(distinct.children.head, plannerContext, executionContext),
           Seq.empty,
