@@ -14,8 +14,7 @@ package org.grapheco.lynx.execution
 import org.grapheco.lynx.execution.utils.OperatorUtils
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.{ExecutionOperator, ExpressionContext, ExpressionEvaluator, LynxType, RowBatch}
-import org.grapheco.metrics.{Label, Record, Value, DomainObject}
-import org.opencypher.v9_0.ast.ReturnItem
+import org.opencypher.v9_0.expressions.Expression
 
 /**
   *@description: This operator groups the input from `in` by keys of `aggregationItems`
@@ -23,26 +22,21 @@ import org.opencypher.v9_0.ast.ReturnItem
   */
 case class AggregationOperator(
     in: ExecutionOperator,
-    aggregationItems: Seq[ReturnItem],
-    groupingItems: Seq[ReturnItem],
+    aggregationItems: Seq[(String, Expression)],
+    groupingItems: Seq[(String, Expression)],
     expressionEvaluator: ExpressionEvaluator,
     expressionContext: ExpressionContext)
   extends ExecutionOperator {
   override val children: Seq[ExecutionOperator] = Seq(in)
-
-  val aggregationExprs = aggregationItems.map(x => x.name -> x.expression)
-  val groupingExprs = groupingItems.map(x => x.name -> x.expression)
 
   var schema: Seq[(String, LynxType)] = Seq.empty
 
   var allGroupedData: Iterator[Array[Seq[LynxValue]]] = Iterator.empty
   var hasPulledData: Boolean = false
 
-  val recordLabel = new Label(Set("Aggregation"))
-
   override def openImpl(): Unit = {
     in.open()
-    schema = (aggregationExprs ++ groupingExprs).map(col =>
+    schema = (aggregationItems ++ groupingItems).map(col =>
       col._1 -> expressionEvaluator.typeOf(col._2, in.outputSchema().toMap)
     )
   }
@@ -51,11 +45,11 @@ case class AggregationOperator(
     if (!hasPulledData) {
       val columnNames = in.outputSchema().map(f => f._1)
       val allData = OperatorUtils.getOperatorAllOutputs(in).flatMap(rowData => rowData.batchData)
-      val result = if (groupingExprs.nonEmpty) {
+      val result = if (groupingItems.nonEmpty) {
         allData
           .map(record => {
             val recordCtx = expressionContext.withVars(columnNames.zip(record).toMap)
-            groupingExprs.map(col => expressionEvaluator.eval(col._2)(recordCtx)) -> recordCtx
+            groupingItems.map(col => expressionEvaluator.eval(col._2)(recordCtx)) -> recordCtx
           })
           .toSeq // each row point to a recordCtx
           // group by record
@@ -65,7 +59,7 @@ case class AggregationOperator(
           .map {
             case (groupingValue, recordCtx) =>
               groupingValue ++ {
-                aggregationExprs.map {
+                aggregationItems.map {
                   case (name, expr) =>
                     expressionEvaluator.aggregateEval(expr)(recordCtx)
                 }
@@ -75,7 +69,7 @@ case class AggregationOperator(
         val allRecordContext = allData.map { record =>
           expressionContext.withVars(columnNames.zip(record).toMap)
         }.toSeq
-        Iterator(aggregationExprs.map {
+        Iterator(aggregationItems.map {
           case (name, expression) =>
             expressionEvaluator.aggregateEval(expression)(allRecordContext)
         })

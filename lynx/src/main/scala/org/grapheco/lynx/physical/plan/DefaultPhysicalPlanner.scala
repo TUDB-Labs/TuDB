@@ -48,7 +48,8 @@ class DefaultPhysicalPlanner(runnerContext: QueryRunnerContext) extends Physical
         PhysicalDelete(deleteExpr, forceToDelete)(plan(ld.in), plannerContext)
       case ls @ LogicalSelect(columns: Seq[(String, Option[String])]) =>
         PhysicalSelect(columns)(plan(ls.in), plannerContext)
-      case lp @ LogicalProject(ri)       => PhysicalProject(ri)(plan(lp.in), plannerContext)
+      case lp @ LogicalProject(projectItems) =>
+        PhysicalProject(projectItems)(plan(lp.in), plannerContext)
       case la @ LogicalAggregation(a, g) => PhysicalAggregation(a, g)(plan(la.in), plannerContext)
       case lc @ LogicalCreateUnit(items) => PhysicalCreateUnit(items)(plannerContext)
       case lf @ LogicalFilter(expr)      => PhysicalFilter(expr)(plan(lf.in), plannerContext)
