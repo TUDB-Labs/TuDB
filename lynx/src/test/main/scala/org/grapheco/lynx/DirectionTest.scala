@@ -15,11 +15,6 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.junit.{Assert, Test}
 
-/**
-  *@author:John117
-  *@createDate:2022/7/14
-  *@description:
-  */
 class DirectionTest extends TestBase {
 
   def checkARSCorrect(res: List[Map[String, LynxValue]]): Unit = {

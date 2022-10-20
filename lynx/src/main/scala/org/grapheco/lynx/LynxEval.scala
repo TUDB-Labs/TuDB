@@ -182,7 +182,7 @@ class LynxEval(
       case v: LynxListLiteral =>
         LynxValue(v.expressions.map(eval(_)))
 
-      case LynxVariable(name, columnOffset) =>
+      case LynxVariable(name) =>
         ec.vars(name)
 
       case LynxProperty(src, LynxPropertyKey(name)) =>
