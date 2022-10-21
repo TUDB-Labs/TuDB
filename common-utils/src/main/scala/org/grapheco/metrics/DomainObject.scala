@@ -46,7 +46,7 @@ object DomainObject {
           } else {
             queryID = queryID + "-" + trimLine
           }
-          nAddedLine = nAddedLine + 1
+          nAddedLine += 1
         }
         if (nAddedLine >= 3) {
           break
