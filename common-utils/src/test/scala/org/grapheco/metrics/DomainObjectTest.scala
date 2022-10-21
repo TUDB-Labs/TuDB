@@ -56,4 +56,13 @@ class DomainObjectTest {
     assert(r.label.matches(new Label(Set(labelStr1, labelStr2))))
   }
 
+  @Test
+  def testGenerateQueryID(): Unit = {
+    var id = DomainObject.generateQueryID("")
+    assert(id.isEmpty)
+
+    id = DomainObject.generateQueryID("  A B\n C D")
+    assert(id.endsWith("A-B-C"))
+  }
+
 }
