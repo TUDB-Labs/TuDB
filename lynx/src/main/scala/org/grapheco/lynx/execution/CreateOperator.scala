@@ -13,6 +13,7 @@ package org.grapheco.lynx.execution
 
 import org.grapheco.lynx.graph.GraphModel
 import org.grapheco.lynx.execution.utils.OperatorUtils
+import org.grapheco.lynx.expression.LynxMapExpression
 import org.grapheco.lynx.physical.{ContextualNodeInputRef, CreateElement, CreateNode, CreateRelationship, NodeInput, NodeInputRef, RelationshipInput, StoredNodeInputRef}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey, LynxRelationship, LynxRelationshipType}
@@ -146,11 +147,11 @@ case class CreateOperator(
             labels.map(_.name).map(LynxNodeLabel),
             properties
               .map {
-                case MapExpression(items) =>
+                case LynxMapExpression(items) =>
                   items.map({
-                    case (k, v) =>
-                      LynxPropertyKey(k.name) -> expressionEvaluator
-                        .eval(v)(expressionContext.withVars(variableValueByName))
+                    case (lynxPropertyKey, expression) =>
+                      lynxPropertyKey -> expressionEvaluator
+                        .eval(expression)(expressionContext.withVars(variableValueByName))
                   })
               }
               .getOrElse(Seq.empty)
@@ -167,11 +168,11 @@ case class CreateOperator(
           types.map(_.name).map(LynxRelationshipType),
           properties
             .map {
-              case MapExpression(items) =>
+              case LynxMapExpression(items) =>
                 items.map({
-                  case (k, v) =>
-                    LynxPropertyKey(k.name) -> expressionEvaluator
-                      .eval(v)(expressionContext.withVars(variableValueByName))
+                  case (lynxPropertyKey, expression) =>
+                    lynxPropertyKey -> expressionEvaluator
+                      .eval(expression)(expressionContext.withVars(variableValueByName))
                 })
             }
             .getOrElse(Seq.empty[(LynxPropertyKey, LynxValue)]),

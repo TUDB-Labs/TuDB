@@ -11,9 +11,11 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.ConvertPatternExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalCreate, LogicalNode}
 import org.opencypher.v9_0.ast.Create
+import org.opencypher.v9_0.expressions.{EveryPath, NodePattern, RelationshipChain}
 
 /**
   *@description:
@@ -22,6 +24,21 @@ case class LogicalCreateTranslator(c: Create) extends LogicalNodeTranslator {
   override def translate(
       in: Option[LogicalNode]
     )(implicit plannerContext: LogicalPlannerContext
-    ): LogicalNode =
-    LogicalCreate(c)(in)
+    ): LogicalNode = {
+
+    val patternParts = c.pattern.patternParts.map {
+      case EveryPath(element) => {
+        val newElement = element match {
+          case n: NodePattern => ConvertPatternExpressionToLynxExpression.convertNodePattern(n)
+
+          case chain: RelationshipChain =>
+            ConvertPatternExpressionToLynxExpression.convertRelationshipChain(chain)
+        }
+        EveryPath(newElement)
+      }
+      case default => default
+    }
+
+    LogicalCreate(patternParts)(in)
+  }
 }
