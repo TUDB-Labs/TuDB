@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalNode, LogicalSkip}
 import org.opencypher.v9_0.ast.Skip
@@ -25,7 +26,7 @@ case class LogicalSkipTranslator(skip: Option[Skip]) extends LogicalNodeTranslat
     ): LogicalNode = {
     skip match {
       case None             => in.get
-      case Some(Skip(expr)) => LogicalSkip(expr)(in.get)
+      case Some(Skip(expr)) => LogicalSkip(ConvertExpressionToLynxExpression.convert(expr))(in.get)
     }
   }
 }
