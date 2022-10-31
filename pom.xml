@@ -29,7 +29,7 @@
         <scala.compat.version>2.12</scala.compat.version>
         <netty.version>4.1.82.Final</netty.version>
         <junit.version>4.13.2</junit.version>
-        <rocksdb.version>7.6.0</rocksdb.version>
+        <rocksdb.version>7.7.3</rocksdb.version>
         <scala-logging.version>3.8.0</scala-logging.version>
         <logback.version>1.3.3</logback.version>
         <slf4j.version>2.0.3</slf4j.version>
