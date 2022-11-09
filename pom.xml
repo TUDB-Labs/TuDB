@@ -17,6 +17,7 @@
         <module>tools</module>
         <module>client</module>
         <module>examples</module>
+        <module>eth</module>
     </modules>
 
     <properties>

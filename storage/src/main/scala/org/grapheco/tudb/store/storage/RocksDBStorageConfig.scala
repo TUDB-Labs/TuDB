@@ -47,14 +47,11 @@ object RocksDBStorageConfig {
       .setLevel0FileNumCompactionTrigger(10) // level0 file num = 10, compression l0->l1 start.(invalid, why???);level0 size=256M * 3 * 10 = 7G
       .setLevel0SlowdownWritesTrigger(20)
       .setLevel0StopWritesTrigger(40)
-      .setMaxBytesForLevelBase(
-        256L * 1024L * 1024L * 2 * 10L
-      ) // total size of level1(same as level0)
+      .setMaxBytesForLevelBase(256L * 1024L * 1024L) // total size of level1(same as level0)
       .setMaxBytesForLevelMultiplier(10)
       .setTargetFileSizeBase(
         256L * 1024L * 1024L
       ) // maxBytesForLevelBase / 10 or 15
-      .setTargetFileSizeMultiplier(2)
   }
 
   /**
