@@ -37,10 +37,11 @@ class TransactionImporter(
       val innerTo = DataConverter.removeHexStringHeader(tx.to)
       val innerTxHash = DataConverter.removeHexStringHeader(tx.txHash)
       val innerWei = DataConverter.removeHexStringHeader(tx.wei)
+      val innerTimeStamp = DataConverter.removeHexStringHeader(tx.timeStamp)
 
       val fromKeys = EthKeyConverter.toAddressKey(innerFrom)
       val toKeys = EthKeyConverter.toAddressKey(innerTo)
-      val txKeys = EthKeyConverter.toTransactionKey(innerFrom, innerTo, innerTxHash)
+      val txKeys = EthKeyConverter.toTransactionKey(innerFrom, innerTo, innerTimeStamp, innerTxHash)
       val txWei = DataConverter.hexString2ArrayBytes(innerWei)
 
       fromLabelAddressArray.append(fromKeys._2)

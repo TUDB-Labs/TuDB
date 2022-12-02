@@ -1,39 +1,41 @@
 package com.tudb.blockchain.storage
 
 import com.tudb.blockchain.eth.EthKeyConverter
-import org.rocksdb.RocksDB
+import org.rocksdb.{ReadOptions, RocksDB}
 
 /**
   *@description:
   */
 class QueryApi(db: RocksDB) {
 
-  def innerFindOutAddressAndTxHash(
-      fromAddress: Array[Byte]
-    ): Iterator[(Array[Byte], Array[Byte])] = {
+  def innerFindOutKey(fromAddress: Array[Byte]): Iterator[Array[Byte]] = {
     val prefix = Array[Byte](
       EthKeyConverter.OUT_TX_TYPE,
       EthKeyConverter.CHAIN_TYPE,
       EthKeyConverter.TOKEN_TYPE
     ) ++ fromAddress
-    new EthPrefixIterator(prefix, db).map(key => (key.slice(23, 43), key.slice(43, 75)))
+    new EthPrefixIterator(prefix, db)
   }
-
-  def innerFindOutAddressesOfTransactions(fromAddress: Array[Byte]): Iterator[Array[Byte]] = {
-    val prefix = Array[Byte](
-      EthKeyConverter.OUT_TX_TYPE,
-      EthKeyConverter.CHAIN_TYPE,
-      EthKeyConverter.TOKEN_TYPE
-    ) ++ fromAddress
-    new EthPrefixIterator(prefix, db).map(key => key.slice(23, 43))
-  }
-  def innerFindInAddressesOfTransactions(toAddress: Array[Byte]): Iterator[Array[Byte]] = {
+  def innerFindInKey(toAddress: Array[Byte]): Iterator[Array[Byte]] = {
     val prefix = Array[Byte](
       EthKeyConverter.IN_TX_TYPE,
       EthKeyConverter.CHAIN_TYPE,
       EthKeyConverter.TOKEN_TYPE
     ) ++ toAddress
-    new EthPrefixIterator(prefix, db).map(key => key.slice(23, 43))
+    new EthPrefixIterator(prefix, db)
+  }
+
+  def innerFindOutAddressAndTxHash(
+      fromAddress: Array[Byte]
+    ): Iterator[(Array[Byte], Array[Byte])] = {
+    innerFindOutKey(fromAddress).map(key => (key.slice(23, 43), key.slice(51, 83)))
+  }
+
+  def innerFindOutAddressesOfTransactions(fromAddress: Array[Byte]): Iterator[Array[Byte]] = {
+    innerFindOutKey(fromAddress).map(key => key.slice(23, 43))
+  }
+  def innerFindInAddressesOfTransactions(toAddress: Array[Byte]): Iterator[Array[Byte]] = {
+    innerFindInKey(toAddress).map(key => key.slice(23, 43))
   }
 
   def innerGetAllAddresses(): Iterator[Array[Byte]] = {
@@ -67,6 +69,7 @@ class QueryApi(db: RocksDB) {
 }
 
 class EthPrefixIterator(prefix: Array[Byte], db: RocksDB) extends Iterator[Array[Byte]] {
+  val readOptions = new ReadOptions()
   val iter = db.newIterator()
   iter.seek(prefix)
 

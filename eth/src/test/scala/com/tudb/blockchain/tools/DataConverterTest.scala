@@ -11,7 +11,7 @@ class DataConverterTest {
   def testNegation: Unit = {
     val hexTime = "63895dab"
     val bytes = DataConverter.hexString2Long2Bytes(hexTime)
-    val str = DataConverter.bytes2Long2hexString(bytes)
+    val str = DataConverter.arrayBytes2Long2hexString(bytes)
     Assert.assertEquals(hexTime, str)
   }
 }

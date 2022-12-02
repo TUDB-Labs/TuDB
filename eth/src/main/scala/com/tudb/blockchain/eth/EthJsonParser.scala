@@ -13,9 +13,9 @@ object EthJsonParser {
 
   def getBlockTransaction(block: JSONObject): Array[EthTransaction] = {
     try {
-      block
-        .get("result")
-        .asInstanceOf[JSONObject]
+      val blockInfo = block.get("result").asInstanceOf[JSONObject]
+      val timeStamp = blockInfo.get("timestamp").toString
+      val transactions = blockInfo
         .get("transactions")
         .asInstanceOf[JSONArray]
         .toArray
@@ -24,11 +24,14 @@ object EthJsonParser {
           EthTransaction(
             jsonObj.getString("from"),
             jsonObj.getString("to"),
+            timeStamp,
             jsonObj.getString("hash"),
             jsonObj.getString("value")
           )
         )
-        .filter(tx => tx.from != null && tx.to != null && tx.wei != "0x0" && tx.wei != null)
+        .filter(tx => tx.from != null && tx.to != null)
+
+      transactions
     } catch {
       case e: Exception => {
         Array.empty
@@ -37,4 +40,4 @@ object EthJsonParser {
   }
 }
 
-case class EthTransaction(from: String, to: String, txHash: String, wei: String)
+case class EthTransaction(from: String, to: String, timeStamp: String, txHash: String, wei: String)

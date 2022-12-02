@@ -1,6 +1,6 @@
 package com.tudb.blockchain.eth
 
-import com.tudb.blockchain.tools.DataConverter.hexString2ArrayBytes
+import com.tudb.blockchain.tools.DataConverter.{hexString2ArrayBytes, hexString2Long2Bytes}
 
 /**
   *@description:
@@ -33,17 +33,19 @@ object EthKeyConverter {
   def toTransactionKey(
       fromAddress: String,
       toAddress: String,
+      timestamp: String,
       txHash: String,
       chainType: Byte = CHAIN_TYPE,
       tokenType: Byte = TOKEN_TYPE
     ): (Array[Byte], Array[Byte]) = {
     val fromHexBytes = hexString2ArrayBytes(fromAddress)
     val toHexBytes = hexString2ArrayBytes(toAddress)
-    val hexTxHash = hexString2ArrayBytes(txHash)
+    val timestampBytes = hexString2Long2Bytes(timestamp)
+    val TxHashBytes = hexString2ArrayBytes(txHash)
 
     (
-      Array[Byte](OUT_TX_TYPE, chainType, tokenType) ++ fromHexBytes ++ toHexBytes ++ hexTxHash,
-      Array[Byte](IN_TX_TYPE, chainType, tokenType) ++ toHexBytes ++ fromHexBytes ++ hexTxHash
+      Array[Byte](OUT_TX_TYPE, chainType, tokenType) ++ fromHexBytes ++ toHexBytes ++ timestampBytes ++ TxHashBytes,
+      Array[Byte](IN_TX_TYPE, chainType, tokenType) ++ toHexBytes ++ fromHexBytes ++ timestampBytes ++ TxHashBytes
     )
   }
 }
