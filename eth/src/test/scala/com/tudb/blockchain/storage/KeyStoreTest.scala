@@ -66,7 +66,7 @@ class KeyStoreTest {
     db.put(key3, Array.emptyByteArray)
     db.put(key4, Array.emptyByteArray)
 
-    val queryApi = new QueryApi(db)
+    val queryApi = new InnerQueryApi(db)
     val res = queryApi
       .innerFindOutKey(DataConverter.hexString2ArrayBytes(fromAddress))
       .toSeq

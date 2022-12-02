@@ -8,10 +8,12 @@ import scala.collection.mutable
   *@description:
   */
 object DataConverter {
+
   def removeHexStringHeader(str: String): String = {
     if (str.startsWith("0x")) str.drop(2)
     else str
   }
+
   def arrayBytes2HexString(arrayByte: Array[Byte]): String = {
     val hexStringBuilder = new mutable.StringBuilder(arrayByte.length * 2, "")
     for (byte <- arrayByte) {
@@ -50,6 +52,7 @@ object DataConverter {
     ByteUtils.setLong(byteArray, 0, negationLong)
     byteArray
   }
+
   def arrayBytes2Long2hexString(bytes: Array[Byte]): String = {
     val longValue = ~ByteUtils.getLong(bytes, 0)
     java.lang.Long.toString(longValue, 16)
@@ -61,6 +64,7 @@ object DataConverter {
       case LABEL_ADDRESS_TYPE => arrayBytes2HexString(key.drop(4))
     }
   }
+
   def decode2Transaction(key: Array[Byte]): (String, String, String) = {
     key.head match {
       case OUT_TX_TYPE => {
