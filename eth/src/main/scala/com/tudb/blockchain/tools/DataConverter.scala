@@ -43,6 +43,17 @@ object DataConverter {
     bytesArray
   }
 
+  def hexString2Long2Bytes(hexString: String): Array[Byte] = {
+    val longValue = java.lang.Long.parseLong(hexString, 16)
+    val byteArray = new Array[Byte](8)
+    ByteUtils.setLong(byteArray, 0, ~longValue)
+    byteArray
+  }
+  def bytes2Long2hexString(bytes: Array[Byte]): String = {
+    val longValue = ~ByteUtils.getLong(bytes, 0)
+    java.lang.Long.toString(longValue, 16)
+  }
+
   def decode2Address(key: Array[Byte]): String = {
     key.head match {
       case ADDRESS_LABEL_TYPE => arrayBytes2HexString(key.slice(3, 23))
