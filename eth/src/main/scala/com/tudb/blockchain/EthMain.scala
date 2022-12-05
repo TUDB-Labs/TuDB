@@ -37,7 +37,7 @@ object EthMain {
       EthJsonParser.getBlockNumber(client.consumeResult())
     )
     val pullRunner = new PullDataFromEthNode(db, client, currentBlockNumber, queue)
-    pullRunner.pullTransactionFromNode(1000)
+    pullRunner.pullLimitedTransactionFromNode(1000)
 
     client.close()
     db.close()
