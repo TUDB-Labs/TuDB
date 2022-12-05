@@ -24,4 +24,17 @@ object ByteUtils {
       (bytes(index + 6).toLong & 0xff) << 8 |
       bytes(index + 7).toLong & 0xff
   }
+  def setInt(bytes: Array[Byte], index: Int, value: Int): Unit = {
+    bytes(index) = (value >>> 24).toByte
+    bytes(index + 1) = (value >>> 16).toByte
+    bytes(index + 2) = (value >>> 8).toByte
+    bytes(index + 3) = value.toByte
+  }
+
+  def getInt(bytes: Array[Byte], index: Int): Int = {
+    (bytes(index) & 0xff) << 24 |
+      (bytes(index + 1) & 0xff) << 16 |
+      (bytes(index + 2) & 0xff) << 8 |
+      bytes(index + 3) & 0xff
+  }
 }

@@ -1,7 +1,9 @@
 package com.tudb.blockchain.eth.importer
 
 import com.alibaba.fastjson.JSONObject
+import com.tudb.blockchain.eth.meta.MetaKeyManager
 import com.tudb.blockchain.eth.{EthNodeClient, EthNodeJsonApi}
+import com.tudb.blockchain.tools.ByteUtils
 import org.rocksdb.RocksDB
 
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
@@ -53,7 +55,7 @@ class PullDataFromEthNode(
     TimeUnit.MILLISECONDS
   )
 
-  def pullTransactionFromNode(importSize: Int): Unit = {
+  def pullLimitedTransactionFromNode(importSize: Int): Unit = {
     val importer = new TransactionImporter(db, msgQueue, countTransaction)
     while (countTransaction.get() <= importSize) {
       if (msgQueue.size() != 0) {
@@ -75,6 +77,11 @@ class PullDataFromEthNode(
     val importCostTime = System.currentTimeMillis() - START_TIME
     println(s"Total import transaction: $countTransaction")
     println(s"import block from 1 to ${END_BLOCK}, cost time: ${importCostTime / 1000.0} s  ")
+
+    val blockNumberByteArray = new Array[Byte](4)
+    ByteUtils.setInt(blockNumberByteArray, 0, END_BLOCK)
+    db.put(MetaKeyManager.blockNumberKey, blockNumberByteArray)
+
     service.shutdown()
     sendRequestService.shutdown()
   }
