@@ -1,7 +1,7 @@
 package com.tudb.blockchain.eth.importer
 
 import com.alibaba.fastjson.JSONObject
-import com.tudb.blockchain.eth.{EthJsonParser, EthNodeClient, EthNodeJsonApi}
+import com.tudb.blockchain.eth.{EthJsonObjectParser, EthNodeClient, EthNodeJsonApi}
 import com.tudb.blockchain.storage.RocksDBStorageConfig
 import org.apache.commons.io.FileUtils
 import org.rocksdb.RocksDB
@@ -28,7 +28,7 @@ class ImportTool(dbPath: String) {
       println("Pull Blockchain latest BlockNumber....")
       client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
       val countBlockNumber: AtomicInteger = new AtomicInteger(
-        EthJsonParser.getBlockNumber(client.consumeResult())
+        EthJsonObjectParser.getBlockNumber(client.consumeResult())
       )
       println(s"Current Blockchain latest BlockNumber is: ${countBlockNumber.get()}")
 
@@ -57,12 +57,12 @@ class ImportTool(dbPath: String) {
       println("Pull Blockchain latest BlockNumber....")
       client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
       val countBlockNumber: AtomicInteger = new AtomicInteger(
-        EthJsonParser.getBlockNumber(client.consumeResult())
+        EthJsonObjectParser.getBlockNumber(client.consumeResult())
       )
       println(s"Current Blockchain latest BlockNumber is: ${countBlockNumber.get()}")
 
       val importer = new PullDataFromEthNode(db, client, countBlockNumber, msgQueue)
-      importer.pullTransactionFromNode(dataSize)
+      importer.pullLimitedTransactionFromNode(dataSize)
     } catch {
       case e: Exception => {
         println(e.getMessage)

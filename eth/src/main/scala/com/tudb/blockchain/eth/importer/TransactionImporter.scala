@@ -1,7 +1,7 @@
 package com.tudb.blockchain.eth.importer
 
 import com.alibaba.fastjson.JSONObject
-import com.tudb.blockchain.eth.{EthJsonParser, EthKeyConverter}
+import com.tudb.blockchain.eth.{EthJsonObjectParser, EthKeyConverter}
 import com.tudb.blockchain.tools.DataConverter
 import org.rocksdb.{RocksDB, WriteBatch, WriteOptions}
 
@@ -30,7 +30,7 @@ class TransactionImporter(
 
   def importer(): Unit = {
     val blockJson = msgQueue.poll()
-    val txs = EthJsonParser.getBlockTransaction(blockJson)
+    val txs = EthJsonObjectParser.getBlockTransaction(blockJson)
     countTransaction.addAndGet(txs.length)
     txs.foreach(tx => {
       val innerFrom = DataConverter.removeHexStringHeader(tx.from)

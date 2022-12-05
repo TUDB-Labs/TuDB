@@ -1,5 +1,5 @@
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
-import com.tudb.blockchain.eth.{EthJsonParser, EthNodeClient, EthNodeJsonApi}
+import com.tudb.blockchain.eth.{EthJsonObjectParser, EthNodeClient, EthNodeJsonApi}
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.collection.JavaConverters._
@@ -14,7 +14,7 @@ object WatchBlockChainData {
     client.connect
 
     client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
-    val currentBlockNumber = EthJsonParser.getBlockNumber(client.consumeResult())
+    val currentBlockNumber = EthJsonObjectParser.getBlockNumber(client.consumeResult())
 
     client.sendJsonRequest(EthNodeJsonApi.getBlockByNumber(currentBlockNumber, true, 1))
 

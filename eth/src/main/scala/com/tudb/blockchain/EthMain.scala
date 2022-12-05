@@ -2,7 +2,7 @@ package com.tudb.blockchain
 
 import com.alibaba.fastjson.JSONObject
 import com.tudb.blockchain.eth.importer.PullDataFromEthNode
-import com.tudb.blockchain.eth.{EthJsonParser, EthNodeClient, EthNodeJsonApi}
+import com.tudb.blockchain.eth.{EthJsonObjectParser, EthNodeClient, EthNodeJsonApi}
 import com.tudb.blockchain.storage.RocksDBStorageConfig
 import org.apache.commons.io.FileUtils
 import org.rocksdb.RocksDB
@@ -34,7 +34,7 @@ object EthMain {
 
     client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
     val currentBlockNumber: AtomicInteger = new AtomicInteger(
-      EthJsonParser.getBlockNumber(client.consumeResult())
+      EthJsonObjectParser.getBlockNumber(client.consumeResult())
     )
     val pullRunner = new PullDataFromEthNode(db, client, currentBlockNumber, queue)
     pullRunner.pullLimitedTransactionFromNode(1000)

@@ -5,7 +5,7 @@ import com.alibaba.fastjson.{JSONArray, JSONObject}
 /**
   *@description:
   */
-object EthJsonParser {
+object EthJsonObjectParser {
   def getBlockNumber(block: JSONObject): Int = {
     val value = block.get("result").toString
     Integer.parseInt(value.drop(2), 16)

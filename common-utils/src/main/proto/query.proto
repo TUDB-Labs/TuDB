@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_package = "com.tudb.blockchain.network";
+
+package com.tudb.blockchain.network;
+
+service TuQueryService {
+  rpc HopQuery (HopQueryRequest) returns (stream QueryResponse) {}
+}
+
+message HopQueryRequest {
+  string address = 1;
+  string direction = 2;
+  int32 lowerHop = 3;
+  int32 upperHop = 4;
+  int32 limit = 5;
+}
+
+message QueryResponse {
+  string result = 1;
+  string message = 2;
+}
