@@ -1,7 +1,8 @@
-package com.tudb.blockchain.eth.importer
+package com.tudb.blockchain.eth.synchronizer
 
 import com.alibaba.fastjson.JSONObject
-import com.tudb.blockchain.eth.{EthJsonObjectParser, EthKeyConverter}
+import com.tudb.blockchain.eth.EthKeyConverter
+import com.tudb.blockchain.eth.client.{EthClientApi, EthJsonObjectParser}
 import com.tudb.blockchain.tools.DataConverter
 import org.rocksdb.{RocksDB, WriteBatch, WriteOptions}
 
@@ -12,10 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@description:
   */
-class TransactionImporter(
-    db: RocksDB,
-    msgQueue: ConcurrentLinkedQueue[JSONObject],
-    countTransaction: AtomicLong) {
+class TransactionImporter(db: RocksDB, clientApi: EthClientApi) {
   // rocksdb
   val writeOptions = new WriteOptions()
   writeOptions.setDisableWAL(true)
@@ -28,10 +26,12 @@ class TransactionImporter(
   val outTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
   val inTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
 
-  def importer(): Unit = {
-    val blockJson = msgQueue.poll()
-    val txs = EthJsonObjectParser.getBlockTransaction(blockJson)
-    countTransaction.addAndGet(txs.length)
+  def importer(): (Boolean, Int) = {
+    val blockJson = clientApi.getJsonObject()
+    val txs = clientApi.getBlockTransactions(blockJson)
+    val hasData: Boolean = txs.isEmpty
+    val dataSize = txs.length
+
     txs.foreach(tx => {
       val innerFrom = DataConverter.removeHexStringHeader(tx.from)
       val innerTo = DataConverter.removeHexStringHeader(tx.to)
@@ -67,5 +67,7 @@ class TransactionImporter(
 
     db.write(writeOptions, writeBatch)
     writeBatch.clear()
+
+    (hasData, dataSize)
   }
 }

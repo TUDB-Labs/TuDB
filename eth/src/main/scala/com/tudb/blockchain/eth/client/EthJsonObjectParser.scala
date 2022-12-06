@@ -1,4 +1,4 @@
-package com.tudb.blockchain.eth
+package com.tudb.blockchain.eth.client
 
 import com.alibaba.fastjson.{JSONArray, JSONObject}
 

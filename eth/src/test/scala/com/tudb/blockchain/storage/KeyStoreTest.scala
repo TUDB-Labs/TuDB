@@ -1,6 +1,7 @@
 package com.tudb.blockchain.storage
 
 import com.tudb.blockchain.eth.EthKeyConverter
+import com.tudb.blockchain.eth.meta.MetaKeyManager
 import com.tudb.blockchain.tools.DataConverter
 import org.apache.commons.io.FileUtils
 import org.junit.{After, Assert, Before, Test}
@@ -21,6 +22,12 @@ class KeyStoreTest {
     file.mkdirs()
 
     db = RocksDB.open(RocksDBStorageConfig.getDefault(true), dbPath)
+  }
+
+  @Test
+  def testGetNullKey(): Unit = {
+    val res = db.get(MetaKeyManager.blockNumberKey)
+    Assert.assertEquals(null, res)
   }
 
   @Test
