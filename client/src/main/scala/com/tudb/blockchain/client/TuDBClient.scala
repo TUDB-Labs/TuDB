@@ -10,13 +10,11 @@ import java.util.concurrent.TimeUnit
 /**
   *@description:
   */
-class TuDBClient {
-
-  var channel: ManagedChannel = _
-  var blockingStub: TuQueryServiceBlockingStub = _
-
+class TuDBClient(host: String, port: Int) {
+  private var channel: ManagedChannel = _
+  private var blockingStub: TuQueryServiceBlockingStub = _
   try {
-    channel = NettyChannelBuilder.forAddress("", 123).usePlaintext().build()
+    channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build()
     blockingStub = TuQueryServiceGrpc.newBlockingStub(channel)
   } catch {
     case e: Exception => {
@@ -26,14 +24,13 @@ class TuDBClient {
       }
     }
   }
-
   def hopQuery(
       address: String,
       direction: String,
       lowerHop: Int,
       upperHop: Int,
       limit: Int
-    ): Unit = {
+    ): Iterator[Query.QueryResponse] = {
     val request = Query.HopQueryRequest
       .newBuilder()
       .setAddress(address)
@@ -43,7 +40,10 @@ class TuDBClient {
       .setLimit(limit)
       .build()
 
-    val response = blockingStub.hopQuery(request).asScala
+    blockingStub.hopQuery(request).asScala
+  }
 
+  def close(): Unit = {
+    channel.shutdown()
   }
 }

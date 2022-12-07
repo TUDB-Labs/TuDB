@@ -2,7 +2,7 @@ package com.tudb.blockchain.eth.synchronizer
 
 import com.alibaba.fastjson.JSONObject
 import com.tudb.blockchain.eth.EthKeyConverter
-import com.tudb.blockchain.eth.client.{EthClientApi, EthJsonObjectParser}
+import com.tudb.blockchain.eth.client.{EthClientApi, EthJsonObjectParser, EthTransaction}
 import com.tudb.blockchain.tools.DataConverter
 import org.rocksdb.{RocksDB, WriteBatch, WriteOptions}
 
@@ -13,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@description:
   */
-class TransactionImporter(db: RocksDB, clientApi: EthClientApi) {
+class TransactionImporter(db: RocksDB) {
   // rocksdb
   val writeOptions = new WriteOptions()
   writeOptions.setDisableWAL(true)
@@ -26,10 +26,8 @@ class TransactionImporter(db: RocksDB, clientApi: EthClientApi) {
   val outTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
   val inTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
 
-  def importer(): (Boolean, Int) = {
-    val blockJson = clientApi.getJsonObject()
-    val txs = clientApi.getBlockTransactions(blockJson)
-    val hasData: Boolean = txs.isEmpty
+  def importer(txs: Array[EthTransaction]): (Boolean, Int) = {
+    val hasData: Boolean = !txs.isEmpty
     val dataSize = txs.length
 
     txs.foreach(tx => {

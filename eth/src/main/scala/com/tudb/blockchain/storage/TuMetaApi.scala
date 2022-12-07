@@ -15,6 +15,7 @@ class TuMetaApi(db: RocksDB) {
   }
   def getSynchronizedBlockNumber(): Int = {
     val res = db.get(MetaKeyManager.blockNumberKey)
-    ByteUtils.getInt(res, 0)
+    if (res == null) -1
+    else ByteUtils.getInt(res, 0)
   }
 }

@@ -30,6 +30,7 @@ class TuDBQueryService(api: QueryApi) extends TuQueryServiceGrpc.TuQueryServiceI
       val jsonResult = JSON.toJSONString(new JSONAddress(res), SerializerFeature.SortField)
       val responder = QueryResponse.newBuilder().setMessage("ok").setResult(jsonResult).build()
       responseObserver.onNext(responder)
+      responseObserver.onCompleted()
     } catch {
       case e: Exception => {
         responseObserver.onNext(

@@ -32,7 +32,7 @@ class EthNodeClient(host: String, port: Int) {
     client.connect()
     var count = 0
     while (!client.isOpen) {
-      println("Connecting to Eth Node.....")
+      println(s"Connecting to Eth Node: $host:$port")
       count += 1
       Thread.sleep(1000)
       if (count > 3) {
@@ -53,7 +53,9 @@ class EthNodeClient(host: String, port: Int) {
     client.send(jsonRequest)
   }
 
-  def consumeMessage(): JSONObject = msgQueue.poll()
+  def consumeMessage(): JSONObject = {
+    msgQueue.poll()
+  }
 
   def isMessageEmpty(): Boolean = msgQueue.isEmpty
 }

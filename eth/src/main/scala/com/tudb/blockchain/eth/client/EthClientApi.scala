@@ -9,8 +9,8 @@ class EthClientApi(host: String, port: Int) {
   private val client = new EthNodeClient(host, port)
   client.connect
 
-  def getBlockChainNumber(): Int = {
-    client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
+  def getLatestBlockChainNumber(requestId: Int): Int = {
+    client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(requestId))
     while (client.isMessageEmpty()) {
       Thread.sleep(100)
     }
@@ -33,7 +33,7 @@ class EthClientApi(host: String, port: Int) {
     EthJsonObjectParser.getBlockTransaction(blockJsonObject)
   }
 
-  def getJsonObject(): JSONObject = client.consumeMessage()
+  def consumeMessage(): JSONObject = client.consumeMessage()
 
   def isQueueEmpty(): Boolean = client.isMessageEmpty()
 
