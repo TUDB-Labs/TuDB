@@ -1,13 +1,12 @@
 package com.tudb.blockchain.server
 
-import com.tudb.blockchain.eth.client.EthClientApi
-import com.tudb.blockchain.eth.synchronizer.{EthBlockChainSynchronizer, TransactionImporter}
+import com.tudb.blockchain.eth.synchronizer.{EthBlockChainSynchronizer}
 import com.tudb.blockchain.storage.{QueryApi, RocksDBStorageConfig, TuMetaApi}
 import io.grpc.Server
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import org.rocksdb.RocksDB
 
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.{TimeUnit}
 
 /**
   *@description:
