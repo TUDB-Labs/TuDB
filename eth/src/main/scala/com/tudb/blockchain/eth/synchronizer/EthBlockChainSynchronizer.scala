@@ -16,6 +16,7 @@ class EthBlockChainSynchronizer(db: RocksDB, host: String, port: Int) {
   private val metaApi = new TuMetaApi(db)
   private val synchronizer: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
   private var synchronizedBlockChainNumber = metaApi.getSynchronizedBlockNumber()
+  val txImporter = new TransactionImporter(db)
   def synchronizeBlockChainData(): Unit = {
     synchronizer.scheduleAtFixedRate(
       new Runnable {
@@ -32,6 +33,7 @@ class EthBlockChainSynchronizer(db: RocksDB, host: String, port: Int) {
           val msg = pullDataClient.consumeMessage()
           val result = pullDataClient.getBlockTransactions(msg)
           if (msg != null) {
+            txImporter.importer(result)
             synchronizedBlockChainNumber += 1
             println(
               s"consume ${result.length}, synchronized block size: $synchronizedBlockChainNumber"

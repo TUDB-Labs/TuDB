@@ -42,7 +42,7 @@ class InnerQueryApi(db: RocksDB) {
 
   def innerGetAllAddresses(): Iterator[Array[Byte]] = {
     val prefix = Array[Byte](EthKeyConverter.ADDRESS_LABEL_TYPE)
-    new EthPrefixIterator(prefix, db).map(key => key.slice(3, 23))
+    new EthPrefixIterator(prefix, db)
   }
 }
 

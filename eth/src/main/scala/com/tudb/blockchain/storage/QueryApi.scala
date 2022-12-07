@@ -29,4 +29,12 @@ class QueryApi(db: RocksDB) {
         "0x" + DataConverter.arrayBytes2HexString(bytes.slice(23, 43))
       })
   }
+  def allAddress(): Iterator[String] = {
+    innerQueryApi
+      .innerGetAllAddresses()
+      .map(bytes => {
+        "0x" + DataConverter.arrayBytes2HexString(bytes.slice(3, 23))
+      })
+  }
+
 }

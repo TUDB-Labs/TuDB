@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 class TransactionImporter(db: RocksDB) {
   // rocksdb
   val writeOptions = new WriteOptions()
-  writeOptions.setDisableWAL(true)
+  writeOptions.setDisableWAL(false)
   val writeBatch = new WriteBatch()
 
   val fromAddressLabelArray = ArrayBuffer[Array[Byte]]()
@@ -29,7 +29,6 @@ class TransactionImporter(db: RocksDB) {
   def importer(txs: Array[EthTransaction]): (Boolean, Int) = {
     val hasData: Boolean = !txs.isEmpty
     val dataSize = txs.length
-
     txs.foreach(tx => {
       val innerFrom = DataConverter.removeHexStringHeader(tx.from)
       val innerTo = DataConverter.removeHexStringHeader(tx.to)

@@ -8,5 +8,5 @@ import scala.collection.JavaConverters._
   */
 class JSONAddress(address: Seq[String]) {
   @BeanProperty
-  val addressList: java.util.List[String] = seqAsJavaList(address)
+  val address_list: java.util.List[String] = seqAsJavaList(address)
 }

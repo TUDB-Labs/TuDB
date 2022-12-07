@@ -8,9 +8,9 @@ import java.util.Properties
   */
 object TuDBServerStarter {
   def main(args: Array[String]): Unit = {
-    val conf = args(0)
+//    val conf = args(0)
     // "./conf/tudb.conf"
-    val context = getTuDBServerContext(conf)
+    val context = getTuDBServerContext("./conf/tudb.conf")
     val server = new TuDBServer(context)
     server.start()
   }
