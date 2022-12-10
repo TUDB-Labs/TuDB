@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.{ConvertPatternExpressionToLynxExpression}
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalJoin, LogicalNode, LogicalPatternMatch}
 import org.opencypher.v9_0.ast.{Match, Where}
@@ -25,6 +26,7 @@ case class LogicalMatchTranslator(m: Match) extends LogicalNodeTranslator {
     )(implicit plannerContext: LogicalPlannerContext
     ): LogicalNode = {
     //run match
+
     val Match(optional, Pattern(patternParts: Seq[PatternPart]), hints, where: Option[Where]) = m
     val parts = patternParts.map(matchPatternPart(_)(plannerContext))
     val matched = parts.drop(1).foldLeft(parts.head)((a, b) => LogicalJoin(true)(a, b))
@@ -52,15 +54,26 @@ case class LogicalMatchTranslator(m: Match) extends LogicalNodeTranslator {
     element match {
       //match (m:label1)
       case np: NodePattern =>
-        LogicalPatternMatch(np, Seq.empty)
+        LogicalPatternMatch(
+          ConvertPatternExpressionToLynxExpression.convertNodePattern(np),
+          Seq.empty
+        )
 
       //match ()-[]->()
       case rc @ RelationshipChain(
             leftNode: NodePattern,
             relationship: RelationshipPattern,
             rightNode: NodePattern
-          ) =>
-        LogicalPatternMatch(leftNode, Seq(relationship -> rightNode))
+          ) => {
+        val newLeftNodePattern =
+          ConvertPatternExpressionToLynxExpression.convertNodePattern(leftNode)
+        val newRelationshipPattern =
+          ConvertPatternExpressionToLynxExpression.convertRelationshipPattern(relationship)
+        val newRightNodePattern =
+          ConvertPatternExpressionToLynxExpression.convertNodePattern(rightNode)
+
+        LogicalPatternMatch(newLeftNodePattern, Seq(newRelationshipPattern -> newRightNodePattern))
+      }
 
       //match ()-[]->()-...-[r:type]->(n:label2)
       case rc @ RelationshipChain(
@@ -69,7 +82,18 @@ case class LogicalMatchTranslator(m: Match) extends LogicalNodeTranslator {
             rightNode: NodePattern
           ) =>
         val mp = matchPattern(leftChain)
-        LogicalPatternMatch(mp.headNode, mp.chain :+ (relationship -> rightNode))
+        val headNode = ConvertPatternExpressionToLynxExpression.convertNodePattern(mp.headNode)
+        val chain = mp.chain.map(patterns => {
+          (
+            ConvertPatternExpressionToLynxExpression.convertRelationshipPattern(patterns._1),
+            ConvertPatternExpressionToLynxExpression.convertNodePattern(patterns._2)
+          )
+        })
+        val relationshipPattern =
+          ConvertPatternExpressionToLynxExpression.convertRelationshipPattern(relationship)
+        val rightNodePattern =
+          ConvertPatternExpressionToLynxExpression.convertNodePattern(rightNode)
+        LogicalPatternMatch(headNode, chain :+ (relationshipPattern -> rightNodePattern))
     }
   }
 }

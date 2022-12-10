@@ -11,6 +11,7 @@
 
 package org.grapheco.lynx.logical.translator
 
+import org.grapheco.lynx.expression.utils.ConvertExpressionToLynxExpression
 import org.grapheco.lynx.logical.plan.LogicalPlannerContext
 import org.grapheco.lynx.logical.{LogicalFilter, LogicalNode}
 import org.opencypher.v9_0.ast.Where
@@ -24,8 +25,11 @@ case class LogicalWhereTranslator(where: Option[Where]) extends LogicalNodeTrans
     )(implicit plannerContext: LogicalPlannerContext
     ): LogicalNode = {
     where match {
-      case None              => in.get
-      case Some(Where(expr)) => LogicalFilter(expr)(in.get)
+      case None => in.get
+      case Some(Where(expr)) => {
+        val convertedExpr = ConvertExpressionToLynxExpression.convert(expr)
+        LogicalFilter(convertedExpr)(in.get)
+      }
     }
   }
 }
