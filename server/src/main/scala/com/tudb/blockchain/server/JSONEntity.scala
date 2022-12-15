@@ -6,7 +6,13 @@ import scala.collection.JavaConverters._
 /**
   *@description:
   */
-class JSONAddress(address: Seq[String]) {
+class JSONTransaction(_fromAddress: String, _toAddress: String, _wei: String) {
   @BeanProperty
-  val address_list: java.util.List[String] = seqAsJavaList(address)
+  val from_address: String = _fromAddress
+
+  @BeanProperty
+  val to_address: String = _toAddress
+
+  @BeanProperty
+  val wei: String = _wei
 }

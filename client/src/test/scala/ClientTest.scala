@@ -17,11 +17,7 @@ object ClientTest {
   def main(args: Array[String]): Unit = {
     val client = new TuDBClient("127.0.0.1", 9967)
     val res = client.hopQuery("0x5c891d76584b46bc7f1e700169a76569bb77d2db", "in", 1, 1, 10)
-    while (res.hasNext) {
-      val data = res.next()
-      println(data.getMessage)
-      println(data.getResult)
-    }
+    println(res.getResult)
     client.close()
   }
 }

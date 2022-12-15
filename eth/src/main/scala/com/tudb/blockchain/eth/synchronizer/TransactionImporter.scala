@@ -41,6 +41,7 @@ class TransactionImporter(db: RocksDB) {
       val txKeys = EthKeyConverter.toTransactionKey(innerFrom, innerTo, innerTimeStamp, innerTxHash)
       val txWei = DataConverter.hexString2ArrayBytes(innerWei)
 
+      fromAddressLabelArray.append(fromKeys._1)
       fromLabelAddressArray.append(fromKeys._2)
       toAddressLabelArray.append(toKeys._1)
       toLabelAddressArray.append(toKeys._2)

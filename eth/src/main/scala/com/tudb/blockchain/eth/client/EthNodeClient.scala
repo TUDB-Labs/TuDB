@@ -36,8 +36,8 @@ class EthNodeClient(host: String, port: Int) {
       count += 1
       Thread.sleep(1000)
       if (count > 3) {
-        println("Connection refused....")
-        System.exit(1)
+        println("Connection refused....try to reconnect after 10s...")
+        Thread.sleep(10000)
       }
     }
     println("Connected to Eth Node")

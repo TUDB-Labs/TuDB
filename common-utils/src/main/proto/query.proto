@@ -5,7 +5,17 @@ option java_package = "com.tudb.blockchain.network";
 package com.tudb.blockchain.network;
 
 service TuQueryService {
-  rpc HopQuery (HopQueryRequest) returns (stream QueryResponse) {}
+  rpc HopQuery (HopQueryRequest) returns (QueryResponse) {}
+  rpc getAddressLabel(getAddressLabelRequest) returns (QueryResponse) {}
+  rpc setAddressLabel(setAddressLabelRequest) returns (QueryResponse) {}
+}
+
+message getAddressLabelRequest{
+  string address = 1;
+}
+message setAddressLabelRequest{
+  string address = 1;
+  repeated string labels = 2;
 }
 
 message HopQueryRequest {

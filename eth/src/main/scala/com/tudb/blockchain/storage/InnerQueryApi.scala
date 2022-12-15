@@ -8,45 +8,47 @@ import org.rocksdb.{ReadOptions, RocksDB}
   */
 class InnerQueryApi(db: RocksDB) {
 
-  def innerFindOutKey(fromAddress: Array[Byte]): Iterator[Array[Byte]] = {
+  def innerFindOutKey(fromAddress: Array[Byte]): Iterator[(Array[Byte], Array[Byte])] = {
     val prefix = Array[Byte](
       EthKeyConverter.OUT_TX_TYPE,
       EthKeyConverter.CHAIN_TYPE,
       EthKeyConverter.TOKEN_TYPE
     ) ++ fromAddress
-    new EthPrefixIterator(prefix, db)
+    new EthTransactionPrefixIterator(prefix, db)
   }
 
-  def innerFindInKey(toAddress: Array[Byte]): Iterator[Array[Byte]] = {
+  def innerFindInKey(toAddress: Array[Byte]): Iterator[(Array[Byte], Array[Byte])] = {
     val prefix = Array[Byte](
       EthKeyConverter.IN_TX_TYPE,
       EthKeyConverter.CHAIN_TYPE,
       EthKeyConverter.TOKEN_TYPE
     ) ++ toAddress
-    new EthPrefixIterator(prefix, db)
-  }
-
-  def innerFindOutAddressAndTxHash(
-      fromAddress: Array[Byte]
-    ): Iterator[(Array[Byte], Array[Byte])] = {
-    innerFindOutKey(fromAddress).map(key => (key.slice(23, 43), key.slice(51, 83)))
-  }
-
-  def innerFindOutAddressesOfTransactions(fromAddress: Array[Byte]): Iterator[Array[Byte]] = {
-    innerFindOutKey(fromAddress).map(key => key.slice(23, 43))
-  }
-
-  def innerFindInAddressesOfTransactions(toAddress: Array[Byte]): Iterator[Array[Byte]] = {
-    innerFindInKey(toAddress).map(key => key.slice(23, 43))
+    new EthTransactionPrefixIterator(prefix, db)
   }
 
   def innerGetAllAddresses(): Iterator[Array[Byte]] = {
     val prefix = Array[Byte](EthKeyConverter.ADDRESS_LABEL_TYPE)
-    new EthPrefixIterator(prefix, db)
+    new EthAddressPrefixIterator(prefix, db)
   }
 }
 
-class EthPrefixIterator(prefix: Array[Byte], db: RocksDB) extends Iterator[Array[Byte]] {
+class EthTransactionPrefixIterator(prefix: Array[Byte], db: RocksDB)
+  extends Iterator[(Array[Byte], Array[Byte])] {
+  val readOptions = new ReadOptions()
+  val iter = db.newIterator()
+  iter.seek(prefix)
+
+  override def hasNext: Boolean = iter.isValid && iter.key().startsWith(prefix)
+
+  override def next(): (Array[Byte], Array[Byte]) = {
+    val address = iter.key()
+    val wei = iter.value()
+    iter.next()
+    (address, wei)
+  }
+}
+
+class EthAddressPrefixIterator(prefix: Array[Byte], db: RocksDB) extends Iterator[Array[Byte]] {
   val readOptions = new ReadOptions()
   val iter = db.newIterator()
   iter.seek(prefix)

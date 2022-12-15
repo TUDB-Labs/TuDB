@@ -30,7 +30,7 @@ class TuDBClient(host: String, port: Int) {
       lowerHop: Int,
       upperHop: Int,
       limit: Int
-    ): Iterator[Query.QueryResponse] = {
+    ): Query.QueryResponse = {
     val request = Query.HopQueryRequest
       .newBuilder()
       .setAddress(address)
@@ -39,8 +39,7 @@ class TuDBClient(host: String, port: Int) {
       .setUpperHop(upperHop)
       .setLimit(limit)
       .build()
-
-    blockingStub.hopQuery(request).asScala
+    blockingStub.hopQuery(request)
   }
 
   def close(): Unit = {

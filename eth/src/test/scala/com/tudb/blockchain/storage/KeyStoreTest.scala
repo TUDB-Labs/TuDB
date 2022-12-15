@@ -77,7 +77,7 @@ class KeyStoreTest {
     val res = queryApi
       .innerFindOutKey(DataConverter.hexString2ArrayBytes(fromAddress))
       .toSeq
-      .map(f => DataConverter.arrayBytes2Long2hexString(f.slice(43, 51)))
+      .map(f => DataConverter.arrayBytes2Long2hexString(f._1.slice(43, 51)))
 
     Assert.assertTrue(res == Seq(timestamp4, timestamp3, timestamp2, timestamp1))
   }

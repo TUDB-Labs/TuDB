@@ -9,24 +9,34 @@ import org.rocksdb.RocksDB
 class QueryApi(db: RocksDB) {
   private val innerQueryApi = new InnerQueryApi(db)
 
-  def findOutAddress(address: String): Iterator[String] = {
+  def findOutTransaction(address: String): Iterator[(String, String)] = {
     val innerAddress =
       DataConverter.hexString2ArrayBytes(DataConverter.removeHexStringHeader(address))
 
     innerQueryApi
       .innerFindOutKey(innerAddress)
       .map(bytes => {
-        "0x" + DataConverter.arrayBytes2HexString(bytes.slice(23, 43))
+        val key = bytes._1
+        val wei = bytes._2
+        (
+          "0x" + DataConverter.arrayBytes2HexString(key.slice(23, 43)),
+          "0x" + DataConverter.arrayBytes2HexString(wei)
+        )
       })
   }
-  def findInAddress(address: String): Iterator[String] = {
+  def findInTransaction(address: String): Iterator[(String, String)] = {
     val innerAddress =
       DataConverter.hexString2ArrayBytes(DataConverter.removeHexStringHeader(address))
 
     innerQueryApi
       .innerFindInKey(innerAddress)
       .map(bytes => {
-        "0x" + DataConverter.arrayBytes2HexString(bytes.slice(23, 43))
+        val key = bytes._1
+        val wei = bytes._2
+        (
+          "0x" + DataConverter.arrayBytes2HexString(key.slice(23, 43)),
+          "0x" + DataConverter.arrayBytes2HexString(wei)
+        )
       })
   }
   def allAddress(): Iterator[String] = {
