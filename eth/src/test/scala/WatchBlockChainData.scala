@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 object WatchBlockChainData {
   def main(args: Array[String]): Unit = {
     val queue = new ConcurrentLinkedQueue[JSONObject]()
-    val client = new EthNodeClient("192.168.31.178", 8546)
+    val client = new EthNodeClient("192.168.31.40", 8546)
     client.connect
 
     client.sendJsonRequest(EthNodeJsonApi.getEthBlockNumber(1))
@@ -20,6 +20,7 @@ object WatchBlockChainData {
 
     val jsonResult = client.consumeMessage()
     val transactions = jsonResult.get("result")
+    println(transactions)
     client.close()
   }
 }
