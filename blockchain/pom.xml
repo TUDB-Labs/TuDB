@@ -17,15 +17,31 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>common-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>storage</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- For ETH -->
         <dependency>
             <groupId>org.web3j</groupId>
             <artifactId>core</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>org.json4s</groupId>-->
+<!--            <artifactId>json4s-native_2.12</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_2.12</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
 
         <dependency>

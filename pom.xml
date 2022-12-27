@@ -9,13 +9,12 @@
     <packaging>pom</packaging>
     <version>0.1.0-SNAPSHOT</version>
     <modules>
-        <module>eth</module>
         <module>client</module>
         <module>server</module>
         <module>common-utils</module>
         <module>bitcoin</module>
-        <module>meta</module>
         <module>blockchain</module>
+        <module>storage</module>
     </modules>
 
     <dependencyManagement>

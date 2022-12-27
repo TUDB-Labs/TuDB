@@ -1,6 +1,7 @@
 package com.tudb.blockchain.eth
 
-import com.tudb.blockchain.eth.contract.{ERC20Contract, ERC20Meta, ERC20Transfer, ERC20TransferFrom, EthTransaction, NoneERC20}
+import com.tudb.blockchain.eth.contract.{ERC20Contract, ERC20Meta, ERC20Transfer, ERC20TransferFrom, NoneERC20}
+import com.tudb.blockchain.eth.entity.EthTransaction
 import org.web3j.abi.TypeDecoder
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.generated.Uint256
@@ -21,26 +22,31 @@ class EthBlockParser() {
   def getBlockTransactions(ethBlock: EthBlock.Block): Seq[EthTransaction] = {
     val transactionObjects =
       ethBlock.getTransactions.asScala.map(tx => tx.get().asInstanceOf[EthBlock.TransactionObject])
-    extractBlockTransactions(transactionObjects)
+    extractBlockTransactions(transactionObjects, ethBlock.getTimestamp.longValue())
   }
 
   private def extractBlockTransactions(
-      txs: Seq[EthBlock.TransactionObject]
+      txs: Seq[EthBlock.TransactionObject],
+      timestamp: Long
     ): Seq[EthTransaction] = {
     val blockTransactions = txs
       .map(tx => {
         val fromAddress = tx.getFrom
         val toAddress = tx.getTo
+        val txHash = tx.getHash
+
         if (toAddress != ERC20Meta.CONTRACT_ADDRESS) {
           val money = tx.getValue.toString(16)
-          EthTransaction(fromAddress, toAddress, money)
+          EthTransaction(fromAddress, toAddress, money, timestamp, txHash)
         } else {
           val input = tx.getInput
           val erc20Contract = parseERC20Contract(input)
           erc20Contract match {
-            case ERC20Transfer(to, money) => EthTransaction(fromAddress, to, money)
+            case ERC20Transfer(to, money) =>
+              EthTransaction(fromAddress, to, money, timestamp, txHash)
 
-            case ERC20TransferFrom(from, to, money) => EthTransaction(from, to, money)
+            case ERC20TransferFrom(from, to, money) =>
+              EthTransaction(from, to, money, timestamp, txHash)
 
             case NoneERC20() => null
           }

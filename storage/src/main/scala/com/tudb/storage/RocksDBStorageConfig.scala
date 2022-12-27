@@ -1,4 +1,4 @@
-package com.tudb.blockchain.storage
+package com.tudb.storage
 
 import org.rocksdb.{BlockBasedTableConfig, BloomFilter, CompactionStyle, CompressionType, LRUCache, Options}
 
@@ -6,7 +6,7 @@ import org.rocksdb.{BlockBasedTableConfig, BloomFilter, CompactionStyle, Compres
   *@description:
   */
 object RocksDBStorageConfig {
-  def getDefault(createIfMissing: Boolean): Options = {
+  def getDefaultOptions(createIfMissing: Boolean): Options = {
     val options: Options = new Options()
     val tableConfig = new BlockBasedTableConfig()
 

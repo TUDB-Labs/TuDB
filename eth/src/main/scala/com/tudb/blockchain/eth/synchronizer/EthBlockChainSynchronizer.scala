@@ -3,7 +3,6 @@ package com.tudb.blockchain.eth.synchronizer
 import com.tudb.blockchain.eth.client.EthClientApi
 import com.tudb.blockchain.eth.meta.MetaKeyManager
 import com.tudb.blockchain.storage.TuMetaApi
-import com.tudb.blockchain.tools.ByteUtils
 import org.rocksdb.RocksDB
 
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}

@@ -12,8 +12,6 @@ case class ERC20TransferFrom(fromAddress: String, toAddress: String, money: Stri
 
 case class NoneERC20() extends ERC20Contract
 
-case class EthTransaction(from: String, to: String, money: String)
-
 object ERC20Meta {
   val CONTRACT_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7"
   val CONTRACT_METHOD_TRANSFER = "0xa9059cbb"
