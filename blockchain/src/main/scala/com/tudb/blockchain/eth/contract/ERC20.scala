@@ -3,7 +3,7 @@ package com.tudb.blockchain.eth.contract
 /**
   *@description:
   */
-trait ERC20Contract extends Proposer {}
+sealed trait ERC20Contract extends Proposer {}
 
 case class ERC20Transfer(toAddress: String, money: String) extends ERC20Contract
 
