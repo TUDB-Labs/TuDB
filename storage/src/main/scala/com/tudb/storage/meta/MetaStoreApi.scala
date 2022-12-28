@@ -27,16 +27,24 @@ class MetaStoreApi(db: RocksDB) {
   def addBlockchainNameMeta(blockchain: String): Unit = {
     metaNameStore.addChainNameToDB(blockchain)
   }
-
   def getBlockchainNameId(blockchain: String): Option[Int] = {
     metaNameStore.getChainId(blockchain)
+  }
+  def getBlockchainName(blockchainId: Int): Option[String] = {
+    metaNameStore.getChainName(blockchainId)
   }
 
   def addTokenNameMeta(token: String): Unit = {
     metaNameStore.addTokenNameToDB(token)
   }
-
   def getTokenNameId(token: String): Option[Int] = {
     metaNameStore.getTokenId(token)
+  }
+  def getTokenName(tokenId: Int): Option[String] = {
+    metaNameStore.getTokenName(tokenId)
+  }
+
+  def getOrAddTokenName(tokenName: String): Int = {
+    metaNameStore.getOrAddTokenName(tokenName)
   }
 }

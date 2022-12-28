@@ -1,6 +1,7 @@
 package com.tudb.blockchain.eth
 
 import com.tudb.blockchain.eth.entity.EthTransaction
+import com.tudb.storage.meta.MetaStoreApi
 import com.tudb.tools.HexStringUtils
 import org.rocksdb.{RocksDB, WriteBatch, WriteOptions}
 
@@ -9,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@description:
   */
-class EthTransactionImporter(db: RocksDB, tokenId: Int) {
+class EthTransactionImporter(db: RocksDB, metaStoreApi: MetaStoreApi) {
   // rocksdb
   val writeOptions = new WriteOptions()
   writeOptions.setDisableWAL(false)
@@ -28,7 +29,13 @@ class EthTransactionImporter(db: RocksDB, tokenId: Int) {
       val txHash = HexStringUtils.removeHexStringHeader(tx.txHash)
 
       val key =
-        EthKeyConverter.toTransactionKeyBytes(tokenId, fromAddress, toAddress, timestamp, txHash)
+        EthKeyConverter.toTransactionKeyBytes(
+          metaStoreApi.getOrAddTokenName(tx.token),
+          fromAddress,
+          toAddress,
+          timestamp,
+          txHash
+        )
 
       val value = HexStringUtils.hexString2ArrayBytes(money)
 

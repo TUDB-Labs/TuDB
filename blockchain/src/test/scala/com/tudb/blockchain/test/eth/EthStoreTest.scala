@@ -1,12 +1,14 @@
 package com.tudb.blockchain.test.eth
 
+import com.tudb.blockchain.TokenNames
 import com.tudb.blockchain.eth.{EthKeyConverter, EthQueryApi, EthTransactionImporter}
 import com.tudb.blockchain.eth.entity.{EthTransaction, ResponseTransaction}
 import com.tudb.storage.RocksDBStorageConfig
+import com.tudb.storage.meta.MetaStoreApi
 import com.tudb.tools.HexStringUtils
 import com.tudb.tools.HexStringUtils.arrayBytes2HexString
 import org.apache.commons.io.FileUtils
-import org.junit.{Assert, Before, Test}
+import org.junit.{After, Assert, Before, Test}
 import org.rocksdb.RocksDB
 
 import java.io.File
@@ -20,6 +22,8 @@ class EthStoreTest {
   val dbPath = "./testdata/testEth.db"
   var db: RocksDB = _
   var ethQueryApi: EthQueryApi = _
+
+  var metaStoreApi: MetaStoreApi = _
 
   val address1 = "0xd64137f743432392538a8f84e8e571fa09f21c37"
   val address2 = "0x499d1b178b4643c12e3cf99d5b0244e9a754ee2d"
@@ -40,27 +44,35 @@ class EthStoreTest {
   val timestamp2 = 1672126596
   val timestamp3 = 1672126597
 
+  val token1: String = TokenNames.ETHEREUM_NATIVE_COIN
+  val token2: String = TokenNames.USDT
+  val token3: String = TokenNames.USDC
+
   @Before
   def init(): Unit = {
     val file = new File(dbPath)
     FileUtils.deleteDirectory(file)
     file.mkdirs()
     db = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), dbPath)
-    ethQueryApi = new EthQueryApi(db)
+    metaStoreApi = new MetaStoreApi(db)
+    ethQueryApi = new EthQueryApi(db, metaStoreApi)
   }
 
   @Test
   def testEthStore(): Unit = {
-    val tx1 = EthTransaction(address1, address2, money1, timestamp1, txHash1)
-    val response1 = ResponseTransaction(address1, address2, new BigInteger(money1, 16), timestamp1)
+    val tx1 = EthTransaction(address1, address2, token1, money1, timestamp1, txHash1)
+    val response1 =
+      ResponseTransaction(address1, address2, token1, new BigInteger(money1, 16), timestamp1)
 
-    val tx2 = EthTransaction(address3, address4, money2, timestamp2, txHash2)
-    val response2 = ResponseTransaction(address3, address4, new BigInteger(money2, 16), timestamp2)
+    val tx2 = EthTransaction(address3, address4, token2, money2, timestamp2, txHash2)
+    val response2 =
+      ResponseTransaction(address3, address4, token2, new BigInteger(money2, 16), timestamp2)
 
-    val tx3 = EthTransaction(address5, address6, money3, timestamp3, txHash3)
-    val response3 = ResponseTransaction(address5, address6, new BigInteger(money3, 16), timestamp3)
+    val tx3 = EthTransaction(address5, address6, token3, money3, timestamp3, txHash3)
+    val response3 =
+      ResponseTransaction(address5, address6, token3, new BigInteger(money3, 16), timestamp3)
 
-    val importer = new EthTransactionImporter(db, 0)
+    val importer = new EthTransactionImporter(db, metaStoreApi)
     importer.importer(Seq(tx1, tx2, tx3))
 
     val txArrayOut = ethQueryApi.findOutTransactions().toSeq
@@ -76,23 +88,30 @@ class EthStoreTest {
 
   @Test
   def testSortByLatestTimestamp(): Unit = {
-    val tx1 = EthTransaction(address1, address2, money1, timestamp1, txHash1)
-    val tx2 = EthTransaction(address1, address2, money2, timestamp2, txHash2)
-    val tx3 = EthTransaction(address1, address2, money3, timestamp3, txHash3)
+    val tx1 = EthTransaction(address1, address2, token1, money1, timestamp1, txHash1)
+    val tx2 = EthTransaction(address1, address2, token2, money2, timestamp2, txHash2)
+    val tx3 = EthTransaction(address1, address2, token3, money3, timestamp3, txHash3)
 
-    val response1 = ResponseTransaction(address1, address2, new BigInteger(money1, 16), timestamp1)
-    val response2 = ResponseTransaction(address1, address2, new BigInteger(money2, 16), timestamp2)
-    val response3 = ResponseTransaction(address1, address2, new BigInteger(money3, 16), timestamp3)
+    val response1 =
+      ResponseTransaction(address1, address2, token1, new BigInteger(money1, 16), timestamp1)
+    val response2 =
+      ResponseTransaction(address1, address2, token2, new BigInteger(money2, 16), timestamp2)
+    val response3 =
+      ResponseTransaction(address1, address2, token3, new BigInteger(money3, 16), timestamp3)
 
-    val importer = new EthTransactionImporter(db, 0)
+    val importer = new EthTransactionImporter(db, metaStoreApi)
     importer.importer(Seq(tx1, tx2, tx3))
 
-    val queryOutResult = ethQueryApi.findOutTransactionByAddress(0, address1).toSeq
-    val queryInResult = ethQueryApi.findInTransactionsByAddress(0, address2).toSeq
+    val queryOutResult = ethQueryApi.findOutTransactionByAddress(address1).toSeq
+    val queryInResult = ethQueryApi.findInTransactionsByAddress(address2).toSeq
     val groundTruth = Seq(response3, response2, response1)
 
     Assert.assertEquals(groundTruth, queryOutResult)
     Assert.assertEquals(groundTruth, queryInResult)
   }
 
+  @After
+  def close(): Unit = {
+    db.close()
+  }
 }

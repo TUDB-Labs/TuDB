@@ -1,8 +1,9 @@
 package com.tudb.blockchain.eth
 
 import com.tudb.blockchain.eth.entity.ResponseTransaction
+import com.tudb.storage.meta.MetaStoreApi
 import com.tudb.tools.ByteUtils
-import com.tudb.tools.HexStringUtils.{hexString2ArrayBytes, removeHexStringHeader, arrayBytes2HexString}
+import com.tudb.tools.HexStringUtils.{arrayBytes2HexString, hexString2ArrayBytes, removeHexStringHeader}
 import org.rocksdb.{ReadOptions, RocksDB}
 
 import java.math.BigInteger
@@ -10,17 +11,18 @@ import java.math.BigInteger
 /**
   *@description:
   */
-class EthQueryApi(db: RocksDB) {
+class EthQueryApi(db: RocksDB, metaStoreApi: MetaStoreApi) {
 
   def findOutTransactions(): Iterator[ResponseTransaction] = {
     val prefix = Array('o'.toByte)
     new EthTransactionPrefixIterator(prefix, db).map(kv => {
       val key = kv._1
-      val from = "0x" + arrayBytes2HexString(key.slice(5, 25))
-      val to = "0x" + arrayBytes2HexString(key.slice(25, 45))
-      val timestamp = ~ByteUtils.getLong(key.slice(45, 53), 0)
+      val from = "0x" + arrayBytes2HexString(key.slice(1, 21))
+      val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
+      val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
+      val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
       val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
-      ResponseTransaction(from, to, money, timestamp)
+      ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
 
@@ -28,45 +30,42 @@ class EthQueryApi(db: RocksDB) {
     val prefix = Array('i'.toByte)
     new EthTransactionPrefixIterator(prefix, db).map(kv => {
       val key = kv._1
-      val to = "0x" + arrayBytes2HexString(key.slice(5, 25))
-      val from = "0x" + arrayBytes2HexString(key.slice(25, 45))
-      val timestamp = ~ByteUtils.getLong(key.slice(45, 53), 0)
+      val to = "0x" + arrayBytes2HexString(key.slice(1, 21))
+      val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
+      val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
+      val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
       val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
-      ResponseTransaction(from, to, money, timestamp)
+      ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
 
-  def findOutTransactionByAddress(tokenId: Int, from: String): Iterator[ResponseTransaction] = {
-    val tokenBytes = new Array[Byte](4)
-    ByteUtils.setInt(tokenBytes, 0, tokenId)
-
+  def findOutTransactionByAddress(from: String): Iterator[ResponseTransaction] = {
     val fromBytes = hexString2ArrayBytes(removeHexStringHeader(from))
-    val prefix = Array('o'.toByte) ++ tokenBytes ++ fromBytes
+    val prefix = Array('o'.toByte) ++ fromBytes
 
     new EthTransactionPrefixIterator(prefix, db).map(kv => {
       val key = kv._1
-      val from = "0x" + arrayBytes2HexString(key.slice(5, 25))
-      val to = "0x" + arrayBytes2HexString(key.slice(25, 45))
-      val timestamp = ~ByteUtils.getLong(key.slice(45, 53), 0)
+      val from = "0x" + arrayBytes2HexString(key.slice(1, 21))
+      val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
+      val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
+      val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
       val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
-      ResponseTransaction(from, to, money, timestamp)
+      ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
 
-  def findInTransactionsByAddress(tokenId: Int, to: String): Iterator[ResponseTransaction] = {
-    val tokenBytes = new Array[Byte](4)
-    ByteUtils.setInt(tokenBytes, 0, tokenId)
-
+  def findInTransactionsByAddress(to: String): Iterator[ResponseTransaction] = {
     val toBytes = hexString2ArrayBytes(removeHexStringHeader(to))
-    val prefix = Array('i'.toByte) ++ tokenBytes ++ toBytes
+    val prefix = Array('i'.toByte) ++ toBytes
 
     new EthTransactionPrefixIterator(prefix, db).map(kv => {
       val key = kv._1
-      val to = "0x" + arrayBytes2HexString(key.slice(5, 25))
-      val from = "0x" + arrayBytes2HexString(key.slice(25, 45))
-      val timestamp = ~ByteUtils.getLong(key.slice(45, 53), 0)
+      val to = "0x" + arrayBytes2HexString(key.slice(1, 21))
+      val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
+      val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
+      val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
       val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
-      ResponseTransaction(from, to, money, timestamp)
+      ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
 }

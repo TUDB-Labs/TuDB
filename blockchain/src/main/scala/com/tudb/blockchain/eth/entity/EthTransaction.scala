@@ -8,8 +8,14 @@ import java.math.BigInteger
 case class EthTransaction(
     from: String,
     to: String,
+    token: String,
     money: String,
     timestamp: Long,
     txHash: String) {}
 
-case class ResponseTransaction(from: String, to: String, money: BigInteger, timestamp: Long)
+case class ResponseTransaction(
+    from: String,
+    to: String,
+    token: String,
+    money: BigInteger,
+    timestamp: Long)
