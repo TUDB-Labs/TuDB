@@ -48,41 +48,4 @@ object HexStringUtils {
 
     bytesArray
   }
-
-  def hexString2Long2Bytes(hexString: String): Array[Byte] = {
-    val longValue = java.lang.Long.parseLong(hexString, 16)
-    val negationLong = ~longValue
-    val byteArray = new Array[Byte](8)
-    ByteUtils.setLong(byteArray, 0, negationLong)
-    byteArray
-  }
-
-  def arrayBytes2Long2hexString(bytes: Array[Byte]): String = {
-    val longValue = ~ByteUtils.getLong(bytes, 0)
-    java.lang.Long.toString(longValue, 16)
-  }
-
-//  def decode2Address(key: Array[Byte]): String = {
-//    key.head match {
-//      case ADDRESS_LABEL_TYPE => arrayBytes2HexString(key.slice(3, 23))
-//      case LABEL_ADDRESS_TYPE => arrayBytes2HexString(key.drop(4))
-//    }
-//  }
-
-//  def decode2Transaction(key: Array[Byte]): (String, String, String) = {
-//    key.head match {
-//      case OUT_TX_TYPE => {
-//        val from = arrayBytes2HexString(key.slice(3, 23))
-//        val to = arrayBytes2HexString(key.slice(23, 43))
-//        val txHash = arrayBytes2HexString(key.slice(43, key.length))
-//        (from, to, txHash)
-//      }
-//      case IN_TX_TYPE => {
-//        val to = arrayBytes2HexString(key.slice(3, 23))
-//        val from = arrayBytes2HexString(key.slice(23, 43))
-//        val txHash = arrayBytes2HexString(key.slice(43, key.length))
-//        (from, to, txHash)
-//      }
-//    }
-//  }
 }
