@@ -8,6 +8,7 @@ import org.rocksdb.RocksDB
   *@description:
   */
 class MetaStoreApi(db: RocksDB) {
+  val metaNameStore = new MetaNameStore(db)
 
   def setSynchronizedBlockNumber(blockchain: String, blockNumber: Long): Unit = {
     val key = MetaKeyConverter.getSynchronizedBlockNumberKey(blockchain)
@@ -23,44 +24,19 @@ class MetaStoreApi(db: RocksDB) {
     else -1
   }
 
-  def setBlockchainNameId(blockchain: String, id: Int): Unit = {
-    val key = MetaKeyConverter.getBlockchainKey(blockchain)
-    val intBytes = new Array[Byte](4)
-    ByteUtils.setInt(intBytes, 0, id)
-    db.put(key, intBytes)
+  def addBlockchainNameMeta(blockchain: String): Unit = {
+    metaNameStore.addChainNameToDB(blockchain)
   }
 
-  def getBlockchainNameId(blockchain: String): Int = {
-    val key = MetaKeyConverter.getBlockchainKey(blockchain)
-    val id = db.get(key)
-    if (id != null) ByteUtils.getInt(id, 0)
-    else 0
+  def getBlockchainNameId(blockchain: String): Option[Int] = {
+    metaNameStore.getChainId(blockchain)
   }
 
-  def setTokenNameId(token: String, id: Int): Unit = {
-    val key = MetaKeyConverter.getTokenKey(token)
-    val intBytes = new Array[Byte](4)
-    ByteUtils.setInt(intBytes, 0, id)
-    db.put(key, intBytes)
+  def addTokenNameMeta(token: String): Unit = {
+    metaNameStore.addTokenNameToDB(token)
   }
 
-  def getTokenNameId(token: String): Int = {
-    val key = MetaKeyConverter.getTokenKey(token)
-    val id = db.get(key)
-    if (id != null) ByteUtils.getInt(id, 0)
-    else 0
-  }
-
-  def setLabelNameId(label: String, id: Int): Unit = {
-    val key = MetaKeyConverter.getLabelKey(label)
-    val intBytes = new Array[Byte](4)
-    ByteUtils.setInt(intBytes, 0, id)
-    db.put(key, intBytes)
-  }
-  def getLabelNameId(label: String): Int = {
-    val key = MetaKeyConverter.getLabelKey(label)
-    val id = db.get(key)
-    if (id != null) ByteUtils.getInt(id, 0)
-    else 0
+  def getTokenNameId(token: String): Option[Int] = {
+    metaNameStore.getTokenId(token)
   }
 }

@@ -1,32 +1,30 @@
 package com.tudb.storage.tools
 
+import com.tudb.tools.ByteUtils
+
 /**
   *@description:
   */
 object MetaKeyConverter {
   val charset: String = "UTF-8"
+
   val chainType: Array[Byte] = "c".getBytes(charset)
   val tokenType: Array[Byte] = "t".getBytes(charset)
-  val labelType: Array[Byte] = "l".getBytes(charset)
   val blockNumberType: Array[Byte] = "n".getBytes(charset)
 
   def getSynchronizedBlockNumberKey(blockchain: String): Array[Byte] = {
     blockNumberType ++ blockchain.getBytes(charset)
   }
 
-  def getBlockchainKey(blockchain: String): Array[Byte] = {
-    chainType ++ blockchain.getBytes(charset)
+  def getBlockchainKey(id: Int): Array[Byte] = {
+    val intBytes = new Array[Byte](4)
+    ByteUtils.setInt(intBytes, 0, id)
+    chainType ++ intBytes
   }
 
-  def getTokenKey(token: String): Array[Byte] = {
-    tokenType ++ token.getBytes(charset)
-  }
-
-  def getLabelKey(label: String): Array[Byte] = {
-    labelType ++ label.getBytes(charset)
-  }
-
-  def metaKeyToString(key: Array[Byte]): String = {
-    new String(key.drop(1), charset)
+  def getTokenKey(id: Int): Array[Byte] = {
+    val intBytes = new Array[Byte](4)
+    ByteUtils.setInt(intBytes, 0, id)
+    tokenType ++ intBytes
   }
 }
