@@ -1,29 +1,22 @@
 package com.tudb.blockchain.test.eth
 
-import com.tudb.blockchain.TokenNames
-import com.tudb.blockchain.eth.{EthKeyConverter, EthQueryApi, EthTransactionImporter}
-import com.tudb.blockchain.eth.entity.{EthTransaction, ResponseTransaction}
+import com.tudb.blockchain.{BlockchainQueryApi, TokenNames}
+import com.tudb.blockchain.entities.{EthTransaction, ResponseTransaction}
+import com.tudb.blockchain.importer.{BlockchainTransactionImporter}
 import com.tudb.storage.RocksDBStorageConfig
 import com.tudb.storage.meta.MetaStoreApi
-import com.tudb.tools.HexStringUtils
-import com.tudb.tools.HexStringUtils.arrayBytes2HexString
 import org.apache.commons.io.FileUtils
-import org.junit.{After, Assert, Before, Test}
+import org.junit.{Assert, Before, Test}
 import org.rocksdb.RocksDB
 
 import java.io.File
 import java.math.BigInteger
-import scala.collection.mutable.ArrayBuffer
 
 /**
   *@description:
   */
 class EthStoreTest {
-  val dbPath = "./testdata/testEth.db"
-  var db: RocksDB = _
-  var ethQueryApi: EthQueryApi = _
-
-  var metaStoreApi: MetaStoreApi = _
+  val dbPath = "./testdata/testEth"
 
   val address1 = "0xd64137f743432392538a8f84e8e571fa09f21c37"
   val address2 = "0x499d1b178b4643c12e3cf99d5b0244e9a754ee2d"
@@ -53,9 +46,6 @@ class EthStoreTest {
     val file = new File(dbPath)
     FileUtils.deleteDirectory(file)
     file.mkdirs()
-    db = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), dbPath)
-    metaStoreApi = new MetaStoreApi(db)
-    ethQueryApi = new EthQueryApi(db, metaStoreApi)
   }
 
   @Test
@@ -72,11 +62,19 @@ class EthStoreTest {
     val response3 =
       ResponseTransaction(address5, address6, token3, new BigInteger(money3, 16), timestamp3)
 
-    val importer = new EthTransactionImporter(db, metaStoreApi)
-    importer.importer(Seq(tx1, tx2, tx3))
+    val blockchain = "ethereum"
+    val importer = new BlockchainTransactionImporter(dbPath, blockchain)
 
-    val txArrayOut = ethQueryApi.findOutTransactions().toSeq
-    val txArrayIn = ethQueryApi.findInTransactions().toSeq
+    importer.importer(Seq(tx1, tx2, tx3))
+    importer.close()
+    val chainDB =
+      RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/${blockchain}.db")
+    val metaDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/meta.db")
+    val metaStoreApi = new MetaStoreApi(metaDB)
+    val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
+
+    val txArrayOut = queryApi.findOutTransactions().toSeq
+    val txArrayIn = queryApi.findInTransactions().toSeq
     val groundTruth = Seq(response1, response2, response3)
 
     Assert.assertEquals(3, txArrayOut.length)
@@ -84,6 +82,9 @@ class EthStoreTest {
 
     Assert.assertEquals(3, txArrayIn.length)
     Assert.assertTrue(groundTruth.toSet == txArrayIn.toSet)
+
+    chainDB.close()
+    metaDB.close()
   }
 
   @Test
@@ -99,19 +100,25 @@ class EthStoreTest {
     val response3 =
       ResponseTransaction(address1, address2, token3, new BigInteger(money3, 16), timestamp3)
 
-    val importer = new EthTransactionImporter(db, metaStoreApi)
-    importer.importer(Seq(tx1, tx2, tx3))
+    val blockchain = "ethereum"
+    val importer = new BlockchainTransactionImporter(dbPath, blockchain)
 
-    val queryOutResult = ethQueryApi.findOutTransactionByAddress(address1).toSeq
-    val queryInResult = ethQueryApi.findInTransactionsByAddress(address2).toSeq
+    importer.importer(Seq(tx1, tx2, tx3))
+    importer.close()
+    val chainDB =
+      RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/${blockchain}.db")
+    val metaDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/meta.db")
+    val metaStoreApi = new MetaStoreApi(metaDB)
+    val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
+
+    val queryOutResult = queryApi.findOutTransactionByAddress(address1).toSeq
+    val queryInResult = queryApi.findInTransactionsByAddress(address2).toSeq
     val groundTruth = Seq(response3, response2, response1)
 
     Assert.assertEquals(groundTruth, queryOutResult)
     Assert.assertEquals(groundTruth, queryInResult)
-  }
 
-  @After
-  def close(): Unit = {
-    db.close()
+    chainDB.close()
+    metaDB.close()
   }
 }

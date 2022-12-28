@@ -1,8 +1,8 @@
 package com.tudb.blockchain.eth
 
 import com.tudb.blockchain.TokenNames
+import com.tudb.blockchain.entities.EthTransaction
 import com.tudb.blockchain.eth.contract.{ERC20Contract, ERC20Meta, ERC20Transfer, ERC20TransferFrom, NoneERC20}
-import com.tudb.blockchain.eth.entity.EthTransaction
 import org.web3j.abi.TypeDecoder
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.generated.Uint256

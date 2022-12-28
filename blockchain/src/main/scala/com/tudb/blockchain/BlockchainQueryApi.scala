@@ -1,4 +1,4 @@
-package com.tudb.blockchain.eth
+package com.tudb.blockchain
 
 import com.tudb.blockchain.entities.ResponseTransaction
 import com.tudb.storage.meta.MetaStoreApi
@@ -11,11 +11,10 @@ import java.math.BigInteger
 /**
   *@description:
   */
-class EthQueryApi(db: RocksDB, metaStoreApi: MetaStoreApi) {
-
+class BlockchainQueryApi(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
   def findOutTransactions(): Iterator[ResponseTransaction] = {
     val prefix = Array('o'.toByte)
-    new TransactionPrefixIterator(prefix, db).map(kv => {
+    new TransactionPrefixIterator(prefix, chainDB).map(kv => {
       val key = kv._1
       val from = "0x" + arrayBytes2HexString(key.slice(1, 21))
       val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
@@ -28,7 +27,7 @@ class EthQueryApi(db: RocksDB, metaStoreApi: MetaStoreApi) {
 
   def findInTransactions(): Iterator[ResponseTransaction] = {
     val prefix = Array('i'.toByte)
-    new TransactionPrefixIterator(prefix, db).map(kv => {
+    new TransactionPrefixIterator(prefix, chainDB).map(kv => {
       val key = kv._1
       val to = "0x" + arrayBytes2HexString(key.slice(1, 21))
       val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
@@ -43,7 +42,7 @@ class EthQueryApi(db: RocksDB, metaStoreApi: MetaStoreApi) {
     val fromBytes = hexString2ArrayBytes(removeHexStringHeader(from))
     val prefix = Array('o'.toByte) ++ fromBytes
 
-    new TransactionPrefixIterator(prefix, db).map(kv => {
+    new TransactionPrefixIterator(prefix, chainDB).map(kv => {
       val key = kv._1
       val from = "0x" + arrayBytes2HexString(key.slice(1, 21))
       val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
@@ -58,7 +57,7 @@ class EthQueryApi(db: RocksDB, metaStoreApi: MetaStoreApi) {
     val toBytes = hexString2ArrayBytes(removeHexStringHeader(to))
     val prefix = Array('i'.toByte) ++ toBytes
 
-    new TransactionPrefixIterator(prefix, db).map(kv => {
+    new TransactionPrefixIterator(prefix, chainDB).map(kv => {
       val key = kv._1
       val to = "0x" + arrayBytes2HexString(key.slice(1, 21))
       val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
