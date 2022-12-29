@@ -38,14 +38,16 @@ class EthBlockParser() {
 
         if (!ERC20Meta.ERC20Contracts.contains(toAddress)) {
           val money = tx.getValue.toString(16)
-          EthTransaction(
-            fromAddress,
-            toAddress,
-            TokenNames.ETHEREUM_NATIVE_COIN,
-            money,
-            timestamp,
-            txHash
-          )
+          if (toAddress == null) null
+          else
+            EthTransaction(
+              fromAddress,
+              toAddress,
+              TokenNames.ETHEREUM_NATIVE_COIN,
+              money,
+              timestamp,
+              txHash
+            )
         } else {
           val input = tx.getInput
           val tokenName = ERC20Meta.ERC20Contracts(toAddress)

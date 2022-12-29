@@ -12,14 +12,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   *@description:
   */
-class BlockchainTransactionImporter(dbPath: String, blockchain: String) {
-  val chainDBPath = s"${dbPath}/${blockchain}.db"
-  val metaDBPath = s"${dbPath}/meta.db"
-
-  val chainDB: RocksDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), chainDBPath)
-  val metaDB: RocksDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), metaDBPath)
-  val metaStoreApi = new MetaStoreApi(metaDB)
-
+class BlockchainTransactionImporter(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
   // rocksdb
   val writeOptions = new WriteOptions()
   writeOptions.setDisableWAL(false)
@@ -29,7 +22,7 @@ class BlockchainTransactionImporter(dbPath: String, blockchain: String) {
   val outTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
   val inTxArray = ArrayBuffer[(Array[Byte], Array[Byte])]()
 
-  def importer(txs: Seq[TransactionWithFullInfo]): Unit = {
+  def importTx(txs: Seq[TransactionWithFullInfo]): Unit = {
     txs.foreach(tx => {
       val fromAddress = HexStringUtils.removeHexStringHeader(tx.from)
       val toAddress = HexStringUtils.removeHexStringHeader(tx.to)
@@ -61,10 +54,4 @@ class BlockchainTransactionImporter(dbPath: String, blockchain: String) {
     chainDB.write(writeOptions, writeBatch)
     writeBatch.clear()
   }
-
-  def close(): Unit = {
-    chainDB.close()
-    metaDB.close()
-  }
-
 }

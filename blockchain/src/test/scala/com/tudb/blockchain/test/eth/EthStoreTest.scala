@@ -63,15 +63,17 @@ class EthStoreTest {
       ResponseTransaction(address5, address6, token3, new BigInteger(money3, 16), timestamp3)
 
     val blockchain = "ethereum"
-    val importer = new BlockchainTransactionImporter(dbPath, blockchain)
-
-    importer.importer(Seq(tx1, tx2, tx3))
-    importer.close()
     val chainDB =
       RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/${blockchain}.db")
+
     val metaDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/meta.db")
     val metaStoreApi = new MetaStoreApi(metaDB)
     val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
+
+    val importer = new BlockchainTransactionImporter(chainDB, metaStoreApi)
+    importer.importTx(Seq(tx1))
+    importer.importTx(Seq(tx2))
+    importer.importTx(Seq(tx3))
 
     val txArrayOut = queryApi.findOutTransactions().toSeq
     val txArrayIn = queryApi.findInTransactions().toSeq
@@ -101,15 +103,14 @@ class EthStoreTest {
       ResponseTransaction(address1, address2, token3, new BigInteger(money3, 16), timestamp3)
 
     val blockchain = "ethereum"
-    val importer = new BlockchainTransactionImporter(dbPath, blockchain)
-
-    importer.importer(Seq(tx1, tx2, tx3))
-    importer.close()
     val chainDB =
       RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/${blockchain}.db")
     val metaDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/meta.db")
     val metaStoreApi = new MetaStoreApi(metaDB)
+
     val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
+    val importer = new BlockchainTransactionImporter(chainDB, metaStoreApi)
+    importer.importTx(Seq(tx1, tx2, tx3))
 
     val queryOutResult = queryApi.findOutTransactionByAddress(address1).toSeq
     val queryInResult = queryApi.findInTransactionsByAddress(address2).toSeq

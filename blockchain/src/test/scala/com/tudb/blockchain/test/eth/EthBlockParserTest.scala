@@ -3,6 +3,8 @@ package com.tudb.blockchain.test.eth
 import com.tudb.blockchain.eth.{EthBlockParser, Web3jEthClient}
 import org.junit.{Assert, Test}
 
+import java.math.BigInteger
+
 /**
   *@description:
   */

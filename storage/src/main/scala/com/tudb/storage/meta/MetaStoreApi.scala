@@ -7,19 +7,19 @@ import org.rocksdb.RocksDB
 /**
   *@description:
   */
-class MetaStoreApi(db: RocksDB) {
-  val metaNameStore = new MetaNameStore(db)
+class MetaStoreApi(metaDB: RocksDB) {
+  val metaNameStore = new MetaNameStore(metaDB)
 
   def setSynchronizedBlockNumber(blockchain: String, blockNumber: Long): Unit = {
     val key = MetaKeyConverter.getSynchronizedBlockNumberKey(blockchain)
     val longBytes: Array[Byte] = new Array[Byte](8)
     ByteUtils.setLong(longBytes, 0, blockNumber)
-    db.put(key, longBytes)
+    metaDB.put(key, longBytes)
   }
 
   def getSynchronizedBlockNumber(blockchain: String): Long = {
     val key = MetaKeyConverter.getSynchronizedBlockNumberKey(blockchain)
-    val number = db.get(key)
+    val number = metaDB.get(key)
     if (number != null) ByteUtils.getLong(number, 0)
     else -1
   }
