@@ -10,6 +10,10 @@ import org.rocksdb.RocksDB
 class MetaStoreApi(metaDB: RocksDB) {
   val metaNameStore = new MetaNameStore(metaDB)
 
+  def getAllBlockchainNames(): Seq[String] = {
+    metaNameStore.chainName2Id.keys.toSeq
+  }
+
   def setSynchronizedBlockNumber(blockchain: String, blockNumber: Long): Unit = {
     val key = MetaKeyConverter.getSynchronizedBlockNumberKey(blockchain)
     val longBytes: Array[Byte] = new Array[Byte](8)
@@ -43,7 +47,6 @@ class MetaStoreApi(metaDB: RocksDB) {
   def getTokenName(tokenId: Int): Option[String] = {
     metaNameStore.getTokenName(tokenId)
   }
-
   def getOrAddTokenName(tokenName: String): Int = {
     metaNameStore.getOrAddTokenName(tokenName)
   }

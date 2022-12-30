@@ -20,7 +20,7 @@ class BlockchainQueryApi(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
       val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
       val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
       val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
-      val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
+      val money = arrayBytes2HexString(kv._2)
       ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
@@ -33,7 +33,7 @@ class BlockchainQueryApi(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
       val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
       val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
       val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
-      val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
+      val money = arrayBytes2HexString(kv._2)
       ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
@@ -48,7 +48,7 @@ class BlockchainQueryApi(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
       val to = "0x" + arrayBytes2HexString(key.slice(21, 41))
       val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
       val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
-      val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
+      val money = arrayBytes2HexString(kv._2)
       ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }
@@ -63,7 +63,7 @@ class BlockchainQueryApi(chainDB: RocksDB, metaStoreApi: MetaStoreApi) {
       val from = "0x" + arrayBytes2HexString(key.slice(21, 41))
       val timestamp = ~ByteUtils.getLong(key.slice(41, 49), 0)
       val tokenName = metaStoreApi.getTokenName(ByteUtils.getInt(key.slice(49, 53), 0)).get
-      val money = new BigInteger(arrayBytes2HexString(kv._2), 16)
+      val money = arrayBytes2HexString(kv._2)
       ResponseTransaction(from, to, tokenName, money, timestamp)
     })
   }

@@ -26,11 +26,24 @@
         </dependency>
         <dependency>
             <groupId>org.grapheco</groupId>
-            <artifactId>eth</artifactId>
+            <artifactId>blockchain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>storage</artifactId>
             <version>${project.version}</version>
         </dependency>
 
 
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_2.12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_2.12</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>

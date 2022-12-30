@@ -6,24 +6,15 @@ package com.tudb.blockchain.network;
 
 service TuQueryService {
   rpc HopQuery (HopQueryRequest) returns (QueryResponse) {}
-  rpc getAddressLabel(getAddressLabelRequest) returns (QueryResponse) {}
-  rpc setAddressLabel(setAddressLabelRequest) returns (QueryResponse) {}
-}
-
-message getAddressLabelRequest{
-  string address = 1;
-}
-message setAddressLabelRequest{
-  string address = 1;
-  repeated string labels = 2;
 }
 
 message HopQueryRequest {
-  string address = 1;
-  string direction = 2;
-  int32 lowerHop = 3;
-  int32 upperHop = 4;
-  int32 limit = 5;
+  string chainName = 1;
+  string address = 2;
+  string direction = 3;
+  int32 lowerHop = 4;
+  int32 upperHop = 5;
+  int32 limit = 6;
 }
 
 message QueryResponse {

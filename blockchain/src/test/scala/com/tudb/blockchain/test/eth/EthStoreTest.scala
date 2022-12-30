@@ -52,15 +52,15 @@ class EthStoreTest {
   def testEthStore(): Unit = {
     val tx1 = EthTransaction(address1, address2, token1, money1, timestamp1, txHash1)
     val response1 =
-      ResponseTransaction(address1, address2, token1, new BigInteger(money1, 16), timestamp1)
+      ResponseTransaction(address1, address2, token1, money1, timestamp1)
 
     val tx2 = EthTransaction(address3, address4, token2, money2, timestamp2, txHash2)
     val response2 =
-      ResponseTransaction(address3, address4, token2, new BigInteger(money2, 16), timestamp2)
+      ResponseTransaction(address3, address4, token2, money2, timestamp2)
 
     val tx3 = EthTransaction(address5, address6, token3, money3, timestamp3, txHash3)
     val response3 =
-      ResponseTransaction(address5, address6, token3, new BigInteger(money3, 16), timestamp3)
+      ResponseTransaction(address5, address6, token3, money3, timestamp3)
 
     val blockchain = "ethereum"
     val chainDB =
@@ -96,11 +96,11 @@ class EthStoreTest {
     val tx3 = EthTransaction(address1, address2, token3, money3, timestamp3, txHash3)
 
     val response1 =
-      ResponseTransaction(address1, address2, token1, new BigInteger(money1, 16), timestamp1)
+      ResponseTransaction(address1, address2, token1, money1, timestamp1)
     val response2 =
-      ResponseTransaction(address1, address2, token2, new BigInteger(money2, 16), timestamp2)
+      ResponseTransaction(address1, address2, token2, money2, timestamp2)
     val response3 =
-      ResponseTransaction(address1, address2, token3, new BigInteger(money3, 16), timestamp3)
+      ResponseTransaction(address1, address2, token3, money3, timestamp3)
 
     val blockchain = "ethereum"
     val chainDB =
