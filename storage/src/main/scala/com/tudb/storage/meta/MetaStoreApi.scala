@@ -37,6 +37,9 @@ class MetaStoreApi(metaDB: RocksDB) {
   def getBlockchainName(blockchainId: Int): Option[String] = {
     metaNameStore.getChainName(blockchainId)
   }
+  def getOrAddChainName(blockchain: String): Int = {
+    metaNameStore.getOrAddChainName(blockchain)
+  }
 
   def addTokenNameMeta(token: String): Unit = {
     metaNameStore.addTokenNameToDB(token)

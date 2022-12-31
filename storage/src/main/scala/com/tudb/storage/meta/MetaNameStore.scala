@@ -1,6 +1,7 @@
 package com.tudb.storage.meta
 
 import com.tudb.storage.tools.MetaKeyConverter
+import com.tudb.tools.ByteUtils
 import org.rocksdb.RocksDB
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -58,16 +59,14 @@ class MetaNameStore(db: RocksDB) {
     val iterator = db.newIterator()
     val prefix = MetaKeyConverter.chainType
     iterator.seek(prefix)
-    var index = -1
     while (iterator.isValid && iterator.key().startsWith(prefix)) {
-      index += 1
-      val key = iterator.key()
+      val id = ByteUtils.getInt(iterator.key().drop(1), 0)
       val chainName = new String(iterator.value(), charset)
-      chainName2Id += chainName -> index
-      chainId2Name += index -> chainName
+      chainName2Id += chainName -> id
+      chainId2Name += id -> chainName
       iterator.next()
     }
-    chainIdGenerator.set(index)
+    chainIdGenerator.set(chainName2Id.size)
   }
   def loadTokenMeta(): Unit = {
     tokenName2Id.clear()
@@ -76,16 +75,14 @@ class MetaNameStore(db: RocksDB) {
     val iterator = db.newIterator()
     val prefix = MetaKeyConverter.tokenType
     iterator.seek(prefix)
-    var index = -1
     while (iterator.isValid && iterator.key().startsWith(prefix)) {
-      index += 1
-      val key = iterator.key()
+      val id = ByteUtils.getInt(iterator.key().drop(1), 0)
       val tokenName = new String(iterator.value(), charset)
-      tokenName2Id += tokenName -> index
-      tokenId2Name += index -> tokenName
+      tokenName2Id += tokenName -> id
+      tokenId2Name += id -> tokenName
       iterator.next()
     }
-    tokenIdGenerator.set(index)
+    tokenIdGenerator.set(tokenName2Id.size)
   }
 
   def close(): Unit = {

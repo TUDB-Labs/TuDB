@@ -25,6 +25,7 @@ class TuDBClient(host: String, port: Int) {
     }
   }
   def hopQuery(
+      chainName: String,
       address: String,
       direction: String,
       lowerHop: Int,
@@ -33,6 +34,7 @@ class TuDBClient(host: String, port: Int) {
     ): Query.QueryResponse = {
     val request = Query.HopQueryRequest
       .newBuilder()
+      .setChainName(chainName)
       .setAddress(address)
       .setDirection(direction)
       .setLowerHop(lowerHop)

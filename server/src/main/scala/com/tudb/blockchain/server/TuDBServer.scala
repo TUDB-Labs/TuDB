@@ -55,5 +55,7 @@ class TuDBServer(context: TuDBServerContext) {
   def shutdown(): Unit = {
     server.shutdown().awaitTermination(5, TimeUnit.SECONDS)
     synchronizer.stop()
+    chainDBs.values.foreach(db => db.close())
+    metaDB.close()
   }
 }

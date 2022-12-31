@@ -16,6 +16,8 @@ class EthBlockchainSynchronizer(
     metaStoreApi: MetaStoreApi) {
   val blockParser = new EthBlockParser()
   val importer = new BlockchainTransactionImporter(chainDB, metaStoreApi)
+
+  metaStoreApi.getOrAddChainName("ethereum")
   var currentSynchronizedBlockNumber: Long = metaStoreApi.getSynchronizedBlockNumber("ethereum")
 
   private val scheduleRequestBlockNumber: ScheduledExecutorService =

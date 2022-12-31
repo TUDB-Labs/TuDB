@@ -1,6 +1,6 @@
 package com.tudb.blockchain.converter
 
-import com.tudb.blockchain.entities.TransactionKeyBytes
+import com.tudb.blockchain.entities.InnerTransactionKeyBytes
 import com.tudb.tools.ByteUtils
 import com.tudb.tools.HexStringUtils.{IN_TX_TYPE, OUT_TX_TYPE, hexString2ArrayBytes, removeHexStringHeader}
 
@@ -15,7 +15,7 @@ object BlockchainKeyConverter {
       toAddress: String,
       timestamp: Long,
       txHash: String
-    ): TransactionKeyBytes = {
+    ): InnerTransactionKeyBytes = {
     val fromHexBytes = hexString2ArrayBytes(removeHexStringHeader(fromAddress))
     val toHexBytes = hexString2ArrayBytes(removeHexStringHeader(toAddress))
     val TxHashBytes = hexString2ArrayBytes(removeHexStringHeader(txHash))
@@ -29,6 +29,6 @@ object BlockchainKeyConverter {
     val outKey = Array[Byte](OUT_TX_TYPE) ++ fromHexBytes ++ toHexBytes ++ timestampBytes ++ tokenBytes ++ TxHashBytes
     val inKey = Array[Byte](IN_TX_TYPE) ++ toHexBytes ++ fromHexBytes ++ timestampBytes ++ tokenBytes ++ TxHashBytes
 
-    TransactionKeyBytes(outKey, inKey)
+    InnerTransactionKeyBytes(outKey, inKey)
   }
 }

@@ -1,7 +1,7 @@
 package com.tudb.blockchain.eth
 
 import com.tudb.blockchain.TokenNames
-import com.tudb.blockchain.entities.EthTransaction
+import com.tudb.blockchain.entities.{EthTransaction, TransactionWithFullInfo}
 import com.tudb.blockchain.eth.contract.{ERC20Contract, ERC20Meta, ERC20Transfer, ERC20TransferFrom, NoneERC20}
 import org.web3j.abi.TypeDecoder
 import org.web3j.abi.datatypes.Address
@@ -20,7 +20,7 @@ class EthBlockParser() {
   addressDecoder.setAccessible(true)
   numericDecoder.setAccessible(true)
 
-  def getBlockTransactions(ethBlock: EthBlock.Block): Seq[EthTransaction] = {
+  def getBlockTransactions(ethBlock: EthBlock.Block): Seq[TransactionWithFullInfo] = {
     val transactionObjects =
       ethBlock.getTransactions.asScala.map(tx => tx.get().asInstanceOf[EthBlock.TransactionObject])
     extractBlockTransactions(transactionObjects, ethBlock.getTimestamp.longValue())
@@ -29,42 +29,58 @@ class EthBlockParser() {
   private def extractBlockTransactions(
       txs: Seq[EthBlock.TransactionObject],
       timestamp: Long
-    ): Seq[EthTransaction] = {
+    ): Seq[TransactionWithFullInfo] = {
     val blockTransactions = txs
       .map(tx => {
         val fromAddress = tx.getFrom
         val toAddress = tx.getTo
         val txHash = tx.getHash
-
-        if (!ERC20Meta.ERC20Contracts.contains(toAddress)) {
-          val money = tx.getValue.toString(16)
-          if (toAddress == null) null
-          else
-            EthTransaction(
-              fromAddress,
-              toAddress,
-              TokenNames.ETHEREUM_NATIVE_COIN,
-              money,
-              timestamp,
-              txHash
-            )
-        } else {
-          val input = tx.getInput
-          val tokenName = ERC20Meta.ERC20Contracts(toAddress)
-          val erc20Contract = parseERC20Contract(input)
-          erc20Contract match {
-            case ERC20Transfer(to, money) =>
-              EthTransaction(fromAddress, to, tokenName, money, timestamp, txHash)
-
-            case ERC20TransferFrom(from, to, money) =>
-              EthTransaction(from, to, tokenName, money, timestamp, txHash)
-
-            case NoneERC20() => null
+        val input = tx.getInput
+        toAddress match {
+          case ERC20Meta.USDT_CONTRACT_ADDRESS => {
+            val tokenName = TokenNames.USDT
+            getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+          }
+          case ERC20Meta.USDC_CONTRACT_ADDRESS => {
+            val tokenName = TokenNames.USDC
+            getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+          }
+          case _ => {
+            val money = tx.getValue.toString(16)
+            if (toAddress == null) null
+            else
+              EthTransaction(
+                fromAddress,
+                toAddress,
+                TokenNames.ETHEREUM_NATIVE_COIN,
+                money,
+                timestamp,
+                txHash
+              )
           }
         }
       })
       .filter(tx => tx != null)
     blockTransactions
+  }
+
+  def getContractTransaction(
+      fromAddress: String,
+      timestamp: Long,
+      txHash: String,
+      input: String,
+      tokenName: String
+    ): TransactionWithFullInfo = {
+    val erc20Contract = parseERC20Contract(input)
+    erc20Contract match {
+      case ERC20Transfer(to, money) =>
+        EthTransaction(fromAddress, to, tokenName, money, timestamp, txHash)
+
+      case ERC20TransferFrom(from, to, money) =>
+        EthTransaction(from, to, tokenName, money, timestamp, txHash)
+
+      case NoneERC20() => null
+    }
   }
 
   private def parseERC20Contract(txInput: String): ERC20Contract = {

@@ -16,7 +16,9 @@ object ClientTest {
    */
   def main(args: Array[String]): Unit = {
     val client = new TuDBClient("127.0.0.1", 9967)
-    val res = client.hopQuery("0x5c891d76584b46bc7f1e700169a76569bb77d2db", "in", 1, 1, 10)
+    val res =
+      client.hopQuery("ethereum", "0x912fd21d7a69678227fe6d08c64222db41477ba0", "out", 1, 1, 10)
+
     println(res.getResult)
     client.close()
   }
