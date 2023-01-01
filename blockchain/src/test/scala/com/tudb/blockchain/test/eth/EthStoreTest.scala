@@ -75,8 +75,8 @@ class EthStoreTest {
     importer.importTx(Seq(tx2))
     importer.importTx(Seq(tx3))
 
-    val txArrayOut = queryApi.findOutTransactions().toSeq
-    val txArrayIn = queryApi.findInTransactions().toSeq
+    val txArrayOut = queryApi.findAllOutTransactions().toSeq
+    val txArrayIn = queryApi.findAllInTransactions().toSeq
     val groundTruth = Seq(response1, response2, response3)
 
     Assert.assertEquals(3, txArrayOut.length)
@@ -87,6 +87,59 @@ class EthStoreTest {
 
     chainDB.close()
     metaDB.close()
+  }
+
+  @Test
+  def testFindTransactions(): Unit = {
+    val tx1 = EthTransaction(address1, address2, token1, money1, timestamp1, txHash1)
+    val response1 = ResponseTransaction(address1, address2, token1, money1, timestamp1)
+
+    val tx2 = EthTransaction(address1, address2, token2, money2, timestamp2, txHash2)
+    val response2 = ResponseTransaction(address1, address2, token2, money2, timestamp2)
+
+    val tx3 = EthTransaction(address1, address2, token2, money3, timestamp3, txHash3)
+    val response3 = ResponseTransaction(address1, address2, token2, money3, timestamp3)
+
+    val blockchain = "ethereum"
+    val chainDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/${blockchain}.db")
+    val metaDB = RocksDB.open(RocksDBStorageConfig.getDefaultOptions(true), s"${dbPath}/meta.db")
+    val metaStoreApi = new MetaStoreApi(metaDB)
+    metaStoreApi.getOrAddChainName(blockchain)
+
+    val importer = new BlockchainTransactionImporter(chainDB, metaStoreApi)
+    importer.importTx(Seq(tx1, tx2, tx3))
+
+    val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
+
+    var result = queryApi.findOutTransaction(address1).toSeq
+    var groundTruth = Seq(response3, response2, response1)
+    Assert.assertEquals(groundTruth, result)
+
+    result = queryApi.findOutTransaction(address1, token1).toSeq
+    groundTruth = Seq(response1)
+    Assert.assertEquals(groundTruth, result)
+
+    result = queryApi.findOutTransaction(address1, token2).toSeq
+    groundTruth = Seq(response3, response2)
+    Assert.assertEquals(groundTruth, result)
+
+    result = queryApi.findInTransaction(address2).toSeq
+    groundTruth = Seq(response3, response2, response1)
+    Assert.assertEquals(groundTruth, result)
+
+    result = queryApi.findInTransaction(address2, token1).toSeq
+    groundTruth = Seq(response1)
+    Assert.assertEquals(groundTruth, result)
+
+    result = queryApi.findInTransaction(address2, token2).toSeq
+    groundTruth = Seq(response3, response2)
+    Assert.assertEquals(groundTruth, result)
+
+    val tokenNames = metaStoreApi.getAllTokenNames().toSet
+    Assert.assertEquals(Set(token1, token2), tokenNames)
+
+    val chainNames = metaStoreApi.getAllBlockchainNames().toSet
+    Assert.assertEquals(Set(blockchain), chainNames)
   }
 
   @Test
@@ -112,8 +165,8 @@ class EthStoreTest {
     val importer = new BlockchainTransactionImporter(chainDB, metaStoreApi)
     importer.importTx(Seq(tx1, tx2, tx3))
 
-    val queryOutResult = queryApi.findOutTransactionByAddress(address1).toSeq
-    val queryInResult = queryApi.findInTransactionsByAddress(address2).toSeq
+    val queryOutResult = queryApi.findOutTransaction(address1).toSeq
+    val queryInResult = queryApi.findInTransaction(address2).toSeq
     val groundTruth = Seq(response3, response2, response1)
 
     Assert.assertEquals(groundTruth, queryOutResult)

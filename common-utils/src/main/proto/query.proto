@@ -10,11 +10,12 @@ service TuQueryService {
 
 message HopQueryRequest {
   string chainName = 1;
-  string address = 2;
-  string direction = 3;
-  int32 lowerHop = 4;
-  int32 upperHop = 5;
-  int32 limit = 6;
+  string tokenName = 2;
+  string address = 3;
+  string direction = 4;
+  int32 lowerHop = 5;
+  int32 upperHop = 6;
+  int32 limit = 7;
 }
 
 message QueryResponse {

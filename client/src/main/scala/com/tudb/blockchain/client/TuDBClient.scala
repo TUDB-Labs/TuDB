@@ -30,17 +30,36 @@ class TuDBClient(host: String, port: Int) {
       direction: String,
       lowerHop: Int,
       upperHop: Int,
-      limit: Int
+      limit: Int,
+      tokenName: String = ""
     ): Query.QueryResponse = {
-    val request = Query.HopQueryRequest
-      .newBuilder()
-      .setChainName(chainName)
-      .setAddress(address)
-      .setDirection(direction)
-      .setLowerHop(lowerHop)
-      .setUpperHop(upperHop)
-      .setLimit(limit)
-      .build()
+    val request = {
+      tokenName match {
+        case "" => {
+          Query.HopQueryRequest
+            .newBuilder()
+            .setChainName(chainName)
+            .setAddress(address)
+            .setDirection(direction)
+            .setLowerHop(lowerHop)
+            .setUpperHop(upperHop)
+            .setLimit(limit)
+            .build()
+        }
+        case _ => {
+          Query.HopQueryRequest
+            .newBuilder()
+            .setChainName(chainName)
+            .setTokenName(tokenName)
+            .setAddress(address)
+            .setDirection(direction)
+            .setLowerHop(lowerHop)
+            .setUpperHop(upperHop)
+            .setLimit(limit)
+            .build()
+        }
+      }
+    }
     blockingStub.hopQuery(request)
   }
 

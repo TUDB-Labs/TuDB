@@ -14,7 +14,7 @@ import java.io.File
   *@description:
   */
 class SynchronizeTest {
-  val dbPath = "./testdata/testEth"
+  val dbPath = "/Users/gaolianxin/Desktop/coding/20221201_tudb/TuDB/testdata"
   @Before
   def init(): Unit = {
     val file = new File(dbPath)
@@ -33,11 +33,10 @@ class SynchronizeTest {
     val metaStoreApi = new MetaStoreApi(metaDB)
     val synchronizer = new EthBlockchainSynchronizer(web3jEthClient, chainDB, metaStoreApi)
     synchronizer.start()
-    Thread.sleep(1000)
+    Thread.sleep(10000)
     synchronizer.stop()
 
-    val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
-    println(queryApi.findOutTransactions().length)
-    println(queryApi.findInTransactions().length)
+    chainDB.close()
+    metaDB.close()
   }
 }

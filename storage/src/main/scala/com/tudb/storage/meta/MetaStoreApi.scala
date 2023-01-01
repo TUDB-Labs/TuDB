@@ -13,6 +13,12 @@ class MetaStoreApi(metaDB: RocksDB) {
   def getAllBlockchainNames(): Seq[String] = {
     metaNameStore.chainName2Id.keys.toSeq
   }
+  def getAllTokenNames(): Seq[String] = {
+    metaNameStore.tokenName2Id.keys.toSeq
+  }
+  def isContainTokenName(tokenName: String): Boolean = {
+    metaNameStore.tokenName2Id.contains(tokenName)
+  }
 
   def setSynchronizedBlockNumber(blockchain: String, blockNumber: Long): Unit = {
     val key = MetaKeyConverter.getSynchronizedBlockNumberKey(blockchain)

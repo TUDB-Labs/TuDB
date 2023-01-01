@@ -18,10 +18,10 @@ class QueryTest {
     val metaStoreApi = new MetaStoreApi(metaDB)
 
     val queryApi = new BlockchainQueryApi(chainDB, metaStoreApi)
-    println(queryApi.findOutTransactions().length)
+    println(queryApi.findAllOutTransactions().length)
 
     queryApi
-      .findOutTransactionByAddress("0x912fd21d7a69678227fe6d08c64222db41477ba0")
+      .findOutTransaction("0x912fd21d7a69678227fe6d08c64222db41477ba0")
       .foreach(println)
 //    queryApi.findOutTransactions().foreach(println)
   }
