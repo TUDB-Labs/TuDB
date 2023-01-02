@@ -1,6 +1,6 @@
 package com.tudb.storage.tools
 
-import com.tudb.tools.ByteUtils
+import com.tudb.blockchain.tools.ByteUtils
 
 /**
   *@description:

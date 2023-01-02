@@ -1,8 +1,6 @@
-package com.tudb.blockchain.converter
+package com.tudb.blockchain.tools
 
-import com.tudb.blockchain.entities.InnerTransactionKeyBytes
-import com.tudb.tools.ByteUtils
-import com.tudb.tools.HexStringUtils.{IN_TX_TYPE, OUT_TX_TYPE, hexString2ArrayBytes, removeHexStringHeader}
+import HexStringUtils.{IN_TX_TYPE, OUT_TX_TYPE, hexString2ArrayBytes, removeHexStringHeader}
 
 /**
   *@description:

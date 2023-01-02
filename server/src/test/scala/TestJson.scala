@@ -1,6 +1,5 @@
 import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization
-import org.rocksdb.RocksDB
 
 import java.math.BigInteger
 

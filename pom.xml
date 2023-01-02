@@ -15,6 +15,7 @@
         <module>bitcoin</module>
         <module>blockchain</module>
         <module>storage</module>
+        <module>spark-tool</module>
     </modules>
 
     <dependencyManagement>
@@ -28,12 +29,12 @@
             <dependency>
                 <groupId>org.json4s</groupId>
                 <artifactId>json4s-native_2.12</artifactId>
-                <version>4.1.0-M2</version>
+                <version>3.7.0-M5</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
                 <artifactId>json4s-jackson_2.12</artifactId>
-                <version>4.1.0-M2</version>
+                <version>3.7.0-M5</version>
             </dependency>
 
             <dependency>

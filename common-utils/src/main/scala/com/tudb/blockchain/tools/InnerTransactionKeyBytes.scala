@@ -1,4 +1,4 @@
-package com.tudb.blockchain.entities
+package com.tudb.blockchain.tools
 
 /**
   *@description:

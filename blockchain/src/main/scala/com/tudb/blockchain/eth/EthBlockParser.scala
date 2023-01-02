@@ -26,6 +26,38 @@ class EthBlockParser() {
     extractBlockTransactions(transactionObjects, ethBlock.getTimestamp.longValue())
   }
 
+  def getBlockFromSpark(
+      hash: String,
+      from: String,
+      to: String,
+      timestamp: Long,
+      money: String,
+      input: String
+    ): TransactionWithFullInfo = {
+    to match {
+      case ERC20Meta.USDT_CONTRACT_ADDRESS => {
+        if (input == null) return null // contract failed
+        val tokenName = TokenNames.USDT
+        getContractTransaction(from, timestamp, hash, input, tokenName)
+      }
+      case ERC20Meta.USDC_CONTRACT_ADDRESS => {
+        if (input == null) return null // contract failed
+        val tokenName = TokenNames.USDC
+        getContractTransaction(from, timestamp, hash, input, tokenName)
+      }
+      case _ => {
+        EthTransaction(
+          from,
+          to,
+          TokenNames.ETHEREUM_NATIVE_COIN,
+          money,
+          timestamp,
+          hash
+        )
+      }
+    }
+  }
+
   private def extractBlockTransactions(
       txs: Seq[EthBlock.TransactionObject],
       timestamp: Long
@@ -38,17 +70,23 @@ class EthBlockParser() {
         val input = tx.getInput
         toAddress match {
           case ERC20Meta.USDT_CONTRACT_ADDRESS => {
-            val tokenName = TokenNames.USDT
-            getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+            if (input == null) null
+            else {
+              val tokenName = TokenNames.USDT
+              getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+            }
           }
           case ERC20Meta.USDC_CONTRACT_ADDRESS => {
-            val tokenName = TokenNames.USDC
-            getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+            if (input == null) null
+            else {
+              val tokenName = TokenNames.USDC
+              getContractTransaction(fromAddress, timestamp, txHash, input, tokenName)
+            }
           }
           case _ => {
-            val money = tx.getValue.toString(16)
             if (toAddress == null) null
-            else
+            else {
+              val money = tx.getValue.toString(16)
               EthTransaction(
                 fromAddress,
                 toAddress,
@@ -57,6 +95,7 @@ class EthBlockParser() {
                 timestamp,
                 txHash
               )
+            }
           }
         }
       })

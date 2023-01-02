@@ -1,9 +1,8 @@
 package com.tudb.blockchain.importer
 
-import com.tudb.blockchain.converter.BlockchainKeyConverter
 import com.tudb.blockchain.entities.TransactionWithFullInfo
+import com.tudb.blockchain.tools.{BlockchainKeyConverter, HexStringUtils}
 import com.tudb.storage.meta.MetaStoreApi
-import com.tudb.tools.HexStringUtils
 import org.rocksdb.{RocksDB, WriteBatch, WriteOptions}
 
 import scala.collection.mutable.ArrayBuffer

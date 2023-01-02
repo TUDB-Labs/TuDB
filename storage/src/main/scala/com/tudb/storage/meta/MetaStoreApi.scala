@@ -1,7 +1,7 @@
 package com.tudb.storage.meta
 
+import com.tudb.blockchain.tools.ByteUtils
 import com.tudb.storage.tools.MetaKeyConverter
-import com.tudb.tools.ByteUtils
 import org.rocksdb.RocksDB
 
 /**

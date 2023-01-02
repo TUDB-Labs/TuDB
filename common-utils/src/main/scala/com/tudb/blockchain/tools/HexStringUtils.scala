@@ -1,4 +1,4 @@
-package com.tudb.tools
+package com.tudb.blockchain.tools
 
 import scala.collection.mutable
 

@@ -1,7 +1,6 @@
 package com.tudb.blockchain.test
 
-import com.tudb.blockchain.converter.BlockchainKeyConverter
-import com.tudb.tools.{ByteUtils, HexStringUtils}
+import com.tudb.blockchain.tools.{BlockchainKeyConverter, ByteUtils, HexStringUtils}
 import org.junit.{Assert, Test}
 
 /**
